@@ -1,0 +1,36 @@
+{
+  "name": "chemo-education-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Phase 1 backend: intake logic + video-gen pipeline (Next.js App Router)",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "demo:intake": "tsx scripts/demo-intake.ts",
+    "demo:video": "tsx scripts/demo-video-gen.ts"
+  },
+  "dependencies": {
+    "@google-cloud/text-to-speech": "^6.4.1",
+    "@google/genai": "^2.16.0",
+    "@remotion/bundler": "4.0.506",
+    "@remotion/renderer": "4.0.506",
+    "@supabase/supabase-js": "^2.45.4",
+    "dotenv": "^17.4.2",
+    "next": "15.5.23",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.506",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.4",
+    "tsx": "^4.19.2",
+    "typescript": "5.9.3"
+  }
+}
