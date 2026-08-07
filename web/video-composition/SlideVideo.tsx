@@ -38,6 +38,16 @@ export const SlideVideo: React.FC<SlideVideoProps> = ({ slides, audioSrc, totalS
   );
 };
 
+// Long `detail` bodies (depth: "detailed") need a smaller size to stay
+// within the frame's vertical space — same box, same padding, just less
+// text per line/more lines, so it scales down as word count grows.
+function bodyFontSize(body: string): number {
+  const words = body.split(/\s+/).filter(Boolean).length;
+  if (words > 130) return 20;
+  if (words > 80) return 24;
+  return 28;
+}
+
 const Slide: React.FC<{ headline: string; body?: string }> = ({ headline, body }) => (
   <AbsoluteFill
     style={{
@@ -47,10 +57,25 @@ const Slide: React.FC<{ headline: string; body?: string }> = ({ headline, body }
       padding: 80,
       fontFamily: "system-ui, sans-serif",
       textAlign: "center",
+      overflow: "hidden",
     }}
   >
-    <h1 style={{ fontSize: 56, color: "#1f3d3a", marginBottom: 24 }}>{headline}</h1>
-    {body ? <p style={{ fontSize: 28, color: "#3a5a56", maxWidth: 900 }}>{body}</p> : null}
+    <h1 style={{ fontSize: 56, color: "#1f3d3a", marginBottom: 24, maxWidth: 1120, overflowWrap: "break-word" }}>
+      {headline}
+    </h1>
+    {body ? (
+      <p
+        style={{
+          fontSize: bodyFontSize(body),
+          lineHeight: 1.4,
+          color: "#3a5a56",
+          maxWidth: 900,
+          overflowWrap: "break-word",
+        }}
+      >
+        {body}
+      </p>
+    ) : null}
   </AbsoluteFill>
 );
 

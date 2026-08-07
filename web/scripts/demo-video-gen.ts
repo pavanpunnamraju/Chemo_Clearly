@@ -18,7 +18,7 @@ loadEnvLocal({ path: path.join(__dirname, "..", ".env.local") });
 import { IntakeSchema, toPersonalizationFilter } from "../lib/intake/schema";
 import { loadRegimenContent } from "../lib/content";
 import { selectContent } from "../lib/video/select";
-import { buildNarrationPlan } from "../lib/video/narration";
+import { buildNarrationPlan, applyTimepoints } from "../lib/video/narration";
 import { synthesizeNarration } from "../lib/video/tts";
 import { renderVideoLocally } from "../lib/video/render";
 import { storeVideo } from "../lib/storage";
@@ -40,13 +40,21 @@ async function main() {
   const selection = await selectContent(content, filter);
   console.log(`Selection (${selection.method}):`, selection.entryIds);
 
-  const plan = buildNarrationPlan(content, selection.entryIds, filter);
-  console.log(`Narration script (${plan.script.length} chars, ~${plan.totalSeconds.toFixed(1)}s):`);
-  console.log(plan.script);
+  const estimatedPlan = buildNarrationPlan(content, selection.entryIds, filter);
+  console.log(
+    `Narration script (${estimatedPlan.script.length} chars, ~${estimatedPlan.totalSeconds.toFixed(1)}s estimated):`,
+  );
+  console.log(estimatedPlan.script);
 
   console.log("\nCalling Google Cloud TTS...");
-  const { audioBuffer, charactersSent, voice } = await synthesizeNarration(plan.script);
-  console.log(`TTS OK: ${charactersSent} chars billed, voice ${voice}, ${audioBuffer.length} audio bytes`);
+  const { audioBuffer, charactersSent, voice, timepoints, durationSeconds } = await synthesizeNarration(
+    estimatedPlan.ssml,
+    estimatedPlan.script,
+  );
+  console.log(
+    `TTS OK: ${charactersSent} chars billed, voice ${voice}, ${audioBuffer.length} audio bytes, ${durationSeconds.toFixed(1)}s actual duration, ${timepoints.length} timepoints`,
+  );
+  const plan = applyTimepoints(estimatedPlan, timepoints, durationSeconds);
 
   console.log("\nRendering video locally via Remotion...");
   const outputPath = path.join(__dirname, "..", "out", "demo-video.mp4");

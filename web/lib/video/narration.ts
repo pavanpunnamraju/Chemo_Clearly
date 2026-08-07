@@ -11,8 +11,20 @@ export interface SlideBeat {
 export interface NarrationPlan {
   /** Full narration text sent to TTS, verbatim canonical text joined + citation markers stripped. */
   script: string;
+  /** Same narration text as SSML, with an <mark> before each slide's text so TTS can report real per-slide timing. */
+  ssml: string;
   slides: SlideBeat[];
   totalSeconds: number;
+}
+
+/** A single point in time TTS reported for an SSML <mark>, keyed by its name. */
+export interface NarrationTimepoint {
+  markName: string;
+  timeSeconds: number;
+}
+
+function escapeSsml(text: string): string {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 // Narration speaking-rate assumption for slide-cue timing, in words/second.
@@ -65,6 +77,7 @@ export function buildNarrationPlan(
   const byId = new Map(content.entries.map((e) => [e.id, e]));
 
   const scriptParts: string[] = [];
+  const ssmlParts: string[] = [];
   const slides: SlideBeat[] = [];
   let cumulativeSeconds = 0;
 
@@ -83,13 +96,38 @@ export function buildNarrationPlan(
     });
 
     scriptParts.push(text);
+    ssmlParts.push(`<mark name="${entry.id}"/>${escapeSsml(text)}`);
     const wordCount = text.split(/\s+/).filter(Boolean).length;
     cumulativeSeconds += wordCount / WORDS_PER_SECOND;
   }
 
   return {
     script: scriptParts.join(" "),
+    ssml: `<speak>${ssmlParts.join(" ")}</speak>`,
     slides,
     totalSeconds: cumulativeSeconds,
+  };
+}
+
+/**
+ * Replaces the word-count-estimated slide timing with real TTS timepoints
+ * (one per slide, matched by entryId === SSML mark name) and the actual
+ * rendered audio duration — this is what keeps narration and on-screen text
+ * in sync instead of drifting apart as script length grows.
+ */
+export function applyTimepoints(
+  plan: NarrationPlan,
+  timepoints: NarrationTimepoint[],
+  audioDurationSeconds: number,
+): NarrationPlan {
+  const timeByMark = new Map(timepoints.map((t) => [t.markName, t.timeSeconds]));
+
+  return {
+    ...plan,
+    slides: plan.slides.map((slide) => ({
+      ...slide,
+      startSeconds: timeByMark.get(slide.entryId) ?? slide.startSeconds,
+    })),
+    totalSeconds: audioDurationSeconds,
   };
 }

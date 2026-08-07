@@ -82,7 +82,7 @@ async function geminiSelect(
   const ai = new GoogleGenAI({ apiKey });
 
   const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
+    model: "gemini-flash-latest",
     contents: buildGeminiPrompt(content, filter),
   });
 

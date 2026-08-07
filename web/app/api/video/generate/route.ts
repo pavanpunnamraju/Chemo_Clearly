@@ -5,7 +5,7 @@ import os from "node:os";
 import { IntakeSchema, toPersonalizationFilter } from "@/lib/intake/schema";
 import { loadRegimenContent } from "@/lib/content";
 import { selectContent } from "@/lib/video/select";
-import { buildNarrationPlan } from "@/lib/video/narration";
+import { buildNarrationPlan, applyTimepoints } from "@/lib/video/narration";
 import { synthesizeNarration } from "@/lib/video/tts";
 import { renderVideoLocally } from "@/lib/video/render";
 import { storeVideo } from "@/lib/storage";
@@ -30,9 +30,13 @@ export async function POST(req: NextRequest) {
 
   const content = loadRegimenContent(intake.regimenId);
   const selection = await selectContent(content, filter);
-  const plan = buildNarrationPlan(content, selection.entryIds, filter);
+  const estimatedPlan = buildNarrationPlan(content, selection.entryIds, filter);
 
-  const { audioBuffer } = await synthesizeNarration(plan.script);
+  const { audioBuffer, timepoints, durationSeconds } = await synthesizeNarration(
+    estimatedPlan.ssml,
+    estimatedPlan.script,
+  );
+  const plan = applyTimepoints(estimatedPlan, timepoints, durationSeconds);
 
   const tmpDir = mkdtempSync(path.join(os.tmpdir(), "chemo-render-"));
   const localOutput = path.join(tmpDir, "video.mp4");
