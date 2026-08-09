@@ -11,9 +11,16 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "demo:intake": "tsx scripts/demo-intake.ts",
-    "demo:video": "tsx scripts/demo-video-gen.ts"
+    "demo:patient-flow": "tsx scripts/demo-patient-flow.ts",
+    "demo:guardrail": "tsx scripts/demo-guardrail.ts",
+    "demo:video": "tsx scripts/demo-video-gen.ts",
+    "demo:rewrite": "tsx scripts/demo-rewrite.ts",
+    "demo:components": "tsx scripts/demo-components.ts",
+    "demo:notes": "tsx scripts/demo-notes.ts",
+    "sync:schema": "tsx scripts/sync-schema.ts"
   },
   "dependencies": {
+    "@google-cloud/speech": "^7.5.0",
     "@google-cloud/text-to-speech": "^6.4.1",
     "@google/genai": "^2.16.0",
     "@remotion/bundler": "4.0.506",

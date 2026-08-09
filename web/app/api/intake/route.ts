@@ -21,6 +21,7 @@ export async function POST(req: NextRequest) {
         education_level: intake.educationLevel,
         topics: intake.topics,
         depth_preference: intake.depthPreference,
+        voice_tone: intake.voiceTone,
         follow_up_questions: intake.followUpQuestions ?? null,
       })
       .select("id")

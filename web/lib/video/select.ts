@@ -1,5 +1,6 @@
 import { SECTION_IDS, type ContentEntry, type RegimenContent } from "../content/types";
 import type { PersonalizationFilter } from "../intake/schema";
+import { getGenAIClient } from "../gemini/client";
 
 // Phase 1 goal 3's agentic layer. GUARDRAIL: this step only ever returns a
 // list of entry ids drawn from the ids it was given — it never generates or
@@ -75,15 +76,12 @@ async function geminiSelect(
   content: RegimenContent,
   filter: PersonalizationFilter,
 ): Promise<string[] | null> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return null;
-
-  const { GoogleGenAI } = await import("@google/genai");
-  const ai = new GoogleGenAI({ apiKey });
+  const ai = await getGenAIClient();
+  if (!ai) return null;
 
   const response = await ai.models.generateContent({
-    model: "gemini-flash-latest",
-    contents: buildGeminiPrompt(content, filter),
+    model: "gemini-2.5-flash",
+    contents: [{ role: "user", parts: [{ text: buildGeminiPrompt(content, filter) }] }],
   });
 
   const text = response.text?.trim() ?? "";

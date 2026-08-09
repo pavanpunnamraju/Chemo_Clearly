@@ -95,13 +95,14 @@ a natural next step.
   compress away the parts that would change a decision.
 - Keep `docs/plans/` and `docs/agents/` as the persistent memory of the project. If it's
   not written down, it didn't happen — sessions are ephemeral, the docs aren't.
-- Track phase-level state in `docs/live_task_progress.md`, not the task system — tasks
+- Track phase-level state in `docs/implementation_plan.md`, not the task system — tasks
   don't survive a context clear, the file does. Update it on every status change and
   treat it as the durable source of session-to-session continuity. Structure it around
-  the design doc's actual phase/goal list (a step-by-step status table), not as a
-  narrative log of decisions/discussions — a full re-scope gets a fresh, goal-based
+  the product requirements' actual phase/goal list (a step-by-step status table), not as
+  a narrative log of decisions/discussions — a full re-scope gets a fresh, goal-based
   rewrite (old narrative history stays in git log and the design doc, not repeated in the
-  live file).
+  live file). Feature/scope questions belong in `docs/product_requirements.md`; this file
+  is status and sequencing only.
 - When a re-scope or new phase surfaces multiple undecided technical choices (which
   video-gen vendor, which auth approach, which framework), surface and resolve all of
   them together in one pass — don't leave one for the human to be asked about again in a

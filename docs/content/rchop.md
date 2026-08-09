@@ -286,10 +286,10 @@ overreacting.
 in a substantial share of patients on their *first* infusion specifically (which is why
 that dose is given more slowly and watched closely), dropping off sharply on later doses.
 [S1] Doxorubicin's heart-risk (congestive heart failure) is dose-dependent: R-CHOP's
-standard 6-cycle course reaches a cumulative doxorubicin dose of 300 mg/m², where the
-FDA label lists a CHF risk of roughly 1-2%, rising steeply if a patient has received
-doxorubicin before (including in a prior cancer) — which is why disclosing prior
-treatment matters. [S5a] Tumor lysis syndrome is
+standard 6-cycle course reaches a cumulative doxorubicin dose of 300 mg/m² — the level
+where the FDA label starts quantifying that risk. It's low there, but it climbs steeply
+if a patient has received doxorubicin before (including in a prior cancer), which is why
+disclosing prior treatment matters. [S5a] Tumor lysis syndrome is
 uncommon overall and mainly a first-cycle concern in patients with a high existing tumor
 burden; your team screens for this risk before your first infusion. [S1]
 

@@ -7,6 +7,7 @@ const defaultProps: SlideVideoProps = {
   slides: [{ entryId: "overview", startSeconds: 0, headline: "Loading...", body: "" }],
   audioSrc: "",
   totalSeconds: 3,
+  components: [],
 };
 
 export const RemotionRoot: React.FC = () => {

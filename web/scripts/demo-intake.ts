@@ -9,12 +9,14 @@ const samples = [
     educationLevel: "basic" as const,
     topics: ["nausea-appetite", "infection-risk", "hair-skin-appearance"] as const,
     depthPreference: "short" as const,
+    voiceTone: "friendly" as const,
   },
   {
     regimenId: "ac-t",
     educationLevel: "advanced" as const,
     topics: ["nerve-tingling", "heart", "long-term-outlook"] as const,
     depthPreference: "detailed" as const,
+    voiceTone: "hopeful" as const,
     followUpQuestions: ["Will I need a port for this?"],
   },
 ];

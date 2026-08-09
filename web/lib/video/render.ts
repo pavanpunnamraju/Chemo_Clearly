@@ -2,6 +2,7 @@ import path from "node:path";
 import { writeFileSync, mkdtempSync } from "node:fs";
 import os from "node:os";
 import type { NarrationPlan } from "./narration";
+import type { TimedComponent } from "./components";
 
 // Known constraint (already resolved in the design doc, not rediscovered here):
 // Remotion can't render inside a standard Vercel serverless function. In
@@ -26,6 +27,7 @@ export async function renderVideoLocally(
   plan: NarrationPlan,
   audioBuffer: Buffer,
   outputPath: string,
+  components: TimedComponent[] = [],
 ): Promise<RenderResult> {
   const { bundle } = await import("@remotion/bundler");
   const { renderMedia, selectComposition } = await import("@remotion/renderer");
@@ -37,7 +39,7 @@ export async function renderVideoLocally(
   // A plain local/file:// path doesn't work here: Remotion's renderer fetches
   // assets over HTTP from its own bundle server, not from the filesystem.
   const publicDir = mkdtempSync(path.join(os.tmpdir(), "chemo-video-public-"));
-  const audioFilename = "narration.mp3";
+  const audioFilename = "narration.wav";
   writeFileSync(path.join(publicDir, audioFilename), audioBuffer);
 
   const entryPoint = path.join(process.cwd(), "video-composition", "index.ts");
@@ -47,6 +49,7 @@ export async function renderVideoLocally(
     slides: plan.slides,
     audioSrc: audioFilename,
     totalSeconds: plan.totalSeconds,
+    components,
   };
 
   const composition = await selectComposition({

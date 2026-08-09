@@ -11,20 +11,8 @@ export interface SlideBeat {
 export interface NarrationPlan {
   /** Full narration text sent to TTS, verbatim canonical text joined + citation markers stripped. */
   script: string;
-  /** Same narration text as SSML, with an <mark> before each slide's text so TTS can report real per-slide timing. */
-  ssml: string;
   slides: SlideBeat[];
   totalSeconds: number;
-}
-
-/** A single point in time TTS reported for an SSML <mark>, keyed by its name. */
-export interface NarrationTimepoint {
-  markName: string;
-  timeSeconds: number;
-}
-
-function escapeSsml(text: string): string {
-  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 // Narration speaking-rate assumption for slide-cue timing, in words/second.
@@ -34,7 +22,7 @@ function escapeSsml(text: string): string {
 // timing is acceptable for v1's narrated-slides format.
 const WORDS_PER_SECOND = 2.5;
 
-function cleanForSpeechAndDisplay(text: string): string {
+export function cleanForSpeechAndDisplay(text: string): string {
   // Display/narration cleanup only — never changes a claim or its phrasing,
   // just the raw-markdown formatting from docs/content/*.md that isn't
   // meaningful spoken/rendered as literal characters (neither the TTS voice
@@ -47,6 +35,51 @@ function cleanForSpeechAndDisplay(text: string): string {
     .replace(/`([^`]*)`/g, "$1") // `code`
     .replace(/\s{2,}/g, " ")
     .trim();
+}
+
+export interface RewrittenChunk {
+  entryId: string;
+  text: string;
+}
+
+/**
+ * Builds narration script + slide cues from the LLM-rewritten chunks
+ * (lib/video/rewrite.ts, #3c) instead of verbatim source text — same shape
+ * as buildNarrationPlan (used by the deterministic no-rewrite path), just a
+ * different text source. Headline still comes from the canonical entry
+ * (rewrite.ts doesn't invent entry names), one slide per chunk, same order.
+ */
+export function buildNarrationPlanFromChunks(
+  chunks: RewrittenChunk[],
+  entries: ContentEntry[],
+): NarrationPlan {
+  const byId = new Map(entries.map((e) => [e.id, e]));
+
+  const scriptParts: string[] = [];
+  const slides: SlideBeat[] = [];
+  let cumulativeSeconds = 0;
+
+  for (const chunk of chunks) {
+    const entry = byId.get(chunk.entryId);
+    if (!entry || !chunk.text.trim()) continue;
+
+    slides.push({
+      entryId: chunk.entryId,
+      startSeconds: cumulativeSeconds,
+      headline: entryHeadline(entry),
+      body: chunk.text,
+    });
+
+    scriptParts.push(chunk.text);
+    const wordCount = chunk.text.split(/\s+/).filter(Boolean).length;
+    cumulativeSeconds += wordCount / WORDS_PER_SECOND;
+  }
+
+  return {
+    script: scriptParts.join(" "),
+    slides,
+    totalSeconds: cumulativeSeconds,
+  };
 }
 
 function entryHeadline(entry: ContentEntry): string {
@@ -77,7 +110,6 @@ export function buildNarrationPlan(
   const byId = new Map(content.entries.map((e) => [e.id, e]));
 
   const scriptParts: string[] = [];
-  const ssmlParts: string[] = [];
   const slides: SlideBeat[] = [];
   let cumulativeSeconds = 0;
 
@@ -96,38 +128,105 @@ export function buildNarrationPlan(
     });
 
     scriptParts.push(text);
-    ssmlParts.push(`<mark name="${entry.id}"/>${escapeSsml(text)}`);
     const wordCount = text.split(/\s+/).filter(Boolean).length;
     cumulativeSeconds += wordCount / WORDS_PER_SECOND;
   }
 
   return {
     script: scriptParts.join(" "),
-    ssml: `<speak>${ssmlParts.join(" ")}</speak>`,
     slides,
     totalSeconds: cumulativeSeconds,
   };
 }
 
+function normalizeWord(word: string): string {
+  return word.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+/** First index >= `from` where `haystack` contains `needle` as a contiguous run, or -1. */
+function findPhrase(haystack: string[], needle: string[], from: number): number {
+  if (needle.length === 0) return -1;
+  for (let i = from; i <= haystack.length - needle.length; i++) {
+    let matches = true;
+    for (let j = 0; j < needle.length; j++) {
+      if (haystack[i + j] !== needle[j]) {
+        matches = false;
+        break;
+      }
+    }
+    if (matches) return i;
+  }
+  return -1;
+}
+
 /**
- * Replaces the word-count-estimated slide timing with real TTS timepoints
- * (one per slide, matched by entryId === SSML mark name) and the actual
- * rendered audio duration — this is what keeps narration and on-screen text
- * in sync instead of drifting apart as script length grows.
+ * Replaces the word-count-estimated slide timing with real per-word
+ * timestamps from Speech-to-Text alignment (see lib/video/align.ts) and the
+ * actual rendered audio duration — this is what keeps narration and
+ * on-screen text in sync instead of drifting apart as script length grows.
+ *
+ * Matches by word *content*, not position: for each slide, scans forward
+ * (never backward, so slide order is preserved) from the previous match for
+ * a run of the slide's first 3 words appearing consecutively in the aligned
+ * word list — falling back to 2 words, then 1, only if a 3-word run isn't
+ * found. Content-based because raw word-count position drifts — Speech-to-Text
+ * expands things like "100.4°F" into several spoken words ("one hundred
+ * point four degrees fahrenheit"), while our script is one whitespace token,
+ * so index position and STT position diverge more with every number/symbol
+ * in the text.
+ *
+ * Requires a multi-word run, not just any single matching word: a single
+ * common word (e.g. "days", "your") recurs throughout the whole script, so
+ * matching on it alone can find a false hit inside an *earlier* slide's
+ * still-playing audio — collapsing that earlier slide's on-screen duration
+ * and making the next slide appear to jump in early/skip content. A 3-word
+ * run repeating by chance is far less likely.
  */
 export function applyTimepoints(
   plan: NarrationPlan,
-  timepoints: NarrationTimepoint[],
+  alignedWords: { word: string; startSeconds: number }[],
   audioDurationSeconds: number,
 ): NarrationPlan {
-  const timeByMark = new Map(timepoints.map((t) => [t.markName, t.timeSeconds]));
+  const matches = matchTimestamps(
+    plan.slides.map((s) => s.body),
+    alignedWords,
+  );
+  const slides = plan.slides.map((slide, i) => {
+    const startSeconds = matches[i]!;
+    return startSeconds === null ? slide : { ...slide, startSeconds };
+  });
 
-  return {
-    ...plan,
-    slides: plan.slides.map((slide) => ({
-      ...slide,
-      startSeconds: timeByMark.get(slide.entryId) ?? slide.startSeconds,
-    })),
-    totalSeconds: audioDurationSeconds,
-  };
+  return { ...plan, slides, totalSeconds: audioDurationSeconds };
+}
+
+/**
+ * Content-based text-to-timestamp matching, shared by applyTimepoints
+ * (slide cues) and components.ts (icon placement) — same 3/2/1-word
+ * forward-scanning strategy documented above, generalized to any ordered
+ * list of anchor texts instead of just slide bodies. Returns one result per
+ * anchor, in order; `null` where no match was found (caller decides the
+ * fallback — a slide keeps its word-count estimate, a component is simply
+ * not placed).
+ */
+export function matchTimestamps(
+  anchorTexts: string[],
+  alignedWords: { word: string; startSeconds: number }[],
+): (number | null)[] {
+  const normalizedAligned = alignedWords.map((w) => normalizeWord(w.word));
+  let cursor = 0;
+
+  return anchorTexts.map((text) => {
+    const words = text.split(/\s+/).filter(Boolean).map(normalizeWord).filter(Boolean);
+
+    let matchIndex = -1;
+    for (const phraseLength of [3, 2, 1]) {
+      if (words.length < phraseLength) continue;
+      matchIndex = findPhrase(normalizedAligned, words.slice(0, phraseLength), cursor);
+      if (matchIndex !== -1) break;
+    }
+    if (matchIndex === -1) return null;
+
+    cursor = matchIndex;
+    return alignedWords[matchIndex]!.startSeconds;
+  });
 }
