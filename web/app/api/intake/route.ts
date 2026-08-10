@@ -19,7 +19,10 @@ export async function POST(req: NextRequest) {
       .insert({
         regimen_id: intake.regimenId,
         education_level: intake.educationLevel,
-        topics: intake.topics,
+        // Column is `text[] not null` with no default; patients no longer
+        // pick topics, so this is always empty now (column itself left as-is
+        // in case the feature comes back).
+        topics: [],
         depth_preference: intake.depthPreference,
         voice_tone: intake.voiceTone,
         follow_up_questions: intake.followUpQuestions ?? null,

@@ -25,8 +25,10 @@ step 2 below — there is no picker/search page to carry it to.
      account — see `backend_schema.md`): straight to that one regimen,
      highlighted, with video access. A fresh scan of a *different* regimen's
      QR (rare, but possible) updates the assignment.
-3. **Intake Form** — education level, topics of interest, content-depth
-   preference (short vs. detailed), desired voice tone (neutral, friendly, hopeful).
+3. **Intake Form** — education level, content-depth preference (short vs.
+   detailed), desired voice tone (neutral, friendly, hopeful). No
+   topic/side-effect picker (removed 2026-08-10) — the video always covers
+   the full regimen side-effect set, concisely, not a patient-chosen subset.
 4. **Generating** — loading/progress state while the video pipeline runs
    (content selection → TTS → render).
 5. **Video Player** — the tailored narrated video.

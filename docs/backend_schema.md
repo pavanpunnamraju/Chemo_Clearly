@@ -31,7 +31,7 @@ One row per intake form submission.
 | `patient_id` | uuid, references `auth.users` | nullable — set once patient auth is wired in; existing rows predate patient accounts |
 | `regimen_id` | text | |
 | `education_level` | text | `basic` / `some_college` / `advanced` |
-| `topics` | text[] | tag taxonomy, see `docs/content/schema.md` |
+| `topics` | text[] | unused as of 2026-08-10 — topic/side-effect selection removed from intake; column and constraint left in place (not ALTERed) in case it's reintroduced, inserts now send `[]` |
 | `depth_preference` | text | `short` / `detailed` |
 | `voice_tone` | text | `neutral` / `friendly` / `hopeful` — passed to narration TTS as a style prompt |
 | `follow_up_questions` | text[] | nullable |
@@ -39,14 +39,14 @@ One row per intake form submission.
 
 ### `generated_videos`
 One row per unique generated video. Not one-per-intake-submission — one per
-distinct (regimen, education level, topics, depth, voice tone) combination,
-so multiple patients with matching intake reuse the same row/video instead
+distinct (regimen, education level, depth, voice tone) combination, so
+multiple patients with matching intake reuse the same row/video instead
 of triggering regeneration.
 
 | Column | Type | Notes |
 |---|---|---|
 | `id` | uuid, PK | |
-| `filter_hash` | text, not null, unique with `regimen_id` | deterministic hash of the normalized personalization filter (tags, depth, education level, voice tone) — the cache lookup key |
+| `filter_hash` | text, not null, unique with `regimen_id` | deterministic hash of the normalized personalization filter (tags, depth, education level, voice tone) — the cache lookup key. `tags` is now always the full fixed set (topics selection removed 2026-08-10), so it no longer differentiates entries; the hash formula itself hasn't been cleaned up yet — tracked as Phase 1 #3d, reopened but not started |
 | `regimen_id` | text | |
 | `storage_url` | text | |
 | `selection_method` | text | `gemini` / `fallback` |

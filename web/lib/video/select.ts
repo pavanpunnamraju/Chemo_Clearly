@@ -52,18 +52,15 @@ function buildGeminiPrompt(content: RegimenContent, filter: PersonalizationFilte
   }));
 
   return [
-    "You are selecting which pre-approved patient-education content entries to include",
-    "in a narrated video, based on a patient's stated topics of interest. You are NOT",
-    "writing any text — you only choose ids from the catalog below and order them.",
+    "You are ordering which pre-approved patient-education content entries appear",
+    "in a narrated video. The video is informational and must cover every side",
+    "effect for this regimen — you are NOT filtering or trimming content, only",
+    "choosing the order. You are NOT writing any text — you only choose ids from",
+    "the catalog below and order them.",
     "",
     "Rules:",
-    "- Only return ids that appear in the catalog. Never invent an id.",
-    '- Always include every entry with section "emergency" or tier "emergency".',
-    '- Always include every entry with section "overview" (context patients need first).',
-    `- Prefer entries whose tags overlap this patient's topics of interest: ${filter.tags.join(", ")}`,
+    "- Include every id in the catalog below. Never invent an id, never omit one.",
     "- Order roughly: overview, timeline, daily_life, side_effects, emergency, then the rest.",
-    "- Keep the total selection focused — omit side_effects/other entries with no tag overlap",
-    "  and no emergency tier.",
     "",
     "Catalog (JSON):",
     JSON.stringify(catalog, null, 2),
@@ -106,7 +103,12 @@ export async function selectContent(
 ): Promise<SelectionResult> {
   try {
     const geminiIds = await geminiSelect(content, filter);
-    if (geminiIds) return { entryIds: geminiIds, method: "gemini" };
+    // Video must always cover every entry — if Gemini dropped any (despite
+    // being told not to), fall back to the deterministic path, which always
+    // includes everything.
+    if (geminiIds && geminiIds.length === content.entries.length) {
+      return { entryIds: geminiIds, method: "gemini" };
+    }
   } catch (err) {
     console.warn("Gemini selection call failed, falling back to deterministic filter:", err);
   }

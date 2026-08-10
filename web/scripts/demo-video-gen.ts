@@ -33,7 +33,6 @@ async function main() {
   const intake = IntakeSchema.parse({
     regimenId: "rchop",
     educationLevel: "some_college",
-    topics: ["infection-risk", "nausea-appetite"],
     depthPreference: "short",
     voiceTone,
   });
