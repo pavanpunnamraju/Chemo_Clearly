@@ -37,17 +37,9 @@ Standing principle for all Storyset downloads, current and future — see
 - **Navy** — patient shown *experiencing* something passively/difficult,
   used sparingly.
 
-## Needs re-export
-
-- `side_effects/side_effects__sleep-analysis-pana.svg` — moves from coral to
-  navy `#1C2B45`, for consistency within `side_effects` (its category-mates
-  `tiredness-pana`/`stress-bro` are both navy). Re-export from
-  https://storyset.com/illustration/sleep-analysis/pana required — Storyset
-  only allows one dominant color per download, it can't be recolored after
-  the fact.
-
-All other 18 files are correct as downloaded under the settled color
-principle above.
+All 19 files are correct as downloaded under the settled color principle
+above — `side_effects/side_effects__sleep-analysis-pana.svg` has been
+re-exported to navy `#1C2B45` for consistency within `side_effects`.
 
 ## Attribution
 

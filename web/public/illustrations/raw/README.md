@@ -27,7 +27,7 @@
 | `daily_life__stretching-exercises-bro.svg` | https://storyset.com/illustration/stretching-exercises/bro | coral | <a href="https://storyset.com/home">Home illustrations by Storyset</a> 
 | `side_effects__tiredness-pana.svg` | https://storyset.com/illustration/tiredness/pana | navy | <a href="https://storyset.com/worker">Worker illustrations by Storyset</a>
 | `side_effects__stress-bro.svg` | https://storyset.com/illustration/stress/bro | navy | <a href="https://storyset.com/people">People illustrations by Storyset</a> 
-| `side_effects__sleep-analysis-pana.svg` | https://storyset.com/illustration/sleep-analysis/pana | coral | <a href="https://storyset.com/data">Data illustrations by Storyset</a>
+| `side_effects__sleep-analysis-pana.svg` | https://storyset.com/illustration/sleep-analysis/pana | navy | <a href="https://storyset.com/data">Data illustrations by Storyset</a>
 | `fertility_intimacy__family-bro.svg` | https://storyset.com/illustration/family/bro | coral | <a href="https://storyset.com/people">People illustrations by Storyset</a>
 | `fertility_intimacy__asian-family-pana.svg` | https://storyset.com/illustration/asian-family/pana | teal | <a href="https://storyset.com/happy">Happy illustrations by Storyset</a>
 | `emergency__call-center-bro.svg` | https://storyset.com/illustration/call-center/bro | teal | <a href="https://storyset.com/communication">Communication illustrations by Storyset</a> 
@@ -54,15 +54,10 @@ illustration depicts:
 When new Storyset links are handed off, give the color recommendation
 up front based on this principle.
 
---> **Re-export needed**: `side_effects__sleep-analysis-pana.svg` moves from
-coral to navy, for consistency within the `side_effects` section (its
-category-mates `tiredness-pana`/`stress-bro` are both navy — section
-consistency wins over the individual empowerment-reframe here). Storyset only
-allows one dominant color per download, so this can't be recolored after the
-fact — needs a fresh export from
-https://storyset.com/illustration/sleep-analysis/pana at navy `#1C2B45`,
-then drop it back into `side_effects/` following the steps above. The other
-18 files are correct as downloaded, don't touch them.
+--> **Re-export done**: `side_effects__sleep-analysis-pana.svg` was moved from
+coral to navy `#1C2B45`, for consistency within the `side_effects` section
+(its category-mates `tiredness-pana`/`stress-bro` are both navy). All 19
+files are correct as downloaded — none need further changes.
 
 --> Attributions: resolved — see `MANIFEST.md`.
 
