@@ -17,33 +17,43 @@ export interface SelectionResult {
   method: "gemini" | "fallback";
 }
 
-function deterministicSelect(
-  content: RegimenContent,
-  filter: PersonalizationFilter,
-): string[] {
-  const tagSet = new Set(filter.tags);
+// Phase 2a goal 1: sections spoken in the narrated video. `practical_life`
+// and `big_picture` stay in the .md content for reading but are dropped from
+// narration — reference prose, not something read aloud end-to-end. This
+// replaces the old tag-matching filter, which went dead once
+// `PersonalizationFilter.tags` became the full taxonomy for every patient
+// (2026-08-10 topics-removal amendment).
+const NARRATED_SECTIONS = new Set<string>([
+  "overview",
+  "timeline",
+  "daily_life",
+  "side_effects",
+  "fertility_intimacy",
+  "emergency",
+  "patient_voices",
+]);
+
+function narratedEntries(content: RegimenContent): ContentEntry[] {
+  return content.entries.filter((e) => NARRATED_SECTIONS.has(e.sectionId));
+}
+
+function deterministicSelect(entries: ContentEntry[]): string[] {
   const bySection = new Map<string, ContentEntry[]>();
-  for (const entry of content.entries) {
+  for (const entry of entries) {
     if (!bySection.has(entry.sectionId)) bySection.set(entry.sectionId, []);
     bySection.get(entry.sectionId)!.push(entry);
   }
 
-  const ALWAYS_INCLUDE_SECTIONS = new Set(["overview", "emergency"]);
-
   const selected: string[] = [];
   for (const sectionId of SECTION_IDS) {
-    const entries = bySection.get(sectionId) ?? [];
-    for (const entry of entries) {
-      const always = ALWAYS_INCLUDE_SECTIONS.has(sectionId) || entry.tier === "emergency";
-      const matches = entry.tags.some((t) => tagSet.has(t));
-      if (always || matches) selected.push(entry.id);
-    }
+    const sectionEntries = bySection.get(sectionId) ?? [];
+    for (const entry of sectionEntries) selected.push(entry.id);
   }
   return selected;
 }
 
-function buildGeminiPrompt(content: RegimenContent, filter: PersonalizationFilter): string {
-  const catalog = content.entries.map((e) => ({
+function buildGeminiPrompt(entries: ContentEntry[]): string {
+  const catalog = entries.map((e) => ({
     id: e.id,
     section: e.sectionId,
     name: e.name,
@@ -53,10 +63,10 @@ function buildGeminiPrompt(content: RegimenContent, filter: PersonalizationFilte
 
   return [
     "You are ordering which pre-approved patient-education content entries appear",
-    "in a narrated video. The video is informational and must cover every side",
-    "effect for this regimen — you are NOT filtering or trimming content, only",
-    "choosing the order. You are NOT writing any text — you only choose ids from",
-    "the catalog below and order them.",
+    "in a narrated video. The catalog below is already scoped to what's meant to",
+    "be narrated — you must cover everything in it, in full — you are NOT",
+    "filtering or trimming content, only choosing the order. You are NOT writing",
+    "any text — you only choose ids from the catalog below and order them.",
     "",
     "Rules:",
     "- Include every id in the catalog below. Never invent an id, never omit one.",
@@ -69,16 +79,13 @@ function buildGeminiPrompt(content: RegimenContent, filter: PersonalizationFilte
   ].join("\n");
 }
 
-async function geminiSelect(
-  content: RegimenContent,
-  filter: PersonalizationFilter,
-): Promise<string[] | null> {
+async function geminiSelect(entries: ContentEntry[]): Promise<string[] | null> {
   const ai = await getGenAIClient();
   if (!ai) return null;
 
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",
-    contents: [{ role: "user", parts: [{ text: buildGeminiPrompt(content, filter) }] }],
+    contents: [{ role: "user", parts: [{ text: buildGeminiPrompt(entries) }] }],
   });
 
   const text = response.text?.trim() ?? "";
@@ -92,25 +99,30 @@ async function geminiSelect(
   }
   if (!Array.isArray(parsed) || !parsed.every((x) => typeof x === "string")) return null;
 
-  const knownIds = new Set(content.entries.map((e) => e.id));
+  const knownIds = new Set(entries.map((e) => e.id));
   const validated = parsed.filter((id): id is string => knownIds.has(id));
   return validated.length > 0 ? validated : null;
 }
 
 export async function selectContent(
   content: RegimenContent,
-  filter: PersonalizationFilter,
+  // Unused now that tags are always the full taxonomy (2026-08-10
+  // topics-removal amendment) — kept in the signature so callers don't need
+  // to change; narration scope is decided by NARRATED_SECTIONS above, not by
+  // this filter.
+  _filter: PersonalizationFilter,
 ): Promise<SelectionResult> {
+  const entries = narratedEntries(content);
   try {
-    const geminiIds = await geminiSelect(content, filter);
-    // Video must always cover every entry — if Gemini dropped any (despite
-    // being told not to), fall back to the deterministic path, which always
-    // includes everything.
-    if (geminiIds && geminiIds.length === content.entries.length) {
+    const geminiIds = await geminiSelect(entries);
+    // Video must always cover every entry in the narrated scope — if Gemini
+    // dropped any (despite being told not to), fall back to the
+    // deterministic path, which always includes everything.
+    if (geminiIds && geminiIds.length === entries.length) {
       return { entryIds: geminiIds, method: "gemini" };
     }
   } catch (err) {
     console.warn("Gemini selection call failed, falling back to deterministic filter:", err);
   }
-  return { entryIds: deterministicSelect(content, filter), method: "fallback" };
+  return { entryIds: deterministicSelect(entries), method: "fallback" };
 }

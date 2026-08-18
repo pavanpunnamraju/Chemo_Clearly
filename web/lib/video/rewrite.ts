@@ -39,12 +39,37 @@ export interface RewriteResult {
   script: string;
 }
 
+// Phase 2a goal 1: per-entry length budgets so the rewrite targets a
+// noticeably shorter total script (rough NHS-benchmark ~7min spoken ≈
+// ~1000-1100 words/regimen) instead of rewriting every entry at roughly
+// full length. `emergency`-tier and orienting content (`overview`,
+// `emergency` section) stay uncompressed — safety-critical/orienting
+// content isn't where the length problem is, and it shouldn't be.
+function lengthGuidance(entry: ContentEntry): string {
+  if (entry.sectionId === "emergency" || entry.sectionId === "overview") {
+    return "full length, no compression — safety-critical/orienting content.";
+  }
+  if (entry.sectionId === "side_effects") {
+    if (entry.tier === "emergency") return "full detail, no compression — emergency-tier side effect.";
+    if (entry.tier === "call_team") return "moderate length — keep the call-your-team guidance intact, trim padding.";
+    return "brief — 1-2 sentences covering what it is and self-care.";
+  }
+  if (entry.sectionId === "patient_voices") {
+    return "very brief, 1-3 sentences — a short reassurance mention (\"other patients feel this too\"), not a full anecdote quoted verbatim.";
+  }
+  if (entry.sectionId === "fertility_intimacy") {
+    return "brief, but keep every distinct instruction the source gives (fertility preservation, birth control, breastfeeding, and any \"ask your team\" caveat) — compress the explanation/reasoning around each, never merge or drop the instructions themselves.";
+  }
+  return "normal length — concise but no special compression.";
+}
+
 function buildPrompt(entries: ContentEntry[], filter: PersonalizationFilter, retryFeedback?: string): string {
   const source = entries.map((e) => ({
     entryId: e.id,
     name: e.name,
     plain: cleanForSpeechAndDisplay(e.plain),
     detail: filter.includeDetail && e.detail ? cleanForSpeechAndDisplay(e.detail) : undefined,
+    lengthGuidance: lengthGuidance(e),
   }));
 
   const tone = VOICE_TONE_GUIDANCE[filter.voiceTone] ?? VOICE_TONE_GUIDANCE.neutral;
@@ -59,13 +84,21 @@ function buildPrompt(entries: ContentEntry[], filter: PersonalizationFilter, ret
     `Tone: ${tone}`,
     `Reading level: ${readingLevel}`,
     "",
+    "Overall target: the whole script should land close to ~1000-1100 words",
+    "total (roughly a 7-minute narration) — noticeably tighter than a full",
+    "unweighted rewrite of every entry. Each source entry below carries a",
+    "`lengthGuidance` field telling you how much to compress that entry;",
+    "follow it per-entry so the total lands near that target.",
+    "",
     "Rules:",
     "- Rewrite each source entry below, keeping order, so the whole set reads as",
     "  one continuous, flowing narration with natural transitions between topics.",
+    "- Follow each entry's `lengthGuidance` — compress where it says to compress,",
+    "  keep full length where it says not to compress.",
     "- Never introduce a number, statistic, drug name, or fact absent from the",
     "  source entries.",
     "- Never drop safety-critical content (emergency / call-your-team instructions)",
-    "  if the entry has it.",
+    "  if the entry has it, even when compressing.",
     "- Return exactly one rewritten chunk per entry, same ids, same order as given.",
     "",
     retryFeedback ? `Your previous attempt was rejected: ${retryFeedback} Try again, following the rules above.\n` : "",
