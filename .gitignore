@@ -2,3 +2,5 @@
 .claude/
 node_modules/
 docs/references/infographic_inspo/
+docs/agents
+docs/implementation_plan.md
