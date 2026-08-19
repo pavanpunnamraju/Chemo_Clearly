@@ -12,22 +12,50 @@ import "dotenv/config";
 import { config as loadEnvLocal } from "dotenv";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 loadEnvLocal({ path: path.join(__dirname, "..", ".env.local") });
 
-import { IntakeSchema, toPersonalizationFilter } from "../lib/intake/schema";
+import { IntakeSchema, toPersonalizationFilter, hashPersonalizationFilter } from "../lib/intake/schema";
 import { loadRegimenContent } from "../lib/content";
 import { selectContent } from "../lib/video/select";
-import { rewriteNarration } from "../lib/video/rewrite";
+import { rewriteNarration, type RewriteResult } from "../lib/video/rewrite";
 import { buildNarrationPlanFromChunks, applyTimepoints } from "../lib/video/narration";
 import { findComponentTriggers, refineComponentTiming, placeComponentsInTime } from "../lib/video/components";
 import { buildCaptionTrack } from "../lib/video/captions";
-import { synthesizeNarration } from "../lib/video/tts";
-import { alignAudioToScript } from "../lib/video/align";
+import { synthesizeNarration, type SynthesizeResult } from "../lib/video/tts";
+import { alignAudioToScript, type WordOffset } from "../lib/video/align";
 import { renderVideoLocally } from "../lib/video/render";
 import { storeVideo } from "../lib/storage";
+
+// Dev-only cache for the pipeline's expensive stages (LLM rewrite, Gemini-TTS,
+// Cloud Speech-to-Text alignment), keyed on the same filter hash the real app
+// uses for `generated_videos.filter_hash` (web/lib/intake/schema.ts) — reused
+// here rather than reinvented. Downstream steps (component placement,
+// captions, render) always run fresh; those are what demo iteration targets.
+// Force a fresh run with `--fresh` or `DEMO_FORCE_REFRESH=1`.
+const FORCE_REFRESH = process.argv.includes("--fresh") || process.env.DEMO_FORCE_REFRESH === "1";
+
+interface DemoCacheEntry {
+  rewrite: RewriteResult;
+  tts: Omit<SynthesizeResult, "audioBuffer">;
+  align: { words: WordOffset[]; durationSeconds: number };
+}
+
+function loadDemoCache(cacheDir: string): (DemoCacheEntry & { audioBuffer: Buffer }) | null {
+  if (FORCE_REFRESH || !existsSync(path.join(cacheDir, "meta.json"))) return null;
+  const meta = JSON.parse(readFileSync(path.join(cacheDir, "meta.json"), "utf-8")) as DemoCacheEntry;
+  const audioBuffer = readFileSync(path.join(cacheDir, "audio.wav"));
+  return { ...meta, audioBuffer };
+}
+
+function saveDemoCache(cacheDir: string, entry: DemoCacheEntry & { audioBuffer: Buffer }): void {
+  mkdirSync(cacheDir, { recursive: true });
+  const { audioBuffer, ...meta } = entry;
+  writeFileSync(path.join(cacheDir, "meta.json"), JSON.stringify(meta, null, 2));
+  writeFileSync(path.join(cacheDir, "audio.wav"), audioBuffer);
+}
 
 async function main() {
   const voiceTone = process.argv[2] ?? "neutral";
@@ -50,12 +78,52 @@ async function main() {
   const entryById = new Map(content.entries.map((e) => [e.id, e]));
   const entries = selection.entryIds.map((id) => entryById.get(id)).filter((e) => e !== undefined);
 
-  console.log("\nRewriting narration (LLM, guardrailed)...");
-  const rewrite = await rewriteNarration(entries, filter);
+  const cacheDir = path.join(__dirname, "..", ".demo-cache", hashPersonalizationFilter(filter));
+  const cached = loadDemoCache(cacheDir);
+
+  let rewrite: RewriteResult;
+  let audioBuffer: Buffer;
+  let durationSeconds: number, sampleRateHertz: number, charactersSent: number, voice: string;
+  let words: WordOffset[], alignedDurationSeconds: number;
+
+  if (cached) {
+    console.log(`\nCache hit (${cacheDir}) — skipping rewrite/TTS/alignment.`);
+    ({ rewrite, audioBuffer } = cached);
+    ({ durationSeconds, sampleRateHertz, charactersSent, voice } = cached.tts);
+    ({ words, durationSeconds: alignedDurationSeconds } = cached.align);
+  } else {
+    console.log("\nRewriting narration (LLM, guardrailed)...");
+    rewrite = await rewriteNarration(entries, filter);
+    console.log(`Narration script (${rewrite.script.length} chars).`);
+
+    console.log(`\nCalling Gemini-TTS (voiceTone: ${voiceTone})...`);
+    ({ audioBuffer, charactersSent, voice, durationSeconds, sampleRateHertz } = await synthesizeNarration(
+      buildNarrationPlanFromChunks(rewrite.chunks, entries).script,
+      voiceTone,
+    ));
+    console.log(
+      `TTS OK: ${charactersSent} chars sent, voice ${voice}, ${audioBuffer.length} audio bytes, ${durationSeconds.toFixed(1)}s actual duration`,
+    );
+
+    console.log("\nAligning audio to script via Cloud Speech-to-Text...");
+    ({ words, durationSeconds: alignedDurationSeconds } = await alignAudioToScript(
+      audioBuffer,
+      buildNarrationPlanFromChunks(rewrite.chunks, entries).script,
+      sampleRateHertz,
+    ));
+    console.log(`Alignment OK: ${words.length} words, ${alignedDurationSeconds.toFixed(1)}s aligned duration`);
+
+    saveDemoCache(cacheDir, {
+      rewrite,
+      tts: { charactersSent, voice, durationSeconds, sampleRateHertz },
+      align: { words, durationSeconds: alignedDurationSeconds },
+      audioBuffer,
+    });
+    console.log(`Cached pipeline outputs: ${cacheDir}`);
+  }
+
   const estimatedPlan = buildNarrationPlanFromChunks(rewrite.chunks, entries);
-  console.log(
-    `Narration script (${estimatedPlan.script.length} chars, ~${estimatedPlan.totalSeconds.toFixed(1)}s estimated):`,
-  );
+  console.log(`~${estimatedPlan.totalSeconds.toFixed(1)}s estimated:`);
   console.log(estimatedPlan.script);
 
   console.log("\nFinding side-effect component triggers...");
@@ -63,28 +131,11 @@ async function main() {
   console.log(`Matched ${triggers.length} side-effect tag(s):`, triggers.map((t) => t.tag));
   const placedTriggers = await refineComponentTiming(rewrite.script, triggers);
 
-  console.log(`\nCalling Gemini-TTS (voiceTone: ${voiceTone})...`);
-  const { audioBuffer, charactersSent, voice, durationSeconds, sampleRateHertz } = await synthesizeNarration(
-    estimatedPlan.script,
-    voiceTone,
-  );
-  console.log(
-    `TTS OK: ${charactersSent} chars sent, voice ${voice}, ${audioBuffer.length} audio bytes, ${durationSeconds.toFixed(1)}s actual duration`,
-  );
-
   const outDir = path.join(__dirname, "..", "out");
   mkdirSync(outDir, { recursive: true });
   const audioOutPath = path.join(outDir, `narration-${voiceTone}.wav`);
   writeFileSync(audioOutPath, audioBuffer);
   console.log(`Saved narration audio: ${audioOutPath}`);
-
-  console.log("\nAligning audio to script via Cloud Speech-to-Text...");
-  const { words, durationSeconds: alignedDurationSeconds } = await alignAudioToScript(
-    audioBuffer,
-    estimatedPlan.script,
-    sampleRateHertz,
-  );
-  console.log(`Alignment OK: ${words.length} words, ${alignedDurationSeconds.toFixed(1)}s aligned duration`);
   const plan = applyTimepoints(estimatedPlan, words, durationSeconds);
   console.log(
     `Slide sync: estimated ${estimatedPlan.totalSeconds.toFixed(1)}s vs real ${plan.totalSeconds.toFixed(1)}s`,
