@@ -110,7 +110,8 @@ const CaptionBar: React.FC<{ text: string }> = ({ text }) => (
   <AbsoluteFill style={{ justifyContent: "flex-end", alignItems: "center", padding: 40 }}>
     <div
       style={{
-        maxWidth: 1000,
+        width: 900,
+        minHeight: 83 + 24, // ~2 lines at fontSize 32 / lineHeight 1.3, plus vertical padding
         backgroundColor: "rgba(0, 0, 0, 0.75)",
         color: "#ffffff",
         borderRadius: 12,
@@ -119,6 +120,10 @@ const CaptionBar: React.FC<{ text: string }> = ({ text }) => (
         fontFamily: "system-ui, sans-serif",
         textAlign: "center",
         lineHeight: 1.3,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        boxSizing: "border-box",
       }}
     >
       {text}

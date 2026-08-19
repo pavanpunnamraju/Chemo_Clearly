@@ -151,10 +151,11 @@ function normalizeWord(word: string): string {
   return word.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
-/** First index >= `from` where `haystack` contains `needle` as a contiguous run, or -1. */
-function findPhrase(haystack: string[], needle: string[], from: number): number {
+/** First index in `[from, to)` where `haystack` contains `needle` as a contiguous run, or -1. */
+function findPhrase(haystack: string[], needle: string[], from: number, to: number = haystack.length): number {
   if (needle.length === 0) return -1;
-  for (let i = from; i <= haystack.length - needle.length; i++) {
+  const limit = Math.min(to, haystack.length) - needle.length;
+  for (let i = from; i <= limit; i++) {
     let matches = true;
     for (let j = 0; j < needle.length; j++) {
       if (haystack[i + j] !== needle[j]) {
@@ -216,6 +217,25 @@ export function applyTimepoints(
  * fallback — a slide keeps its word-count estimate, a component is simply
  * not placed).
  */
+// 1-word and 2-word fallback matches are weak signals — ordinary words and
+// short phrases recur throughout a script, so unbounded, either can
+// spuriously match far ahead of where the anchor is actually spoken.
+// Because the cursor only moves forward and never backtracks, one bad jump
+// strands every later anchor behind it with no way to recover (verified
+// live: a chain of unbounded 1- and 2-word matches dragged the cursor to
+// word ~1300-1384 of 1386 while still describing content from well earlier
+// in the narration, leaving nothing left to match against for the rest of
+// the script). Cap how far ahead a weak fallback may look; beyond that,
+// treat it as no match (existing null handling — caller keeps its estimate)
+// rather than accepting a far-flung guess. Legitimate adjacent-anchor jumps
+// in this codebase's real narration data are consistently under ~15 words;
+// these caps are generous multiples of that, tight enough to reject the
+// observed false jumps (jumps of 50-500+ words) without rejecting real
+// matches after a short run of consecutive failures. The 3-word match isn't
+// bounded — an exact 3-word run repeating by chance is far less likely.
+const MAX_1WORD_LOOKAHEAD = 40;
+const MAX_2WORD_LOOKAHEAD = 60;
+
 export function matchTimestamps(
   anchorTexts: string[],
   alignedWords: { word: string; startSeconds: number }[],
@@ -229,7 +249,13 @@ export function matchTimestamps(
     let matchIndex = -1;
     for (const phraseLength of [3, 2, 1]) {
       if (words.length < phraseLength) continue;
-      matchIndex = findPhrase(normalizedAligned, words.slice(0, phraseLength), cursor);
+      const to =
+        phraseLength === 1
+          ? cursor + MAX_1WORD_LOOKAHEAD
+          : phraseLength === 2
+            ? cursor + MAX_2WORD_LOOKAHEAD
+            : normalizedAligned.length;
+      matchIndex = findPhrase(normalizedAligned, words.slice(0, phraseLength), cursor, to);
       if (matchIndex !== -1) break;
     }
     if (matchIndex === -1) return null;

@@ -7,13 +7,73 @@ export interface TimedCaption {
   endSeconds: number;
 }
 
-// Readable caption norm: a handful of words per line/chunk.
-const MAX_WORDS_PER_CAPTION = 8;
+// BBC pre-recorded-caption norm: ≤2 lines × ~37 chars/line. Used as a total
+// budget per cue (not enforced per-line — the renderer wraps at box width).
+const CAPTION_CHAR_BUDGET = 74;
+// Don't close a cue on a trivial early comma — require this much text first.
+const MIN_CUE_CHARS = 30;
+const CLAUSE_BOUNDARY_PUNCTUATION = /[.,;—]$/;
+const COORDINATING_CONJUNCTIONS = new Set(["and", "but"]);
+
+/**
+ * Groups words into cues at sentence/clause boundaries (punctuation or a
+ * leading coordinating conjunction) once a cue has a reasonable minimum
+ * length, or at the char budget if no boundary arrives first — instead of
+ * chopping every N words regardless of where a sentence falls.
+ */
+function buildCaptionGroups(words: string[]): string[][] {
+  const groups: string[][] = [];
+  let current: string[] = [];
+
+  for (const word of words) {
+    const isConjunction = COORDINATING_CONJUNCTIONS.has(word.toLowerCase());
+    const currentLength = current.join(" ").length;
+
+    // Close before a conjunction that starts a new clause.
+    if (isConjunction && current.length > 0 && currentLength >= MIN_CUE_CHARS) {
+      groups.push(current);
+      current = [];
+    }
+
+    // Close if adding this word would blow the char budget.
+    const projectedLength = current.length > 0 ? currentLength + 1 + word.length : word.length;
+    if (current.length > 0 && projectedLength > CAPTION_CHAR_BUDGET) {
+      groups.push(current);
+      current = [];
+    }
+
+    current.push(word);
+
+    // Close after a clause-ending punctuation mark.
+    if (CLAUSE_BOUNDARY_PUNCTUATION.test(word) && current.join(" ").length >= MIN_CUE_CHARS) {
+      groups.push(current);
+      current = [];
+    }
+  }
+  if (current.length > 0) groups.push(current);
+  return groups;
+}
 // WCAG 2.1 AA-informed minimum display time (per logic-agent's gap-audit
 // research) — a chunk stays on screen at least this long even if that means
 // merging in the next chunk, so fast-spoken passages don't flash captions
 // too quickly to read.
 const MIN_DISPLAY_SECONDS = 1.33;
+// Netflix TTSG max-duration guideline — caps a chunk's display window
+// regardless of why it got long (e.g. its start fell back to prevEnd because
+// STT dropped its leading words, then its end inherited a distant real
+// match). Applied universally after start/end resolution rather than
+// special-casing fallback chunks, so it also covers any other pathological
+// gap the same way.
+const MAX_DISPLAY_SECONDS = 7;
+// Independent stop condition for the merge-forward loop below, on top of
+// MIN_DISPLAY_SECONDS: when matchTimestamps fails on many consecutive groups
+// (their resolved starts all collapse near the same point, so their apparent
+// duration reads as ~0), the loop would otherwise keep absorbing groups
+// indefinitely, chaining their *text* into one mega-caption. Capping
+// accumulated text at ~2x the chunk budget makes that structurally
+// impossible regardless of how many matches fail in a row — a short cue is
+// preferred over a long unreadable one, so this never backfills duration.
+const MERGE_TEXT_CEILING = 150;
 
 /**
  * Groups the known narration script (not Speech-to-Text's transcription —
@@ -41,10 +101,7 @@ export function buildCaptionTrack(
   const words = script.split(/\s+/).filter(Boolean);
   if (words.length === 0) return [];
 
-  const groups: string[][] = [];
-  for (let i = 0; i < words.length; i += MAX_WORDS_PER_CAPTION) {
-    groups.push(words.slice(i, i + MAX_WORDS_PER_CAPTION));
-  }
+  const groups = buildCaptionGroups(words);
 
   const starts = matchTimestamps(
     groups.map((g) => g.join(" ")),
@@ -69,15 +126,21 @@ export function buildCaptionTrack(
     const startSeconds = resolvedStarts[i]!;
     let endSeconds = j + 1 < groups.length ? resolvedStarts[j + 1]! : audioDurationSeconds;
     // Merge forward chunks whose real display window would fall under the
-    // minimum, so every caption gets its full read time.
-    while (endSeconds - startSeconds < MIN_DISPLAY_SECONDS && j + 1 < groups.length) {
+    // minimum, so every caption gets its full read time — but stop early if
+    // absorbing the next group would blow the text ceiling (see
+    // MERGE_TEXT_CEILING), even if duration is still short.
+    while (
+      endSeconds - startSeconds < MIN_DISPLAY_SECONDS &&
+      j + 1 < groups.length &&
+      groups.slice(i, j + 2).flat().join(" ").length <= MERGE_TEXT_CEILING
+    ) {
       j++;
       endSeconds = j + 1 < groups.length ? resolvedStarts[j + 1]! : audioDurationSeconds;
     }
     captions.push({
       text: groups.slice(i, j + 1).flat().join(" "),
       startSeconds,
-      endSeconds,
+      endSeconds: Math.min(endSeconds, startSeconds + MAX_DISPLAY_SECONDS),
     });
     i = j + 1;
   }
