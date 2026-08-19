@@ -247,53 +247,88 @@ and is usually short-lived, easing within days of stopping. [S1, S3]
 
 ## `emergency`
 
+### About this list
+
 **tags:** `emergency-signs`
+**plain:** Most people never experience these. They're listed so you know what to act on
+quickly if you do.
 
-**plain, always show this section prominently, separate from the list above:**
+### Fever during your low-blood-cell window (neutropenic fever)
 
-Most people never experience these. They're listed so you know what to act on quickly if
-you do.
+**tags:** `emergency-signs`, `infection-risk`
+**tier:** `emergency`
+**plain:** **Fever during your low-blood-cell window (roughly days 7–10)** — a temperature of
+100.4°F (38.0°C) or higher sustained for an hour, or a single reading of 101°F (38.3°C)
+or higher, is a medical emergency when your infection-fighting white blood cells are low
+(called neutropenic fever). Call your care team immediately, day or night — don't wait
+for office hours or "see if it comes down." This is different from a fever during an
+infusion reaction (below), which the infusion team is already watching for in real time.
+Treat a fever at this threshold as an emergency at any point in treatment, not only
+during this window — you have no way to know your counts on a given day.
+**source:** S1, S2
 
-- **Fever during your low-blood-cell window (roughly days 7–10)** — a temperature of
-  100.4°F (38.0°C) or higher sustained for an hour, or a single reading of 101°F (38.3°C)
-  or higher, is a medical emergency when your infection-fighting white blood cells are low
-  (called neutropenic fever). Call your care team immediately, day or night — don't wait
-  for office hours or "see if it comes down." This is different from a fever during an
-  infusion reaction (below), which the infusion team is already watching for in real time.
-  Treat a fever at this threshold as an emergency at any point in treatment, not only
-  during this window — you have no way to know your counts on a given day. [S1, S2]
-- **Infusion reaction, can happen during or right after treatment** — chills/shaking,
-  itching/rash, trouble breathing or wheezing, tongue swelling, dizziness or faintness,
-  fever, back/neck pain. Tell the infusion team immediately if this happens during
-  treatment. [S1, S3]
-- **Signs of a serious allergic/skin reaction** — painful mouth/skin sores, blistering,
-  peeling skin, widespread rash. [S1]
-- **Heart symptoms** (doxorubicin can affect the heart, especially at higher lifetime
-  doses) — swelling of belly/legs/hands/feet, shortness of breath, new or worsening chest
-  pain/pressure, rapid weight gain (5+ lbs in a day). [S1, S3]
-- **Signs of a serious brain/nerve problem** — confusion, sudden loss of balance, trouble
-  walking or talking, one-sided weakness, new vision problems. [S1]
-- **Tumor lysis syndrome signs** (more relevant right after starting treatment, when a lot
-  of cancer cells break down quickly) — severe nausea/vomiting/diarrhea, very
-  little/dark urine, muscle cramps, fast heartbeat, confusion. [S1]
+### Infusion reaction
 
-**Call 911 or go to the ER for**: trouble breathing, chest pain, confusion, or anything
-that feels life-threatening. **Call your care team right away** for the other items above,
-including the fever threshold. Calling is always the right call — no one will think you're
-overreacting.
-
+**tags:** `emergency-signs`
+**tier:** `emergency`
+**plain:** **Infusion reaction, can happen during or right after treatment** — chills/shaking,
+itching/rash, trouble breathing or wheezing, tongue swelling, dizziness or faintness,
+fever, back/neck pain. Tell the infusion team immediately if this happens during
+treatment.
 **detail:** Rituximab infusion reactions are the most common item on this list — reported
 in a substantial share of patients on their *first* infusion specifically (which is why
 that dose is given more slowly and watched closely), dropping off sharply on later doses.
-[S1] Doxorubicin's heart-risk (congestive heart failure) is dose-dependent: R-CHOP's
+**source:** S1, S3
+
+### Serious allergic or skin reaction
+
+**tags:** `emergency-signs`
+**tier:** `emergency`
+**plain:** **Signs of a serious allergic/skin reaction** — painful mouth/skin sores, blistering,
+peeling skin, widespread rash.
+**source:** S1
+
+### Heart symptoms
+
+**tags:** `emergency-signs`, `heart`
+**tier:** `emergency`
+**plain:** **Heart symptoms** (doxorubicin can affect the heart, especially at higher lifetime
+doses) — swelling of belly/legs/hands/feet, shortness of breath, new or worsening chest
+pain/pressure, rapid weight gain (5+ lbs in a day).
+**detail:** Doxorubicin's heart-risk (congestive heart failure) is dose-dependent: R-CHOP's
 standard 6-cycle course reaches a cumulative doxorubicin dose of 300 mg/m² — the level
 where the FDA label starts quantifying that risk. It's low there, but it climbs steeply
 if a patient has received doxorubicin before (including in a prior cancer), which is why
-disclosing prior treatment matters. [S5a] Tumor lysis syndrome is
-uncommon overall and mainly a first-cycle concern in patients with a high existing tumor
-burden; your team screens for this risk before your first infusion. [S1]
+disclosing prior treatment matters.
+**source:** S1, S3, S5a
 
-**source (detail):** S1, S5a
+### Serious brain or nerve problem
+
+**tags:** `emergency-signs`
+**tier:** `emergency`
+**plain:** **Signs of a serious brain/nerve problem** — confusion, sudden loss of balance, trouble
+walking or talking, one-sided weakness, new vision problems.
+**source:** S1
+
+### Tumor lysis syndrome
+
+**tags:** `emergency-signs`
+**tier:** `emergency`
+**plain:** **Tumor lysis syndrome signs** (more relevant right after starting treatment, when a lot
+of cancer cells break down quickly) — severe nausea/vomiting/diarrhea, very
+little/dark urine, muscle cramps, fast heartbeat, confusion.
+**detail:** Tumor lysis syndrome is uncommon overall and mainly a first-cycle concern in
+patients with a high existing tumor burden; your team screens for this risk before your
+first infusion.
+**source:** S1
+
+### When to call 911 vs. your care team
+
+**tags:** `emergency-signs`
+**plain:** **Call 911 or go to the ER for**: trouble breathing, chest pain, confusion, or anything
+that feels life-threatening. **Call your care team right away** for the other items above,
+including the fever threshold. Calling is always the right call — no one will think you're
+overreacting.
 
 ---
 
