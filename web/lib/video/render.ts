@@ -3,6 +3,7 @@ import { writeFileSync, mkdtempSync, cpSync } from "node:fs";
 import os from "node:os";
 import type { NarrationPlan } from "./narration";
 import type { TimedComponent } from "./components";
+import type { TimedCaption } from "./captions";
 
 // Known constraint (already resolved in the design doc, not rediscovered here):
 // Remotion can't render inside a standard Vercel serverless function. In
@@ -28,6 +29,8 @@ export async function renderVideoLocally(
   audioBuffer: Buffer,
   outputPath: string,
   components: TimedComponent[] = [],
+  captions: TimedCaption[] = [],
+  captionsEnabled = false,
 ): Promise<RenderResult> {
   const { bundle } = await import("@remotion/bundler");
   const { renderMedia, selectComposition } = await import("@remotion/renderer");
@@ -61,6 +64,8 @@ export async function renderVideoLocally(
     audioSrc: audioFilename,
     totalSeconds: plan.totalSeconds,
     components,
+    captions,
+    captionsEnabled,
   };
 
   const composition = await selectComposition({

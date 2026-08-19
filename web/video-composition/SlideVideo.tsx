@@ -1,6 +1,7 @@
 import { Audio, Img, Sequence, AbsoluteFill, useVideoConfig, staticFile } from "remotion";
 import type { SlideBeat } from "../lib/video/narration";
 import { illustrationForSlide, type TimedComponent } from "../lib/video/components";
+import type { TimedCaption } from "../lib/video/captions";
 
 export interface SlideVideoProps {
   slides: SlideBeat[];
@@ -17,6 +18,12 @@ export interface SlideVideoProps {
    * top of the plain slide deck, not a redesign of it (Phase 2 owns the
    * visual design). Local Storyset SVGs under public/illustrations/. */
   components: TimedComponent[];
+  /** Caption track (goal #4) — real per-chunk start/end timing from
+   * lib/video/captions.ts, built from Speech-to-Text word alignment. */
+  captions: TimedCaption[];
+  /** Off by default per the goal wording — no app-chrome toggle exists yet
+   * (Phase 2b), so this is the only control for now. */
+  captionsEnabled?: boolean;
   [key: string]: unknown;
 }
 
@@ -28,7 +35,14 @@ const TAIL_SECONDS = 2;
 // never overlap (display is sequential, one on screen at a time).
 const ICON_DISPLAY_SECONDS = 4;
 
-export const SlideVideo: React.FC<SlideVideoProps> = ({ slides, audioSrc, totalSeconds, components }) => {
+export const SlideVideo: React.FC<SlideVideoProps> = ({
+  slides,
+  audioSrc,
+  totalSeconds,
+  components,
+  captions,
+  captionsEnabled = false,
+}) => {
   const { fps } = useVideoConfig();
   const endSeconds = totalSeconds + TAIL_SECONDS;
 
@@ -75,9 +89,42 @@ export const SlideVideo: React.FC<SlideVideoProps> = ({ slides, audioSrc, totalS
           </Sequence>
         );
       })}
+      {captionsEnabled &&
+        captions.map((c, i) => {
+          const from = Math.round(c.startSeconds * fps);
+          const durationInFrames = Math.max(1, Math.round((c.endSeconds - c.startSeconds) * fps));
+          return (
+            <Sequence key={`caption-${i}`} from={from} durationInFrames={durationInFrames}>
+              <CaptionBar text={c.text} />
+            </Sequence>
+          );
+        })}
     </AbsoluteFill>
   );
 };
+
+// Solid backing bar (same white-card contrast precedent as IllustrationBadge
+// above) rather than plain text-over-video — reads against any slide
+// background/illustration.
+const CaptionBar: React.FC<{ text: string }> = ({ text }) => (
+  <AbsoluteFill style={{ justifyContent: "flex-end", alignItems: "center", padding: 40 }}>
+    <div
+      style={{
+        maxWidth: 1000,
+        backgroundColor: "rgba(0, 0, 0, 0.75)",
+        color: "#ffffff",
+        borderRadius: 12,
+        padding: "12px 24px",
+        fontSize: 32,
+        fontFamily: "system-ui, sans-serif",
+        textAlign: "center",
+        lineHeight: 1.3,
+      }}
+    >
+      {text}
+    </div>
+  </AbsoluteFill>
+);
 
 const IllustrationBadge: React.FC<{ src: string }> = ({ src }) => (
   <AbsoluteFill style={{ justifyContent: "flex-start", alignItems: "flex-end", padding: 40 }}>

@@ -23,6 +23,7 @@ import { selectContent } from "../lib/video/select";
 import { rewriteNarration } from "../lib/video/rewrite";
 import { buildNarrationPlanFromChunks, applyTimepoints } from "../lib/video/narration";
 import { findComponentTriggers, refineComponentTiming, placeComponentsInTime } from "../lib/video/components";
+import { buildCaptionTrack } from "../lib/video/captions";
 import { synthesizeNarration } from "../lib/video/tts";
 import { alignAudioToScript } from "../lib/video/align";
 import { renderVideoLocally } from "../lib/video/render";
@@ -99,9 +100,15 @@ async function main() {
     console.log(`  ${c.startSeconds.toFixed(1)}s — ${c.tag} (${c.illustrationSrc})`);
   }
 
-  console.log("\nRendering video locally via Remotion...");
+  const captions = buildCaptionTrack(estimatedPlan.script, words, plan.totalSeconds);
+  console.log(`\nCaption track (${captions.length} chunks) — spot check:`);
+  for (const c of captions.slice(0, 5)) {
+    console.log(`  ${c.startSeconds.toFixed(2)}s-${c.endSeconds.toFixed(2)}s (${(c.endSeconds - c.startSeconds).toFixed(2)}s): "${c.text}"`);
+  }
+
+  console.log("\nRendering video locally via Remotion (captions on, for verification)...");
   const outputPath = path.join(__dirname, "..", "out", "demo-video.mp4");
-  const render = await renderVideoLocally(plan, audioBuffer, outputPath, components);
+  const render = await renderVideoLocally(plan, audioBuffer, outputPath, components, captions, true);
   console.log(`Rendered: ${render.outputPath} (${render.width}x${render.height} @ ${render.fps}fps)`);
 
   const stored = await storeVideo(outputPath, `demo/${Date.now()}.mp4`);

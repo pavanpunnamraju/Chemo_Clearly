@@ -8,6 +8,8 @@ const defaultProps: SlideVideoProps = {
   audioSrc: "",
   totalSeconds: 3,
   components: [],
+  captions: [],
+  captionsEnabled: false,
 };
 
 export const RemotionRoot: React.FC = () => {
