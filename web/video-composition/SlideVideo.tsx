@@ -1,7 +1,6 @@
 import { Audio, Img, Sequence, AbsoluteFill, useVideoConfig, staticFile } from "remotion";
 import type { SlideBeat } from "../lib/video/narration";
-import type { TimedComponent } from "../lib/video/components";
-import { iconUrl } from "../lib/video/icons";
+import { illustrationForSlide, type TimedComponent } from "../lib/video/components";
 
 export interface SlideVideoProps {
   slides: SlideBeat[];
@@ -14,22 +13,38 @@ export interface SlideVideoProps {
    */
   audioSrc: string;
   totalSeconds: number;
-  /** Side-effect icon overlays (Component Placer, #3c) — layered on top of
-   * the plain slide deck, not a redesign of it (Phase 2 owns the visual
-   * design). Iconify-hosted SVGs, fetched over HTTP at render time. */
+  /** Side-effect illustration overlays (Component Placer, #3c) — layered on
+   * top of the plain slide deck, not a redesign of it (Phase 2 owns the
+   * visual design). Local Storyset SVGs under public/illustrations/. */
   components: TimedComponent[];
   [key: string]: unknown;
 }
 
 const TAIL_SECONDS = 2;
-// How long a side-effect icon stays on screen once its aligned timestamp
-// hits — a fixed display window, not tied to slide boundaries, since a
-// component's mention can land mid-slide.
+// How long a side-effect illustration stays on screen once its aligned
+// timestamp hits, at most — a fixed display window, not tied to slide
+// boundaries, since a component's mention can land mid-slide. Clamped
+// per-instance below to the gap until the next component so illustrations
+// never overlap (display is sequential, one on screen at a time).
 const ICON_DISPLAY_SECONDS = 4;
 
 export const SlideVideo: React.FC<SlideVideoProps> = ({ slides, audioSrc, totalSeconds, components }) => {
   const { fps } = useVideoConfig();
   const endSeconds = totalSeconds + TAIL_SECONDS;
+
+  // Round-robin index of each slide within its own section (e.g. the 2nd
+  // "timeline" slide gets index 1) — used to pick that section's Nth
+  // curated illustration file. Precomputed here rather than mutated inside
+  // the render map below.
+  const sectionIndexes: number[] = [];
+  {
+    const counters: Record<string, number> = {};
+    for (const beat of slides) {
+      const idx = counters[beat.sectionId] ?? 0;
+      counters[beat.sectionId] = idx + 1;
+      sectionIndexes.push(idx);
+    }
+  }
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#f4f7f6" }}>
@@ -38,18 +53,25 @@ export const SlideVideo: React.FC<SlideVideoProps> = ({ slides, audioSrc, totalS
         const nextStart = slides[i + 1]?.startSeconds ?? endSeconds;
         const from = Math.round(beat.startSeconds * fps);
         const durationInFrames = Math.max(1, Math.round((nextStart - beat.startSeconds) * fps));
+        // side_effects slides get their illustrations from the finer
+        // keyword-trigger mechanism (the `components` overlay below)
+        // instead — no per-slide illustration here for that section.
+        const illustrationSrc =
+          beat.sectionId === "side_effects" ? null : illustrationForSlide(beat.sectionId, sectionIndexes[i]!);
         return (
           <Sequence key={beat.entryId} from={from} durationInFrames={durationInFrames}>
-            <Slide headline={beat.headline} body={beat.body} />
+            <Slide headline={beat.headline} body={beat.body} illustrationSrc={illustrationSrc} />
           </Sequence>
         );
       })}
-      {components.map((c) => {
+      {components.map((c, i) => {
+        const nextStart = components[i + 1]?.startSeconds ?? c.startSeconds + ICON_DISPLAY_SECONDS;
         const from = Math.round(c.startSeconds * fps);
-        const durationInFrames = Math.max(1, Math.round(ICON_DISPLAY_SECONDS * fps));
+        const gapSeconds = Math.max(0, nextStart - c.startSeconds);
+        const durationInFrames = Math.max(1, Math.round(Math.min(ICON_DISPLAY_SECONDS, gapSeconds) * fps));
         return (
-          <Sequence key={c.tag} from={from} durationInFrames={durationInFrames}>
-            <IconBadge iconId={c.iconId} />
+          <Sequence key={`${c.tag}-${i}`} from={from} durationInFrames={durationInFrames}>
+            <IllustrationBadge src={c.illustrationSrc} />
           </Sequence>
         );
       })}
@@ -57,21 +79,22 @@ export const SlideVideo: React.FC<SlideVideoProps> = ({ slides, audioSrc, totalS
   );
 };
 
-const IconBadge: React.FC<{ iconId: string }> = ({ iconId }) => (
+const IllustrationBadge: React.FC<{ src: string }> = ({ src }) => (
   <AbsoluteFill style={{ justifyContent: "flex-start", alignItems: "flex-end", padding: 40 }}>
     <div
       style={{
-        width: 96,
-        height: 96,
-        borderRadius: "50%",
+        width: 160,
+        height: 160,
+        borderRadius: 24,
         backgroundColor: "#ffffff",
         boxShadow: "0 2px 12px rgba(31, 61, 58, 0.25)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        padding: 12,
       }}
     >
-      <Img src={iconUrl(iconId)} style={{ width: 56, height: 56 }} />
+      <Img src={staticFile(src)} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
     </div>
   </AbsoluteFill>
 );
@@ -86,7 +109,11 @@ function bodyFontSize(body: string): number {
   return 28;
 }
 
-const Slide: React.FC<{ headline: string; body?: string }> = ({ headline, body }) => (
+const Slide: React.FC<{ headline: string; body?: string; illustrationSrc?: string | null }> = ({
+  headline,
+  body,
+  illustrationSrc,
+}) => (
   <AbsoluteFill
     style={{
       justifyContent: "center",
@@ -98,6 +125,15 @@ const Slide: React.FC<{ headline: string; body?: string }> = ({ headline, body }
       overflow: "hidden",
     }}
   >
+    {/* Bottom-left, low-key — deliberately distinct from the side_effects
+        overlay badge (top-right, small, white circle) so the two don't
+        read as the same component doing two jobs. */}
+    {illustrationSrc ? (
+      <Img
+        src={staticFile(illustrationSrc)}
+        style={{ position: "absolute", bottom: 24, left: 24, width: 220, height: 220, objectFit: "contain" }}
+      />
+    ) : null}
     <h1 style={{ fontSize: 56, color: "#1f3d3a", marginBottom: 24, maxWidth: 1120, overflowWrap: "break-word" }}>
       {headline}
     </h1>

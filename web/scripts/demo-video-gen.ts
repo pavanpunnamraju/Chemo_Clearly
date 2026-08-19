@@ -96,7 +96,7 @@ async function main() {
   const components = placeComponentsInTime(rewrite.script, placedTriggers, words);
   console.log(`\nComponent placements (${components.length}):`);
   for (const c of components) {
-    console.log(`  ${c.startSeconds.toFixed(1)}s — ${c.tag} (${c.iconId})`);
+    console.log(`  ${c.startSeconds.toFixed(1)}s — ${c.tag} (${c.illustrationSrc})`);
   }
 
   console.log("\nRendering video locally via Remotion...");

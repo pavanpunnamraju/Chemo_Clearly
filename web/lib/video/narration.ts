@@ -3,6 +3,12 @@ import type { PersonalizationFilter } from "../intake/schema";
 
 export interface SlideBeat {
   entryId: string;
+  /** The entry's section (e.g. "side_effects", "overview") — used to pick
+   * which curated illustration folder a slide draws from. Threaded from
+   * `ContentEntry.sectionId` at construction time rather than re-derived
+   * from `entryId` string-parsing (entryId's shape is an implementation
+   * detail, not a contract). */
+  sectionId: string;
   startSeconds: number;
   headline: string;
   body: string;
@@ -65,6 +71,7 @@ export function buildNarrationPlanFromChunks(
 
     slides.push({
       entryId: chunk.entryId,
+      sectionId: entry.sectionId,
       startSeconds: cumulativeSeconds,
       headline: entryHeadline(entry),
       body: chunk.text,
@@ -122,6 +129,7 @@ export function buildNarrationPlan(
 
     slides.push({
       entryId: entry.id,
+      sectionId: entry.sectionId,
       startSeconds: cumulativeSeconds,
       headline: entryHeadline(entry),
       body: text,

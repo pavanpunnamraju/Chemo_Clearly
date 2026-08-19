@@ -1,5 +1,5 @@
 import path from "node:path";
-import { writeFileSync, mkdtempSync } from "node:fs";
+import { writeFileSync, mkdtempSync, cpSync } from "node:fs";
 import os from "node:os";
 import type { NarrationPlan } from "./narration";
 import type { TimedComponent } from "./components";
@@ -41,6 +41,17 @@ export async function renderVideoLocally(
   const publicDir = mkdtempSync(path.join(os.tmpdir(), "chemo-video-public-"));
   const audioFilename = "narration.wav";
   writeFileSync(path.join(publicDir, audioFilename), audioBuffer);
+
+  // publicDir above is overridden to this temp dir (see comment above), so
+  // repo-tracked static assets like the Storyset illustrations aren't
+  // served from web/public/ automatically the way Next's own dev server
+  // would — copy them in alongside narration.wav so staticFile() resolves
+  // both the same way inside the composition (see SlideVideo.tsx).
+  cpSync(
+    path.join(process.cwd(), "public", "illustrations"),
+    path.join(publicDir, "illustrations"),
+    { recursive: true },
+  );
 
   const entryPoint = path.join(process.cwd(), "video-composition", "index.ts");
   const serveUrl = await bundle({ entryPoint, publicDir });

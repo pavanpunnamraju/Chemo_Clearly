@@ -25,33 +25,40 @@ const script =
 const triggers = findComponentTriggers(script);
 console.log("Triggers:", triggers);
 
-// Every tag with a registered icon that has a keyword hit should appear.
+// Every tag with a keyword hit should appear at least once — no icon
+// registry gates this anymore (icons.ts is gone).
 const tags = triggers.map((t) => t.tag);
-assert.deepEqual(tags.sort(), ["infection-risk", "nausea-appetite", "nerve-tingling"].sort());
+assert.deepEqual(
+  new Set(tags),
+  new Set(["infection-risk", "nausea-appetite", "nerve-tingling"]),
+);
 console.log("PASS — expected tags present, no extras");
 
-// Dedup: "nausea" appears twice ("nauseous" early, "Nausea" later) — only
-// one trigger for nausea-appetite, anchored at the FIRST mention.
-const nauseaTrigger = triggers.find((t) => t.tag === "nausea-appetite")!;
-assert.equal(triggers.filter((t) => t.tag === "nausea-appetite").length, 1);
-assert.ok(
-  script.toLowerCase().indexOf("nauseous") === nauseaTrigger.matchIndex,
-  "nausea-appetite should anchor at the first mention (\"nauseous\"), not a later one",
-);
-console.log("PASS — dedup anchors at first mention only");
+// No longer deduped: nausea-appetite keywords appear 4 times across the
+// script ("nauseous", "vomiting", "Nausea", "anti-nausea") — all 4 should
+// produce a trigger now, not just the first.
+assert.equal(triggers.filter((t) => t.tag === "nausea-appetite").length, 4);
+console.log("PASS — every mention triggers, not just the first");
 
 // A tag with no keyword hit at all (urinary, emotional-support, mouth-digestion,
 // aches-pain) must not appear.
 for (const absentTag of ["urinary", "emotional-support", "mouth-digestion", "aches-pain"]) {
   assert.ok(!tags.includes(absentTag), `${absentTag} should not trigger — no keyword present in script`);
 }
-console.log("PASS — tags with no keyword match correctly absent (no fallback icon)");
+console.log("PASS — tags with no keyword match correctly absent");
 
 // Triggers come back sorted by position, matching narration order.
 for (let i = 1; i < triggers.length; i++) {
-  assert.ok(triggers[i]!.matchIndex > triggers[i - 1]!.matchIndex, "triggers must be in script order");
+  assert.ok(triggers[i]!.matchIndex >= triggers[i - 1]!.matchIndex, "triggers must be in script order");
 }
 console.log("PASS — triggers sorted in script order");
+
+// Illustrations are assigned round-robin across the 3 available files, by
+// overall speaking-order position (not per-tag).
+for (const t of triggers) {
+  assert.ok(t.illustrationSrc.startsWith("illustrations/side_effects/"), "illustrationSrc should point at a side_effects file");
+}
+console.log("PASS — every trigger has a round-robin illustration assigned");
 
 // Timing refinement — live LLM call if creds are configured, deterministic
 // fallback otherwise. Either way, every trigger must still land on a valid
