@@ -25,6 +25,15 @@ credit link where practical, so one is included per collection below.
 | `patient_voices/patient_voices__community-pana.svg` | patient_voices | https://storyset.com/illustration/community/pana | [People illustrations by Storyset](https://storyset.com/people) |
 | `patient_voices/patient_voices__active-support-bro.svg` | patient_voices | https://storyset.com/illustration/active-support/bro | [Online illustrations by Storyset](https://storyset.com/online) |
 | `patient_voices/patient_voices__online-review-pana.svg` | patient_voices | https://storyset.com/illustration/online-review/bro | [Online illustrations by Storyset](https://storyset.com/online) |
+| `side_effects/side_effects__handwashing.svg` | side_effects | https://storyset.com/illustration/handwashing/pana | [Wellness illustrations by Storyset](https://storyset.com/wellness) |
+| `side_effects/side_effects__checking-bruise.svg` | side_effects | https://storyset.com/illustration/first-aid-kit/pana *(unverified — human sourced "First aid kit" directly, not the "injury" search codebase-agent verified; URL inferred from Storyset's slug pattern, not independently confirmed)* | — |
+| `side_effects/side_effects__nausea.svg` | side_effects | https://storyset.com/illustration/eating-disorder/pana | [Wellness illustrations by Storyset](https://storyset.com/wellness) |
+| `side_effects/side_effects__mouth-digestion.svg` | side_effects | https://storyset.com/illustration/stomachache/bro | [Wellness illustrations by Storyset](https://storyset.com/wellness) |
+| `side_effects/side_effects__nerve-tingling.svg` | side_effects | *(unverified — no bro/pana match found by codebase-agent's search; human sourced a "numbness" illustration directly, URL not confirmed this session)* | — |
+| `side_effects/side_effects__hair-loss.svg` | side_effects | *(unverified — human sourced "hair loss" directly rather than the "oncology-patient" search codebase-agent verified; URL not confirmed this session)* | — |
+| `side_effects/side_effects__urinary.svg` | side_effects | *(unverified — human sourced "urinary discomfort" directly rather than the "at-the-bathroom" search codebase-agent verified; URL not confirmed this session)* | — |
+| `side_effects/side_effects__aches-pain.svg` | side_effects | https://storyset.com/illustration/physical-therapy-exercise/pana | [Wellness illustrations by Storyset](https://storyset.com/wellness) |
+| `side_effects/side_effects__emotional-support.svg` | side_effects | https://storyset.com/illustration/anxiety/pana | [Wellness illustrations by Storyset](https://storyset.com/wellness) |
 
 ## Color principle (settled)
 
@@ -37,9 +46,11 @@ Standing principle for all Storyset downloads, current and future — see
 - **Navy** — patient shown *experiencing* something passively/difficult,
   used sparingly.
 
-All 19 files are correct as downloaded under the settled color principle
+All 28 files are correct as downloaded under the settled color principle
 above — `side_effects/side_effects__sleep-analysis-pana.svg` has been
-re-exported to navy `#1C2B45` for consistency within `side_effects`.
+re-exported to navy `#1C2B45` for consistency within `side_effects`. The
+Anxiety illustration (`emotional-support`) was re-downloaded once to fix an
+initial color mismatch before landing in this folder.
 
 ## Attribution
 

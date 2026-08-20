@@ -33,6 +33,19 @@ applies system-wide, not just to Storyset assets:
 - **Navy** — patient shown *experiencing* something passively/difficult; used
   sparingly.
 
+## Illustration style convention
+
+Every one of the 19 illustrations in `web/public/illustrations/MANIFEST.md` today is a
+`-bro` or `-pana` Storyset variant — both are Storyset's flat, faceless, single-character
+styles, closest to the NHS UHL reference look this project is anchored on
+(`docs/references/infographic_inspo/`). This was never a stated rule before, just what
+happened to get picked each time — stating it now: **prefer `-bro` or `-pana`** for every
+future Storyset download. Avoid other variants (`-amico`, `-rafiki`, `-cuate`, etc.) even
+if one turns up as a closer literal match for a search term — visual consistency across
+the whole illustration set matters more than a marginally better single-illustration fit.
+If neither bro nor pana exists for a needed search term, don't silently fall back to a
+third style — flag it explicitly so a human can make the call.
+
 ## The 5 archetypes
 
 ### Scene — single lived moment
