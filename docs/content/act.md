@@ -248,48 +248,67 @@ most cases are mild and manageable with the self-care steps above. [S2]
 
 ## `emergency`
 
+### About this list
+
 **tags:** `emergency-signs`
+**plain:** Most people never experience these. They're listed so you know what to act on
+quickly if you do.
 
-**plain, always show this section prominently, separate from the list above:**
+### Fever during your low-blood-cell window (neutropenic fever)
 
-Most people never experience these. They're listed so you know what to act on quickly if
-you do.
+**tags:** `emergency-signs`, `infection-risk`
+**tier:** `emergency`
+**plain:** **Fever during your low-blood-cell window** — a temperature of
+100.4°F (38.0°C) or higher sustained for an hour, or a single reading of 101°F (38.3°C)
+or higher, is a medical emergency when your infection-fighting white blood cells are low
+(called neutropenic fever). Call your care team immediately, day or night — don't wait
+for office hours or "see if it comes down." This is different from a fever during an
+infusion/allergic reaction (below), which the infusion team is already watching for in
+real time. Ask your team when your counts are expected to be lowest — that timing shifts
+between the AC and taxane phases and with your specific schedule — but treat a fever at
+this threshold as an emergency at any point in treatment, not only in that window.
+**source:** S1, S2
 
-- **Fever during your low-blood-cell window** — a temperature of
-  100.4°F (38.0°C) or higher sustained for an hour, or a single reading of 101°F (38.3°C)
-  or higher, is a medical emergency when your infection-fighting white blood cells are low
-  (called neutropenic fever). Call your care team immediately, day or night — don't wait
-  for office hours or "see if it comes down." This is different from a fever during an
-  infusion/allergic reaction (below), which the infusion team is already watching for in
-  real time. Ask your team when your counts are expected to be lowest — that timing shifts
-  between the AC and taxane phases and with your specific schedule — but treat a fever at
-  this threshold as an emergency at any point in treatment, not only in that window.
-  [S1, S2]
-- **Infusion/allergic reaction** — can happen during or shortly after an infusion (any of
-  the three drugs): rash, itching, swelling, trouble breathing, dizziness, fever. Tell the
-  infusion team immediately. [S1, S2]
-- **Heart symptoms** (doxorubicin-related, more relevant at higher cumulative doses) — new
-  or worsening shortness of breath, swelling in legs/feet, chest pain/pressure, rapid
-  unexplained weight gain. [S1]
-- **Severe low-blood-count complications** — confusion or signs of serious infection during
-  the nadir window.
+### Infusion or allergic reaction
 
-**Call 911 or go to the ER for**: trouble breathing, chest pain, confusion, or anything
-that feels life-threatening. **Call your care team right away** for the other items above,
-including the fever threshold. Calling is always the right call — no one will think you're
-overreacting.
+**tags:** `emergency-signs`
+**tier:** `emergency`
+**plain:** **Infusion/allergic reaction** — can happen during or shortly after an infusion (any of
+the three drugs): rash, itching, swelling, trouble breathing, dizziness, fever. Tell the
+infusion team immediately.
+**detail:** Infusion/allergic reactions are most closely watched for on paclitaxel and the
+first AC infusion, which is why premedication and monitoring are routine on those doses.
+**source:** S1, S2
 
+### Heart symptoms
+
+**tags:** `emergency-signs`, `heart`
+**tier:** `emergency`
+**plain:** **Heart symptoms** (doxorubicin-related, more relevant at higher cumulative doses) — new
+or worsening shortness of breath, swelling in legs/feet, chest pain/pressure, rapid
+unexplained weight gain.
 **detail:** Doxorubicin's heart-risk (congestive heart failure) is dose-dependent: the AC
 phase of this regimen reaches a cumulative doxorubicin dose of 240 mg/m², which is below
 the range where the FDA label begins quantifying risk (under 300 mg/m²) — risk still
 rises steeply if a patient has received doxorubicin before (including in a prior cancer),
-which is why disclosing prior treatment matters. [S5a] Infusion/allergic
-reactions are most closely watched for on paclitaxel and the first AC infusion, which is
-why premedication and monitoring are routine on those doses. [S1, S2]
+which is why disclosing prior treatment matters.
+**source:** S1, S5a
 
-**source (detail):** S1, S2, S5a
+### Severe low-blood-count complications
 
+**tags:** `emergency-signs`, `infection-risk`
+**tier:** `emergency`
+**plain:** **Severe low-blood-count complications** — confusion or signs of serious infection during
+the nadir window.
 **source:** S1, S2
+
+### When to call 911 vs. your care team
+
+**tags:** `emergency-signs`
+**plain:** **Call 911 or go to the ER for**: trouble breathing, chest pain, confusion, or anything
+that feels life-threatening. **Call your care team right away** for the other items above,
+including the fever threshold. Calling is always the right call — no one will think you're
+overreacting.
 
 ---
 
