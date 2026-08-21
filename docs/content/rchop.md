@@ -14,6 +14,9 @@ pipeline. Schema: `docs/content/schema.md`.
 | S3 | NCODA/ACCC/HOPA/ONS Patient Education Sheet — R-CHOP, Oct 2025 (`docs/references/PES_R-CHOP.md`) | patient-education org (full-standing source; also the critique reference that motivated this schema) |
 | S4 | Outcomes4Me, "Why the third day after chemo often feels the worst" | patient-health content org |
 | A1 | Patient forum accounts (HealthUnlocked non-Hodgkin's-friends community, general chemo timeline blogs) | **anecdotal — not a clinical source** |
+| A2 | The Patient Story, "Luis's Stage 4 DLBCL Non-Hodgkin's Lymphoma Story" (thepatientstory.com/patient-stories/non-hodgkin-lymphoma/diffuse-large-b-cell-dlbcl/luis-v/) | **anecdotal — not a clinical source**, moderated patient-story site |
+| A3 | The Patient Story, "Emily's Stage 4 Diffuse Large B-Cell Lymphoma (DLBCL) Story" (thepatientstory.com/patient-stories/non-hodgkin-lymphoma/emily-g/) | **anecdotal — not a clinical source**, moderated patient-story site |
+| A4 | Lymphoma Research Foundation, "Adam, Diffuse Large B-Cell Lymphoma Survivor" (lymphoma.org/storiesofhope/adam-diffuse-large-b-cell-lymphoma-survivor/) | **anecdotal — not a clinical source**, patient-advocacy org story |
 | S5a | FDA Prescribing Information, ADRIAMYCIN (doxorubicin HCl) for Injection (accessdata.fda.gov/drugsatfda_docs/label/2012/062921s022lbl.pdf) — cumulative-dose → CHF-risk table | FDA drug label |
 | S5b | Xu et al., "Incidence and risk factors for febrile neutropenia of patients with diffuse large B-cell lymphoma receiving R-CHOP-21 in China," PMID 38200251 | peer-reviewed study |
 | S5c | "Aspects of vincristine-induced neuropathy in hematologic malignancies: a systematic review," PMC6682573 | peer-reviewed systematic review |
@@ -370,23 +373,45 @@ soiled laundry separately. [S1]
 
 ## `patient_voices` (anecdotal — never a clinical claim)
 
+### Day 3 crash
+
 **tags:** `emotional-support`
-
+**plain:**
 > "Day 3 is when it really hits — the steroids wear off and you just feel wiped." [A1]
-> This "day 3" pattern is reported widely across chemo regimens in general (not
-> R-CHOP-specific clinical research) — several patients describe fatigue, nausea, and
-> general achiness peaking around day 3, once the day-1 pre-medications wear off. [S4]
 
-> Several patients describe the week-1/nadir stretch as the hardest, with the days right
-> after each infusion being when fatigue, mouth soreness, and low counts are most
-> noticeable — and describe things gradually improving as the next infusion approaches. [A1]
+**on-screen:** "Day 3 is when it really hits."
+**source:** A1
 
-**plain framing for the app:** "Other patients on R-CHOP have said the first few days after
-each infusion tend to be the hardest, and that it gets more manageable as you settle into
-the rhythm of cycles. Everyone's experience is different, and your care team is the best
-judge of what's normal for you."
+### Losing hair gradually
 
-**source:** A1 — anecdotal, forum/blog material, explicitly not used for any clinical claim.
+**tags:** `emotional-support`
+**plain:**
+> "Feeling good that first week on the steroid, then a rough couple of days once it wears
+> off, became the pattern I learned to expect each cycle. Losing my hair, watching it thin
+> out little by little rather than all at once, was harder than the day I finally shaved
+> it — that was the moment it started feeling real." [A2, A4]
+
+**on-screen:** "Losing my hair little by little was harder than the day I finally shaved it."
+**source:** A2, A4
+
+### Mouth sores and mental fog
+
+**tags:** `emotional-support`
+**plain:**
+> "The nausea and mouth soreness got more noticeable with each round, not less — brushing
+> my teeth became something I had to brace for. The mental fog was its own surprise; some
+> days finding the right word or keeping a thought straight took real effort." [A3, A4]
+
+**on-screen:** "Some days, finding the right word took real effort."
+**source:** A3, A4
+
+### Closing note
+
+**tags:** `emotional-support`
+**plain:** Other patients on R-CHOP have said the first few days after each infusion tend
+to be the hardest, and that it gets more manageable as you settle into the rhythm of
+cycles. Everyone's experience is different, and your care team is the best judge of what's
+normal for you.
 
 ---
 

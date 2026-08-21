@@ -65,6 +65,7 @@ function parseEntry(
     callTeamIf: extractField(block, "call_team_if"),
     call911: extractField(block, "call_911"),
     callTeam: extractField(block, "call_team"),
+    onScreen: extractField(block, "on-screen"),
     source: extractField(block, "source"),
     anecdotal: sectionId === "patient_voices",
   };

@@ -1,4 +1,4 @@
-import { Audio, Img, Sequence, AbsoluteFill, useVideoConfig, useCurrentFrame, staticFile } from "remotion";
+import { Audio, Img, Sequence, AbsoluteFill, useVideoConfig, useCurrentFrame, staticFile, interpolate } from "remotion";
 import { loadFont, fontFamily } from "@remotion/google-fonts/Figtree";
 import type { SlideBeat } from "../lib/video/narration";
 import { illustrationForSlide, sceneIllustrationForSideEffectTags } from "../lib/video/components";
@@ -150,6 +150,27 @@ export const SlideVideo: React.FC<SlideVideoProps> = ({
           return (
             <Sequence key={beat.entryId} from={from} durationInFrames={runDurationInFrames}>
               <AlertSection beats={slides.slice(i, runEnd + 1)} />
+            </Sequence>
+          );
+        }
+
+        if (beat.sectionId === "patient_voices") {
+          // Quote archetype (video_visual_system.md) — one QuoteSection
+          // mounted for the whole section span, same "run" grouping as
+          // AlertSection above, so the crossfade math has every beat's real
+          // startSeconds to compute boundaries against instead of being
+          // reconstructed per-Sequence.
+          const isRunStart = slides[i - 1]?.sectionId !== "patient_voices";
+          if (!isRunStart) return null;
+
+          let runEnd = i;
+          while (slides[runEnd + 1]?.sectionId === "patient_voices") runEnd++;
+          const runNextStart = slides[runEnd + 1]?.startSeconds ?? endSeconds;
+          const runDurationInFrames = Math.max(1, Math.round((runNextStart - beat.startSeconds) * fps));
+
+          return (
+            <Sequence key={beat.entryId} from={from} durationInFrames={runDurationInFrames}>
+              <QuoteSection beats={slides.slice(i, runEnd + 1)} />
             </Sequence>
           );
         }
@@ -499,6 +520,191 @@ const AlertSplitHalf: React.FC<{ label: string; text: string; backgroundColor: s
   </div>
 );
 
+// Quote archetype (video_visual_system.md, `patient_voices`) — no character,
+// a large faded quotation-mark glyph + the quote's own pull-quote text are
+// the dominant visual, on a muted/desaturated variant of Scene's blob
+// background, crossfading between quote blocks instead of cutting. Closes on
+// the app's own framing line (`Closing note` entry) as the bridge back to
+// Scene. Approved mockup: docs/references/handoff.md (design-agent round).
+// Generalizes past the current 3-quote R-CHOP content — everything below
+// derives from `quotes.length`/each quote's own on-screen text length, not a
+// hardcoded count (AC-T's `patient_voices` entry will have its own count).
+const QUOTE_GLYPH = "“";
+// Total crossfade width (each side of a boundary) — ~700ms crossfade per the
+// approved mockup, "no slide/scale/wipe."
+const QUOTE_CROSSFADE_SECONDS = 0.35;
+
+function quoteCrossfadeOpacity(relSeconds: number, start: number, end: number): number {
+  const fadeIn = interpolate(relSeconds, [start - QUOTE_CROSSFADE_SECONDS, start + QUOTE_CROSSFADE_SECONDS], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+  const fadeOut =
+    end === Infinity
+      ? 1
+      : interpolate(relSeconds, [end - QUOTE_CROSSFADE_SECONDS, end + QUOTE_CROSSFADE_SECONDS], [1, 0], {
+          extrapolateLeft: "clamp",
+          extrapolateRight: "clamp",
+        });
+  return Math.min(fadeIn, fadeOut);
+}
+
+// Per-quote sizing off that quote's own on-screen text length (mockup:
+// 44px for the two short one-liners, 38px for the longer middle quote) —
+// not a fixed size or an index-based lookup, so a differently-worded quote
+// set (AC-T) sizes itself the same way.
+function quoteFontSize(onScreen: string): number {
+  return onScreen.length > 55 ? 38 : 44;
+}
+
+// Closing note's `plain` is deliberately two full sentences (design doc) —
+// navy sentence first/larger, teal sentence beneath. Splits on the first
+// sentence boundary rather than assuming a fixed split point.
+function splitClosingSentences(text: string): [string, string | undefined] {
+  const match = /^(.*?[.!?])\s+(.*)$/.exec(text.trim());
+  if (!match) return [text.trim(), undefined];
+  return [match[1]!, match[2]!];
+}
+
+const QuoteSection: React.FC<{ beats: SlideBeat[] }> = ({ beats }) => {
+  const { fps } = useVideoConfig();
+  const frame = useCurrentFrame();
+  const relSeconds = frame / fps;
+  const sectionStart = beats[0]!.startSeconds;
+  const relStart = (b: SlideBeat) => b.startSeconds - sectionStart;
+
+  // Quote entries carry `onScreen` (the pull-quote); the closing note
+  // doesn't — that's what distinguishes it, not array position.
+  const quoteBeats = beats.filter((b) => b.onScreen);
+  const closingBeat = beats.find((b) => !b.onScreen);
+  const closingRelStart = closingBeat ? relStart(closingBeat) : Infinity;
+
+  let activeIndex = -1;
+  quoteBeats.forEach((b, i) => {
+    if (relSeconds >= relStart(b)) activeIndex = i;
+  });
+
+  return (
+    <AbsoluteFill style={{ overflow: "hidden", backgroundColor: FRAME_BG }}>
+      {quoteBeats.map((beat, i) => {
+        const start = relStart(beat);
+        const end = i + 1 < quoteBeats.length ? relStart(quoteBeats[i + 1]!) : closingRelStart;
+        const opacity = quoteCrossfadeOpacity(relSeconds, start, end);
+        if (opacity <= 0) return null;
+        return <QuoteBlock key={beat.entryId} onScreen={beat.onScreen!} opacity={opacity} />;
+      })}
+      {closingBeat
+        ? (() => {
+            const opacity = quoteCrossfadeOpacity(relSeconds, closingRelStart, Infinity);
+            if (opacity <= 0) return null;
+            return <QuoteClosing text={closingBeat.body} opacity={opacity} />;
+          })()
+        : null}
+      {quoteBeats.length > 0 && relSeconds < closingRelStart ? (
+        <QuoteDots total={quoteBeats.length} activeIndex={activeIndex} />
+      ) : null}
+    </AbsoluteFill>
+  );
+};
+
+const QuoteBlock: React.FC<{ onScreen: string; opacity: number }> = ({ onScreen, opacity }) => (
+  <div style={{ position: "absolute", inset: 0, opacity }}>
+    {/* Muted/desaturated variant of Scene's blob mechanism (SceneSlide
+        above) — centered instead of off to one side, alpha pushed down to
+        ~10% for the "quieter than every other section" read. */}
+    <div
+      style={{
+        position: "absolute",
+        left: "20%",
+        top: "10%",
+        width: "60%",
+        height: "80%",
+        borderRadius: "58% 42% 53% 47% / 44% 55% 45% 56%",
+        background: `radial-gradient(circle at 50% 45%, ${TEAL}1a, ${FRAME_BG} 72%)`,
+      }}
+    />
+    <div
+      style={{
+        position: "absolute",
+        left: "4%",
+        top: "4%",
+        fontSize: 420,
+        fontWeight: 800,
+        lineHeight: 1,
+        color: NAVY,
+        opacity: 0.08,
+        userSelect: "none",
+      }}
+    >
+      {QUOTE_GLYPH}
+    </div>
+    <div
+      style={{
+        position: "absolute",
+        left: "8%",
+        top: "50%",
+        transform: "translateY(-50%)",
+        width: "70%",
+        display: "flex",
+        flexDirection: "column",
+        gap: 18,
+      }}
+    >
+      <div style={{ fontSize: quoteFontSize(onScreen), fontWeight: 700, lineHeight: 1.4, color: NAVY }}>
+        {onScreen}
+      </div>
+      {/* R-CHOP fixed for this round, same precedent as SCENE_FIXED_HEADLINES's
+          hardcoded "R-CHOP" overview headline — AC-T's patient_voices gets its
+          own attribution text when that regimen's round lands. */}
+      <div style={{ fontSize: 22, fontWeight: 600, color: TEAL }}>— other patients, R-CHOP</div>
+    </div>
+  </div>
+);
+
+const QuoteClosing: React.FC<{ text: string; opacity: number }> = ({ text, opacity }) => {
+  const [sentence1, sentence2] = splitClosingSentences(text);
+  return (
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        opacity,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        gap: 22,
+        padding: "0 10%",
+      }}
+    >
+      <div style={{ fontSize: 34, fontWeight: 800, color: NAVY, textAlign: "center", lineHeight: 1.35 }}>
+        {sentence1}
+      </div>
+      {sentence2 ? (
+        <div style={{ fontSize: 24, fontWeight: 600, color: TEAL, textAlign: "center", lineHeight: 1.4 }}>
+          {sentence2}
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
+const QuoteDots: React.FC<{ total: number; activeIndex: number }> = ({ total, activeIndex }) => (
+  <div style={{ position: "absolute", right: "6%", bottom: "6%", display: "flex", gap: 10 }}>
+    {Array.from({ length: total }).map((_, i) => (
+      <div
+        key={i}
+        style={{
+          width: 10,
+          height: 10,
+          borderRadius: "50%",
+          backgroundColor: i === activeIndex ? TEAL : `${NAVY}33`,
+        }}
+      />
+    ))}
+  </div>
+);
+
 // Long `detail` bodies (depth: "detailed") need a smaller size to stay
 // within the frame's vertical space — same box, same padding, just less
 // text per line/more lines, so it scales down as word count grows.
@@ -509,8 +715,9 @@ function bodyFontSize(body: string): number {
   return 28;
 }
 
-// Pre-existing plain slide layout — still used by the archetypes out of
-// scope this round (timeline, emergency, patient_voices).
+// Pre-existing plain slide layout — still used by the one archetype out of
+// scope so far (timeline). Emergency/patient_voices now have their own
+// components (AlertSection/QuoteSection) above.
 const Slide: React.FC<{ headline: string; body?: string; illustrationSrc?: string | null }> = ({
   headline,
   body,

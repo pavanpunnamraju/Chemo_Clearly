@@ -38,6 +38,10 @@ export interface ContentEntry {
    * SlideVideo.tsx doesn't need to parse bold spans out of narration text. */
   call911?: string;
   callTeam?: string;
+  /** Quote archetype (video_visual_system.md) pull-quote — trimmed on-screen
+   * text shown while the full `plain` blockquote is narrated, `patient_voices`
+   * quote entries only. */
+  onScreen?: string;
   source?: string;
   anecdotal: boolean;
 }

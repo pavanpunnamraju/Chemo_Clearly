@@ -252,9 +252,17 @@ See the Quote archetype above. Concretely: quote text large, centered-left, smal
 two-tone headline — the quote *is* the content). Large faded quotation mark behind/
 behind-left of the text as the only "illustration." Crossfades between quotes as
 narration moves between them — same mechanism whether the entry has 2 quotes or 3.
-Closes on the app's own framing line ("Everyone's experience is different...") in the
-normal navy/teal two-tone treatment, doubling as the bridge back to Scene for
-whatever section follows.
+Closes on the app's own framing line ("Everyone's experience is different...") — two full
+sentences, not a 2-4 word headline, so it uses Alert's title-card sizing rather than the
+tight two-tone headline treatment, split navy (first sentence)/teal (second) in the same
+primary/secondary relationship, doubling as the bridge back to Scene for whatever section
+follows. Small progress dots, bottom-right, one per quote (however many the entry has) —
+added during the R-CHOP storyboard mockup round so a viewer can tell how far through the
+section they are across sequential crossfades with no character/scene change to signal it;
+CSS only, no new asset.
+
+Verified against a real interactive mockup: `docs/references/handoff.md`, Phase 2a goal #6
+storyboard round (2026-08-20), design-agent.
 
 ## Prerequisites — satisfied
 

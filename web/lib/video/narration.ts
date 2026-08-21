@@ -24,6 +24,9 @@ export interface SlideBeat {
    * section's closing entry. Threaded from `ContentEntry.call911`/`callTeam`. */
   call911?: string;
   callTeam?: string;
+  /** Quote archetype (video_visual_system.md) pull-quote — threaded from
+   * `ContentEntry.onScreen`, `patient_voices` quote entries only. */
+  onScreen?: string;
 }
 
 export interface NarrationPlan {
@@ -47,6 +50,7 @@ export function cleanForSpeechAndDisplay(text: string): string {
   // nor the plain-<p> slide component interprets markdown).
   return text
     .replace(/^\s*-\s+/gm, "") // leading bullet markers
+    .replace(/^\s*>\s?/gm, "") // leading blockquote markers (patient_voices quote entries)
     .replace(/\s*\n+\s*/g, " ") // newlines -> single space (do this before **/` stripping below, since those spans can be hard-wrapped across lines in the source markdown)
     .replace(/\s*\[[A-Za-z0-9,\s]+\]/g, "") // citation markers like "[S1, S2]"
     .replace(/\*\*([\s\S]*?)\*\*/g, "$1") // **bold**
@@ -91,6 +95,7 @@ export function buildNarrationPlanFromChunks(
       tier: entry.tier,
       call911: entry.call911,
       callTeam: entry.callTeam,
+      onScreen: entry.onScreen,
     });
 
     scriptParts.push(chunk.text);
@@ -153,6 +158,7 @@ export function buildNarrationPlan(
       tier: entry.tier,
       call911: entry.call911,
       callTeam: entry.callTeam,
+      onScreen: entry.onScreen,
     });
 
     scriptParts.push(text);
