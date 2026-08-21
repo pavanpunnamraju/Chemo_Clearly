@@ -1,4 +1,4 @@
-import { Audio, Img, Sequence, AbsoluteFill, useVideoConfig, staticFile } from "remotion";
+import { Audio, Img, Sequence, AbsoluteFill, useVideoConfig, useCurrentFrame, staticFile } from "remotion";
 import { loadFont, fontFamily } from "@remotion/google-fonts/Figtree";
 import type { SlideBeat } from "../lib/video/narration";
 import { illustrationForSlide, sceneIllustrationForSideEffectTags } from "../lib/video/components";
@@ -40,6 +40,16 @@ const NAVY = "#1c2b45";
 const TEAL = "#2fbfa0";
 const CORAL = "#ff6b4a";
 const FRAME_BG = "#f4f7f6";
+
+// Alert archetype (video_visual_system.md) — deliberate palette break from
+// the navy/teal/coral system above, verified against the approved mockup
+// (docs/references/handoff.md, round 3, design-agent).
+const ALERT_RED = "#c23b34";
+const ALERT_RED_DEEP = "#9c2a24";
+const ALERT_CARD_BG = "#fff8f6";
+const ALERT_SETTLED_BG = "#fdfbfa";
+const ALERT_SETTLED_BORDER = "#e7d9d6";
+const ALERT_EMPTY_BORDER = "#dcd7cb";
 
 // Scene archetype sections this round (video_visual_system.md's per-section
 // mapping) — daily_life/side_effects/fertility_intimacy/overview only.
@@ -121,6 +131,28 @@ export const SlideVideo: React.FC<SlideVideoProps> = ({
         const nextStart = slides[i + 1]?.startSeconds ?? endSeconds;
         const from = Math.round(beat.startSeconds * fps);
         const durationInFrames = Math.max(1, Math.round((nextStart - beat.startSeconds) * fps));
+
+        if (beat.sectionId === "emergency") {
+          // Alert archetype (video_visual_system.md, round 2 decision #2):
+          // one AlertSection mounted for the whole section span, not a
+          // Sequence per beat — that's what lets a settled card keep
+          // rendering past its own beat's Sequence window. Only the first
+          // beat in the section's contiguous run emits a Sequence; the rest
+          // are covered by it and render nothing here.
+          const isRunStart = slides[i - 1]?.sectionId !== "emergency";
+          if (!isRunStart) return null;
+
+          let runEnd = i;
+          while (slides[runEnd + 1]?.sectionId === "emergency") runEnd++;
+          const runNextStart = slides[runEnd + 1]?.startSeconds ?? endSeconds;
+          const runDurationInFrames = Math.max(1, Math.round((runNextStart - beat.startSeconds) * fps));
+
+          return (
+            <Sequence key={beat.entryId} from={from} durationInFrames={runDurationInFrames}>
+              <AlertSection beats={slides.slice(i, runEnd + 1)} />
+            </Sequence>
+          );
+        }
 
         if (SCENE_SECTIONS.has(beat.sectionId)) {
           return (
@@ -275,6 +307,197 @@ const SceneSlide: React.FC<{
     </AbsoluteFill>
   );
 };
+
+/**
+ * Alert archetype (video_visual_system.md, `emergency` section) — persistent
+ * "EMERGENCY" title, a plain calming framing line, then a fixed-slot column
+ * (one row per `tier: emergency` entry, filled in place as narration
+ * reaches it, never cleared), closing on a 911-vs-care-team split card.
+ * Mounted once for the whole section span (see the call site above) so a
+ * settled card keeps rendering past its own beat's timing window — approved
+ * mockup: docs/references/handoff.md, round 3, design-agent.
+ *
+ * Deviation from the mockup: the mockup's own doc chrome renders the
+ * "EMERGENCY" label in IBM Plex Mono, but the actual video pipeline only
+ * loads Figtree (video_visual_system.md's Typography section: "system-wide").
+ * Reproduced the label's small-caps/letter-spaced look in Figtree instead of
+ * loading a second font family for one four-letter word.
+ */
+const AlertSection: React.FC<{ beats: SlideBeat[] }> = ({ beats }) => {
+  const { fps } = useVideoConfig();
+  const frame = useCurrentFrame();
+  const relSeconds = frame / fps;
+  const sectionStart = beats[0]!.startSeconds;
+  const relStart = (b: SlideBeat) => b.startSeconds - sectionStart;
+
+  const emergencyBeats = beats.filter((b) => b.tier === "emergency");
+  // The closing beat is the one carrying the split-card fields (decision #4)
+  // rather than "last beat" by position — keyed off the entry's own data,
+  // not array position, same rule the rest of this spec follows.
+  const closingBeat = beats.find((b) => b.call911 || b.callTeam);
+  const framingBeat = beats.find((b) => b !== closingBeat && b.tier !== "emergency");
+
+  if (closingBeat && relSeconds >= relStart(closingBeat)) {
+    return <AlertSplitCard call911={closingBeat.call911 ?? ""} callTeam={closingBeat.callTeam ?? ""} />;
+  }
+
+  const columnStarted = emergencyBeats.length > 0 && relSeconds >= relStart(emergencyBeats[0]!);
+  const closingRelStart = closingBeat ? relStart(closingBeat) : Infinity;
+
+  return (
+    <AbsoluteFill style={{ overflow: "hidden" }}>
+      <AlertTitle />
+      {columnStarted ? (
+        <AlertSlotColumn beats={emergencyBeats} relSeconds={relSeconds} relStart={relStart} closingRelStart={closingRelStart} />
+      ) : (
+        <div
+          style={{
+            position: "absolute",
+            left: "8%",
+            right: "8%",
+            top: "38%",
+            fontSize: 30,
+            fontWeight: 600,
+            lineHeight: 1.4,
+            color: NAVY,
+          }}
+        >
+          {framingBeat?.body ?? ""}
+        </div>
+      )}
+    </AbsoluteFill>
+  );
+};
+
+const AlertTitle: React.FC = () => (
+  <div
+    style={{
+      position: "absolute",
+      left: "5%",
+      top: "5%",
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      fontSize: 18,
+      fontWeight: 800,
+      letterSpacing: 2,
+      textTransform: "uppercase",
+      color: ALERT_RED_DEEP,
+    }}
+  >
+    <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: ALERT_RED }} />
+    Emergency
+  </div>
+);
+
+// Fixed row count for the section's whole duration (never grows/shrinks) —
+// only border/background/color/fontWeight change per frame, so this is a
+// plain property interpolation against a stable flex layout, not a layout
+// animation (round 2 decision #8's feasibility flag; verified with a real
+// Remotion still-frame render, see handoff.md).
+const AlertSlotColumn: React.FC<{
+  beats: SlideBeat[];
+  relSeconds: number;
+  relStart: (b: SlideBeat) => number;
+  closingRelStart: number;
+}> = ({ beats, relSeconds, relStart, closingRelStart }) => (
+  <div
+    style={{
+      position: "absolute",
+      left: "7.5%",
+      top: "16%",
+      width: "85%",
+      bottom: "8%",
+      display: "flex",
+      flexDirection: "column",
+      gap: 10,
+    }}
+  >
+    {beats.map((beat, i) => {
+      const start = relStart(beat);
+      const nextStart = i + 1 < beats.length ? relStart(beats[i + 1]!) : closingRelStart;
+      let state: "empty" | "active" | "settled" = "empty";
+      if (relSeconds >= start && relSeconds < nextStart) state = "active";
+      else if (relSeconds >= nextStart) state = "settled";
+      return <AlertSlotRow key={beat.entryId} title={beat.headline} state={state} />;
+    })}
+  </div>
+);
+
+const AlertSlotRow: React.FC<{ title: string; state: "empty" | "active" | "settled" }> = ({ title, state }) => {
+  const style =
+    state === "active"
+      ? { border: `3px solid ${ALERT_RED}`, backgroundColor: ALERT_CARD_BG, color: NAVY, fontWeight: 800 as const }
+      : state === "settled"
+        ? {
+            border: `1px solid ${ALERT_SETTLED_BORDER}`,
+            backgroundColor: ALERT_SETTLED_BG,
+            color: NAVY,
+            fontWeight: 600 as const,
+          }
+        : { border: `1px dashed ${ALERT_EMPTY_BORDER}`, backgroundColor: "transparent", color: "transparent", fontWeight: 600 as const };
+
+  return (
+    <div
+      style={{
+        flex: 1,
+        borderRadius: 6,
+        padding: "0 24px",
+        display: "flex",
+        alignItems: "center",
+        fontSize: 24,
+        lineHeight: 1.2,
+        overflowWrap: "break-word",
+        ...style,
+      }}
+    >
+      {title}
+    </div>
+  );
+};
+
+// Closing beat (video_visual_system.md, Alert archetype) — a distinct cut
+// after the column has fully filled, not composited alongside it. Coral is
+// the app's real coral constant, not a separate orange (round 2 decision #7).
+const AlertSplitCard: React.FC<{ call911: string; callTeam: string }> = ({ call911, callTeam }) => (
+  <AbsoluteFill style={{ overflow: "hidden" }}>
+    <div
+      style={{
+        position: "absolute",
+        inset: "6%",
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        borderRadius: 10,
+        overflow: "hidden",
+      }}
+    >
+      <AlertSplitHalf label="Call 911 / ER" text={call911} backgroundColor={ALERT_RED_DEEP} />
+      <AlertSplitHalf label="Call your care team" text={callTeam} backgroundColor={CORAL} />
+    </div>
+  </AbsoluteFill>
+);
+
+const AlertSplitHalf: React.FC<{ label: string; text: string; backgroundColor: string }> = ({
+  label,
+  text,
+  backgroundColor,
+}) => (
+  <div
+    style={{
+      backgroundColor,
+      color: "#ffffff",
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
+      padding: 48,
+    }}
+  >
+    <div style={{ fontSize: 16, fontWeight: 800, letterSpacing: 1.5, textTransform: "uppercase", opacity: 0.85, marginBottom: 12 }}>
+      {label}
+    </div>
+    <div style={{ fontSize: 26, lineHeight: 1.4, fontWeight: 500 }}>{text}</div>
+  </div>
+);
 
 // Long `detail` bodies (depth: "detailed") need a smaller size to stay
 // within the frame's vertical space — same box, same padding, just less

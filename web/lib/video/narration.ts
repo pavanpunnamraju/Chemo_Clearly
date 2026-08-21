@@ -1,4 +1,4 @@
-import type { ContentEntry, RegimenContent } from "../content/types";
+import type { ContentEntry, RegimenContent, Tier } from "../content/types";
 import type { PersonalizationFilter } from "../intake/schema";
 
 export interface SlideBeat {
@@ -16,6 +16,14 @@ export interface SlideBeat {
    * tag-driven `side_effects` subject rule (video-composition/SlideVideo.tsx),
    * not derived from narration text like the old keyword-trigger mechanism was. */
   tags: string[];
+  /** The entry's own `tier` (video_visual_system.md's Alert archetype) — which
+   * `emergency`-section entries get a fixed-slot card vs. the section's plain
+   * framing/closing beats. Threaded from `ContentEntry.tier`, same pattern as `tags`. */
+  tier?: Tier;
+  /** Alert archetype closing split-card text — only set on the `emergency`
+   * section's closing entry. Threaded from `ContentEntry.call911`/`callTeam`. */
+  call911?: string;
+  callTeam?: string;
 }
 
 export interface NarrationPlan {
@@ -80,6 +88,9 @@ export function buildNarrationPlanFromChunks(
       headline: entryHeadline(entry),
       body: chunk.text,
       tags: entry.tags,
+      tier: entry.tier,
+      call911: entry.call911,
+      callTeam: entry.callTeam,
     });
 
     scriptParts.push(chunk.text);
@@ -139,6 +150,9 @@ export function buildNarrationPlan(
       headline: entryHeadline(entry),
       body: text,
       tags: entry.tags,
+      tier: entry.tier,
+      call911: entry.call911,
+      callTeam: entry.callTeam,
     });
 
     scriptParts.push(text);

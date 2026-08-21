@@ -77,60 +77,73 @@ mechanism below; this is not a single fixed spine.
 ### Alert — `emergency` section
 
 Deliberately breaks the palette used everywhere else: hard-edged card (not a soft
-blob), higher-contrast red/orange instead of navy/teal, no faceless character acting
+blob), higher-contrast red instead of navy/teal, no faceless character acting
 anything out. Point: reads as visually different at a glance, before any text is
-legible.
+legible. Video frame keeps the pipeline's real light background (`#F4F7F6`) — the
+break is in the cards, not the frame.
 
+- A persistent "EMERGENCY" title sits at the top of the frame for the section's
+  whole duration (not just the opening beat) — a constant identifier, unlike every
+  other section's two-tone headline which appears once and moves on.
 - Opens on a plain calming framing statement, styled normally (not alert-styled), so
   the section doesn't open in false-alarm mode.
 - Each `tier: emergency` entry gets a hard-edged red-bordered card, title
   left-aligned and bold — flat/immediate, not the stacked two-tone headline; urgency
   reads better this way.
-- The first card by array position gets emphasis. Keyed off position, not a
-  hardcoded item — different regimens' first emergency item differs.
 
-**Stacking mechanic (resolved this round, replaces the earlier fade/clear-and-replace
-proposal logic-agent flagged as a real risk — see git history of
-`docs/references/handoff.md` for that verdict's full reasoning).**
+**Fixed-slot bullet-reveal mechanic (resolved this round, replaces the earlier
+fade/clear-and-replace proposal logic-agent flagged as a real risk — see git history
+of `docs/references/handoff.md` for that verdict's full reasoning; revised again
+2026-08-20 to drop position-1 emphasis, per human review of the storyboard mockup —
+see below).**
 
-- Cards stack vertically in a single left-aligned column, centered in the frame at
-  roughly 85% of frame width, growing downward as narration reaches each entry —
-  not spread across the whole frame, not alternating sides.
+- Every entry gets its own fixed row from the start of the section, in a single
+  left-aligned column centered at roughly 85% of frame width — not a stack that
+  grows/slides as narration proceeds, and not spread across the whole frame or
+  alternating sides. Rows not yet reached hold their place as an empty/placeholder
+  slot; a card lights up in place when narration reaches it. This is a bullet list
+  filling in, not papers piling up.
 - A card enters at full saturation — solid red border, filled light-red background —
   while it's the one currently being narrated. That's the "read me now" state.
 - Once narration moves to the next entry, the card fades to a lighter/receded shade
   (thin border, near-white background, title still fully legible) and holds there.
   **No card ever clears or leaves the screen once shown** — every entry narrated so
-  far stays visible in some form for the rest of the section. This directly closes
-  the gap logic-agent flagged: the fever/neutropenic-fever card (position 1 on both
-  regimens, the one this spec calls out for emphasis) can never be the first thing to
-  disappear, because nothing disappears.
-- The position-1 emphasis card keeps its emphasis (thicker border, one step less
-  faded than its siblings) for its *entire* time on screen, not just at entry — it
-  never recedes to the same visual weight as the other settled cards. Concretely:
-  every other card fades border-weight 3px → 1px and background light-red → near-white
-  on settling; the emphasis card fades only to an intermediate step (2px border,
-  pale-red background) and stops there.
-- Cards are title-only (per the bullet above) at every stage, including while
-  active — there is no separate "detail" card state to shrink down from. That's what
-  makes the stack fit: title-only cards are short enough that a full stack never needs
-  a further compaction step. Checked against R-CHOP's 6-entry case (the harder of the
-  two regimens) against the 1280×720 frame this pipeline renders at: even the longest
+  far stays visible in some form for the rest of the section. This still closes the
+  gap logic-agent originally flagged: the fever/neutropenic-fever card (position 1 on
+  both regimens) can never be the first thing to disappear, because nothing
+  disappears.
+- **No permanent per-card emphasis.** An earlier version of this spec kept the
+  position-1 card in a permanently-elevated state after settling; human review of the
+  storyboard mockup rejected that — only the card currently being narrated is
+  highlighted, and every settled card (position 1 included) fades to the same plain
+  weight as the others. The never-clears guarantee above is what protects the fever
+  card, not a special visual weight. (A follow-up attempt to soften this into a
+  frame-level soft-gradient-blob treatment, matching Scene's character wash, was
+  tried and rejected as "too intense" — the loudness was structural, from multiple
+  rows reading hot at once, not the palette. Scoping "hot" to one row at a time
+  inside an otherwise flat/quiet column fixed it without needing a blob wash; approved
+  mockup: `docs/references/handoff.md` git history, round 3, design-agent.)
+- Cards are title-only at every stage, including while active — there is no separate
+  "detail" card state to shrink down from. That's what makes the fixed-slot layout
+  fit: title-only cards are short enough that a full column never needs a further
+  compaction step. Checked against R-CHOP's 6-entry case (the harder of the two
+  regimens) against the 1280×720 frame this pipeline renders at: even the longest
   title on either regimen ("Fever during your low-blood-cell window (neutropenic
   fever)", 61 characters) sets on one line at a legible size in a frame this wide, so
-  card height doesn't vary by title length. Six single-line title cards plus the
-  position-1 emphasis card's slightly taller frame comfortably fit the vertical band
-  between the opening framing line and the closing split card, with room held in
-  reserve — AC-T's 4-entry case is easier by construction. **Fallback for a future
-  regimen with more emergency entries than fit at this size:** drop the small
-  tier-label line above the title (title-only becomes title-only-tighter) before ever
-  reintroducing clearing — keyed off whatever count actually overflows the frame's
-  vertical band at standard card size, never a hardcoded number.
-- Closes on a two-column split card — 911 side hardest red, care-team side step-down
-  orange — the one moment where color itself carries the triage logic. This is a
-  distinct closing beat/cut after the full stack has built, not composited alongside
-  it — the stack tells the "here's what to watch for" story; the split card tells the
-  separate "here's who to call" story once that's done.
+  card height doesn't vary by title length. Six single-line title cards comfortably
+  fit the vertical band between the opening framing line and the closing split card,
+  with room held in reserve — AC-T's 4-entry case is easier by construction.
+  **Fallback for a future regimen with more emergency entries than fit at this
+  size:** drop the small tier-label line above the title (title-only becomes
+  title-only-tighter) before ever reintroducing clearing — keyed off whatever count
+  actually overflows the frame's vertical band at standard card size, never a
+  hardcoded number.
+- Closes on a two-column split card — 911 side hardest red, care-team side coral
+  (`#FF6B4A`, the same coral used system-wide for patient-agency moments, not a
+  separate orange) — the one moment where color itself carries the triage logic. This
+  is a distinct closing beat/cut after the full column has filled in, not composited
+  alongside it — the cards tell the "here's what to watch for" story; the split card
+  tells the separate "here's who to call" story once that's done.
 
 ### Quote — `patient_voices`
 

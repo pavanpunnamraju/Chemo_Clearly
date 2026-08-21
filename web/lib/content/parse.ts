@@ -2,8 +2,19 @@ import { readFileSync } from "node:fs";
 import { SECTION_IDS, type ContentEntry, type RegimenContent, type SectionId, type Tier } from "./types";
 
 function extractField(block: string, prefix: string): string | undefined {
+  // (?![A-Za-z0-9_]) after the prefix stops "call_team" from matching a
+  // "**call_team_if:**" label (prefix is a literal substring of it) — real
+  // trailing slack like "plain — AC phase:" / "plain framing for the app:"
+  // always starts with a non-word char (space/dash) right after the prefix,
+  // so this doesn't affect those.
+  // The lookahead also stops at a trailing `---` section-separator line, not
+  // just the next `**label:**` or end of block — without it, a section's
+  // *last* entry's *last* field picks up the markdown horizontal rule that
+  // separates it from the next `## section` header (verified: pre-existing
+  // in `source`, unnoticed there since nothing displayed it verbatim; would
+  // otherwise leak "---" onto the Alert archetype's split card, which does).
   const re = new RegExp(
-    "\\*\\*" + prefix + "[^*:]*:\\*\\*\\s*([\\s\\S]*?)(?=\\n\\s*\\*\\*[A-Za-z][^*:]*:\\*\\*|$)",
+    "\\*\\*" + prefix + "(?![A-Za-z0-9_])[^*:]*:\\*\\*\\s*([\\s\\S]*?)(?=\\n\\s*\\*\\*[A-Za-z][^*:]*:\\*\\*|\\n\\s*---\\s*(?:\\n|$)|$)",
     "i",
   );
   const match = re.exec(block);
@@ -52,6 +63,8 @@ function parseEntry(
     detail: extractField(block, "detail"),
     selfCare: extractField(block, "self_care"),
     callTeamIf: extractField(block, "call_team_if"),
+    call911: extractField(block, "call_911"),
+    callTeam: extractField(block, "call_team"),
     source: extractField(block, "source"),
     anecdotal: sectionId === "patient_voices",
   };

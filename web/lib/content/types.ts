@@ -33,6 +33,11 @@ export interface ContentEntry {
   detail?: string;
   selfCare?: string;
   callTeamIf?: string;
+  /** Alert archetype closing split-card fields (video_visual_system.md) —
+   * structured duplicates of the entry's own `plain` wording, so
+   * SlideVideo.tsx doesn't need to parse bold spans out of narration text. */
+  call911?: string;
+  callTeam?: string;
   source?: string;
   anecdotal: boolean;
 }

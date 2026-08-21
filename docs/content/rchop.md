@@ -329,6 +329,9 @@ first infusion.
 that feels life-threatening. **Call your care team right away** for the other items above,
 including the fever threshold. Calling is always the right call — no one will think you're
 overreacting.
+**call_911:** Trouble breathing, chest pain, confusion, or anything that feels life-threatening.
+**call_team:** Everything else above, including the fever threshold. Calling is always the right
+call — no one will think you're overreacting.
 
 ---
 
