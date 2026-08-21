@@ -7,7 +7,6 @@ import { loadRegimenContent } from "@/lib/content";
 import { selectContent } from "@/lib/video/select";
 import { rewriteNarration } from "@/lib/video/rewrite";
 import { buildNarrationPlanFromChunks, applyTimepoints } from "@/lib/video/narration";
-import { findComponentTriggers, refineComponentTiming, placeComponentsInTime } from "@/lib/video/components";
 import { synthesizeNarration } from "@/lib/video/tts";
 import { alignAudioToScript } from "@/lib/video/align";
 import { renderVideoLocally } from "@/lib/video/render";
@@ -71,20 +70,16 @@ export async function POST(req: NextRequest) {
   }
   const estimatedPlan = buildNarrationPlanFromChunks(rewrite.chunks, entries);
 
-  const triggers = findComponentTriggers(rewrite.script);
-  const placedTriggers = await refineComponentTiming(rewrite.script, triggers);
-
   const { audioBuffer, durationSeconds, sampleRateHertz } = await synthesizeNarration(
     estimatedPlan.script,
     intake.voiceTone,
   );
   const { words } = await alignAudioToScript(audioBuffer, estimatedPlan.script, sampleRateHertz);
   const plan = applyTimepoints(estimatedPlan, words, durationSeconds);
-  const components = placeComponentsInTime(rewrite.script, placedTriggers, words);
 
   const tmpDir = mkdtempSync(path.join(os.tmpdir(), "chemo-render-"));
   const localOutput = path.join(tmpDir, "video.mp4");
-  await renderVideoLocally(plan, audioBuffer, localOutput, components);
+  await renderVideoLocally(plan, audioBuffer, localOutput);
 
   const key = `${intake.regimenId}/${Date.now()}.mp4`;
   const stored = await storeVideo(localOutput, key);

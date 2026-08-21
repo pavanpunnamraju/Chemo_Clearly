@@ -12,6 +12,10 @@ export interface SlideBeat {
   startSeconds: number;
   headline: string;
   body: string;
+  /** The entry's own tags (`ContentEntry.tags`) — used by the Scene archetype's
+   * tag-driven `side_effects` subject rule (video-composition/SlideVideo.tsx),
+   * not derived from narration text like the old keyword-trigger mechanism was. */
+  tags: string[];
 }
 
 export interface NarrationPlan {
@@ -75,6 +79,7 @@ export function buildNarrationPlanFromChunks(
       startSeconds: cumulativeSeconds,
       headline: entryHeadline(entry),
       body: chunk.text,
+      tags: entry.tags,
     });
 
     scriptParts.push(chunk.text);
@@ -133,6 +138,7 @@ export function buildNarrationPlan(
       startSeconds: cumulativeSeconds,
       headline: entryHeadline(entry),
       body: text,
+      tags: entry.tags,
     });
 
     scriptParts.push(text);
@@ -200,9 +206,27 @@ export function applyTimepoints(
     plan.slides.map((s) => s.body),
     alignedWords,
   );
+
+  // Narration is spoken in a fixed, strictly sequential order, so a later
+  // slide's real start can never precede an earlier slide's. Without this
+  // guard, a slide whose own text failed to find a real word-alignment match
+  // (short/generic bodies are the common case — see matchTimestamps' docs on
+  // the 1/2-word fallback's limited lookahead) keeps its word-count
+  // *estimate* instead, which is scaled to the estimated total duration, not
+  // the real one — mixing that estimate in among neighbors that DID get real
+  // (differently-scaled) matches can put it out of order. On screen that
+  // shows up as the affected slide flashing for ~1 frame while its
+  // predecessor holds far too long (SlideVideo.tsx derives each slide's
+  // duration from the next slide's startSeconds). Clamping forward instead
+  // of trusting the raw value can't undo a wrong estimate, but it guarantees
+  // the sequence never runs backward.
+  let previousStart = -Infinity;
   const slides = plan.slides.map((slide, i) => {
-    const startSeconds = matches[i]!;
-    return startSeconds === null ? slide : { ...slide, startSeconds };
+    const matched = matches[i];
+    const candidate = matched == null ? slide.startSeconds : matched;
+    const startSeconds = Math.max(candidate, previousStart);
+    previousStart = startSeconds;
+    return { ...slide, startSeconds };
   });
 
   return { ...plan, slides, totalSeconds: audioDurationSeconds };

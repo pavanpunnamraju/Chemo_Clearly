@@ -9,6 +9,7 @@ credit link where practical, so one is included per collection below.
 | `overview/overview__doctor-bro.svg` | overview | https://storyset.com/illustration/doctor/bro | [Work illustrations by Storyset](https://storyset.com/work) |
 | `overview/overview__doctor-pana.svg` | overview | https://storyset.com/illustration/doctor/pana | [Work illustrations by Storyset](https://storyset.com/work) |
 | `overview/overview__online-doctor-bro.svg` | overview | https://storyset.com/illustration/online-doctor/bro | [Work illustrations by Storyset](https://storyset.com/work) |
+| `overview/overview__oncology-patient-pana.svg` | overview | https://storyset.com/illustration/oncology-patient/amico *(unverified — human sourced this directly; filename keeps the `-pana` suffix from the first download, content is now the `amico` variant, URL inferred from Storyset's slug pattern, not independently confirmed)* | — |
 | `timeline/timeline__calendar-pana.svg` | timeline | https://storyset.com/illustration/calendar/pana | [Event illustrations by Storyset](https://storyset.com/event) |
 | `timeline/timeline__timeline-bro.svg` | timeline | https://storyset.com/illustration/timeline/bro | [Event illustrations by Storyset](https://storyset.com/event) |
 | `timeline/timeline__schedule-pana.svg` | timeline | https://storyset.com/illustration/schedule/pana | [Event illustrations by Storyset](https://storyset.com/event) |
@@ -46,11 +47,19 @@ Standing principle for all Storyset downloads, current and future — see
 - **Navy** — patient shown *experiencing* something passively/difficult,
   used sparingly.
 
-All 28 files are correct as downloaded under the settled color principle
-above — `side_effects/side_effects__sleep-analysis-pana.svg` has been
-re-exported to navy `#1C2B45` for consistency within `side_effects`. The
-Anxiety illustration (`emotional-support`) was re-downloaded once to fix an
-initial color mismatch before landing in this folder.
+All 29 files are correct as downloaded under the settled color principle
+above, with two documented exceptions: `side_effects/
+side_effects__sleep-analysis-pana.svg` was re-exported to navy `#1C2B45`
+(from Storyset's default teal `#2FBFA0`), since it depicts the patient
+passively experiencing something, not a doctor/hospital-system element.
+`overview/overview__oncology-patient-pana.svg` was recolored to navy once
+under the same reasoning, then deliberately reverted back to Storyset's
+default teal per human direction — this is the video's opening shot, and
+the color principle's "clinical/system-facing" bucket also fits here since
+the scene is where each drug name tags onto the IV line, making it as much
+about the treatment plan as about the patient's experience of it. The
+Anxiety illustration (`emotional-support`) was re-downloaded once to fix
+an initial color mismatch before landing in this folder.
 
 ## Attribution
 

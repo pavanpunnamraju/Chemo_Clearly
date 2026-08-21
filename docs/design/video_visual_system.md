@@ -46,6 +46,11 @@ the whole illustration set matters more than a marginally better single-illustra
 If neither bro nor pana exists for a needed search term, don't silently fall back to a
 third style — flag it explicitly so a human can make the call.
 
+**One documented exception:** `overview/overview__oncology-patient-pana.svg` is a Storyset
+`amico` variant (isometric room scene, not the flat single-character look), kept after being
+flagged, per explicit human direction — the opening shot reads best in this fuller staging.
+Single exception, not a precedent for skipping the flag-first rule above.
+
 ## The 5 archetypes
 
 ### Scene — single lived moment
@@ -83,11 +88,49 @@ legible.
   reads better this way.
 - The first card by array position gets emphasis. Keyed off position, not a
   hardcoded item — different regimens' first emergency item differs.
-- Cards build in sequence as narration reaches them, all sliding in from the same
-  edge (not alternating like Scene/List), so the section reads as one continuous
-  alarm rather than a sequence of separate beats.
+
+**Stacking mechanic (resolved this round, replaces the earlier fade/clear-and-replace
+proposal logic-agent flagged as a real risk — see git history of
+`docs/references/handoff.md` for that verdict's full reasoning).**
+
+- Cards stack vertically in a single left-aligned column, centered in the frame at
+  roughly 85% of frame width, growing downward as narration reaches each entry —
+  not spread across the whole frame, not alternating sides.
+- A card enters at full saturation — solid red border, filled light-red background —
+  while it's the one currently being narrated. That's the "read me now" state.
+- Once narration moves to the next entry, the card fades to a lighter/receded shade
+  (thin border, near-white background, title still fully legible) and holds there.
+  **No card ever clears or leaves the screen once shown** — every entry narrated so
+  far stays visible in some form for the rest of the section. This directly closes
+  the gap logic-agent flagged: the fever/neutropenic-fever card (position 1 on both
+  regimens, the one this spec calls out for emphasis) can never be the first thing to
+  disappear, because nothing disappears.
+- The position-1 emphasis card keeps its emphasis (thicker border, one step less
+  faded than its siblings) for its *entire* time on screen, not just at entry — it
+  never recedes to the same visual weight as the other settled cards. Concretely:
+  every other card fades border-weight 3px → 1px and background light-red → near-white
+  on settling; the emphasis card fades only to an intermediate step (2px border,
+  pale-red background) and stops there.
+- Cards are title-only (per the bullet above) at every stage, including while
+  active — there is no separate "detail" card state to shrink down from. That's what
+  makes the stack fit: title-only cards are short enough that a full stack never needs
+  a further compaction step. Checked against R-CHOP's 6-entry case (the harder of the
+  two regimens) against the 1280×720 frame this pipeline renders at: even the longest
+  title on either regimen ("Fever during your low-blood-cell window (neutropenic
+  fever)", 61 characters) sets on one line at a legible size in a frame this wide, so
+  card height doesn't vary by title length. Six single-line title cards plus the
+  position-1 emphasis card's slightly taller frame comfortably fit the vertical band
+  between the opening framing line and the closing split card, with room held in
+  reserve — AC-T's 4-entry case is easier by construction. **Fallback for a future
+  regimen with more emergency entries than fit at this size:** drop the small
+  tier-label line above the title (title-only becomes title-only-tighter) before ever
+  reintroducing clearing — keyed off whatever count actually overflows the frame's
+  vertical band at standard card size, never a hardcoded number.
 - Closes on a two-column split card — 911 side hardest red, care-team side step-down
-  orange — the one moment where color itself carries the triage logic.
+  orange — the one moment where color itself carries the triage logic. This is a
+  distinct closing beat/cut after the full stack has built, not composited alongside
+  it — the stack tells the "here's what to watch for" story; the split card tells the
+  separate "here's who to call" story once that's done.
 
 ### Quote — `patient_voices`
 
@@ -158,7 +201,10 @@ scene depicts is decided by the entry's tag, not by its wording:
 
 - **Felt/visible-symptom tags** (`nausea-appetite`, `hair-skin-appearance`,
   `mouth-digestion`, `nerve-tingling`, `aches-pain`, `urinary`,
-  `emotional-support`) → the scene depicts that symptom directly.
+  `emotional-support`, `fatigue`) → the scene depicts that symptom directly. `fatigue`
+  added 2026-08-20 (R-CHOP's anemia entry uses it, not covered in the original 9-tag
+  round) — reuses the pre-existing `tiredness-pana.svg` rather than a newly-sourced
+  illustration, human call, not vetted under the current color/style pass.
 - **Invisible-condition tags** (`infection-risk`, `bleeding-bruising`) → the scene
   depicts the patient doing that entry's own `self_care` action instead, since the
   condition itself isn't visible. E.g. `infection-risk`: person at a bathroom sink
@@ -172,13 +218,14 @@ text.
 
 ### `fertility_intimacy`
 
-Headline "Before you start," (navy) / "ask about this" (teal). Scene: two people
-sitting close, hands linked — "hugging and holding hands stays safe" framing, not
-romantic/explicit. Softest palette in the video (pastel blob, muted accent) — the
-most emotionally sensitive section. No build/reveal: a single held shot the narration
-plays over. That stillness is itself a signal — everything else moves in beats; this
-one holding still says "slow down, this matters differently." Same mechanism both
-regimens.
+Headline "Before you start," (navy) / "ask about this" (teal). Scene: the existing
+`family-bro`/`asian-family-pana` illustrations (family scene, not a couple) — human call
+2026-08-20: satisfied with how these look as-is, no new couple-specific illustration
+sourced; this paragraph describes the illustration actually in use, not an unmet target.
+Softest palette in the video (pastel blob, muted accent) — the most emotionally sensitive
+section. No build/reveal: a single held shot the narration plays over. That stillness is
+itself a signal — everything else moves in beats; this one holding still says "slow down,
+this matters differently." Same mechanism both regimens.
 
 ### `emergency`
 
@@ -196,16 +243,21 @@ Closes on the app's own framing line ("Everyone's experience is different...") i
 normal navy/teal two-tone treatment, doubling as the bridge back to Scene for
 whatever section follows.
 
-## Prerequisites — not yet satisfied
+## Prerequisites — satisfied
 
-Implementation is not fully unblocked. Two items must land first:
+Both blockers below have landed; implementation is unblocked.
 
-1. **AC-T's `emergency` section restructure.** It's still one unsplit paragraph,
-   unlike R-CHOP's per-item `###`/`tier: emergency` structure (`82d59ea`). The Alert
-   archetype has nothing to iterate over until AC-T gets the same restructure. Being
-   routed to codebase-agent separately.
-2. **New Storyset illustrations for `side_effects`.** Several Scene entries the
-   tag-driven rule above calls for don't exist in the current library — checked
-   against `web/public/illustrations/MANIFEST.md` (19 generic SVGs today, none match
-   the specific scenes proposed here). Human is doing a manual download pass,
-   scoped separately.
+1. **AC-T's `emergency` section restructure.** Done — `docs/content/act.md`'s
+   `emergency` section is now per-item `###`/`tier: emergency` entries (4 emergency
+   items plus the non-emergency framing/closing entries), matching R-CHOP's structure
+   (`9d68873`). The Alert archetype has something to iterate over on both regimens.
+2. **New Storyset illustrations for `side_effects`.** Done — `a6be703` added the
+   9 tag-specific illustrations the tag-driven rule above calls for (`nausea`,
+   `mouth-digestion`, `nerve-tingling`, `hair-loss`, `urinary`, `aches-pain`,
+   `emotional-support`, `handwashing`, `checking-bruise`), covering all 7 felt/visible
+   tags and both invisible-condition tags. Verified against
+   `web/public/illustrations/MANIFEST.md`.
+
+Verified for the Phase 2a goal #6 storyboard round (2026-08-20) — see the R-CHOP
+storyboard mockup this round produced for how the spec above actually lays out
+against real content.

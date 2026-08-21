@@ -1,9 +1,9 @@
 // Runnable, standalone demonstration of the full Phase 1 goal 3 pipeline,
-// including #3c's narration rewrite + side-effect component placement —
-// parses approved content -> intake -> agentic selection -> LLM narration
-// rewrite (guardrailed) -> component placement -> real Gemini-TTS call ->
-// alignment -> local Remotion render (icon overlays included) -> storage
-// (local disk fallback). Run: npm run demo:video
+// including #3c's narration rewrite — parses approved content -> intake ->
+// agentic selection -> LLM narration rewrite (guardrailed) -> real
+// Gemini-TTS call -> alignment -> local Remotion render (Scene archetype,
+// tag-driven side_effects illustrations) -> storage (local disk fallback).
+// Run: npm run demo:video
 //
 // Requires GOOGLE_APPLICATION_CREDENTIALS + GOOGLE_CLOUD_PROJECT (see
 // web/.env.local.example) for the TTS/rewrite/alignment steps to actually run.
@@ -22,7 +22,6 @@ import { loadRegimenContent } from "../lib/content";
 import { selectContent } from "../lib/video/select";
 import { rewriteNarration, type RewriteResult } from "../lib/video/rewrite";
 import { buildNarrationPlanFromChunks, applyTimepoints } from "../lib/video/narration";
-import { findComponentTriggers, refineComponentTiming, placeComponentsInTime } from "../lib/video/components";
 import { buildCaptionTrack } from "../lib/video/captions";
 import { synthesizeNarration, type SynthesizeResult } from "../lib/video/tts";
 import { alignAudioToScript, type WordOffset } from "../lib/video/align";
@@ -43,9 +42,30 @@ interface DemoCacheEntry {
   align: { words: WordOffset[]; durationSeconds: number };
 }
 
-function loadDemoCache(cacheDir: string): (DemoCacheEntry & { audioBuffer: Buffer }) | null {
+function loadDemoCache(cacheDir: string, currentEntryIds: string[]): (DemoCacheEntry & { audioBuffer: Buffer }) | null {
   if (FORCE_REFRESH || !existsSync(path.join(cacheDir, "meta.json"))) return null;
   const meta = JSON.parse(readFileSync(path.join(cacheDir, "meta.json"), "utf-8")) as DemoCacheEntry;
+
+  // The cache key is the intake filter hash only — it says nothing about
+  // which entries the (LLM-based, not perfectly deterministic) selection
+  // step actually picked, or about docs/content/*.md's structure at cache
+  // time. A cached rewrite whose chunk entryIds don't match this run's
+  // selection is stale in a way that silently drops content rather than
+  // erroring: buildNarrationPlanFromChunks skips any chunk whose entryId
+  // isn't in the current entries (see lib/video/narration.ts), so a stale
+  // cache can make a whole section vanish from the video while its cached
+  // *audio* still narrates it — desyncing every slide after it. Caught this
+  // live: a cache predating rchop.md's `emergency` per-item split (single
+  // "emergency" chunk id) silently dropped the entire emergency section
+  // once the content moved to per-item ids, with knock-on timing corruption
+  // for everything after it. Treat a mismatch as a cache miss.
+  const cachedEntryIds = new Set(meta.rewrite.chunks.map((c) => c.entryId));
+  const missing = currentEntryIds.filter((id) => !cachedEntryIds.has(id));
+  if (missing.length > 0) {
+    console.log(`Cache at ${cacheDir} is stale (missing entries: ${missing.join(", ")}) — refreshing.`);
+    return null;
+  }
+
   const audioBuffer = readFileSync(path.join(cacheDir, "audio.wav"));
   return { ...meta, audioBuffer };
 }
@@ -79,7 +99,7 @@ async function main() {
   const entries = selection.entryIds.map((id) => entryById.get(id)).filter((e) => e !== undefined);
 
   const cacheDir = path.join(__dirname, "..", ".demo-cache", hashPersonalizationFilter(filter));
-  const cached = loadDemoCache(cacheDir);
+  const cached = loadDemoCache(cacheDir, entries.map((e) => e.id));
 
   let rewrite: RewriteResult;
   let audioBuffer: Buffer;
@@ -126,11 +146,6 @@ async function main() {
   console.log(`~${estimatedPlan.totalSeconds.toFixed(1)}s estimated:`);
   console.log(estimatedPlan.script);
 
-  console.log("\nFinding side-effect component triggers...");
-  const triggers = findComponentTriggers(rewrite.script);
-  console.log(`Matched ${triggers.length} side-effect tag(s):`, triggers.map((t) => t.tag));
-  const placedTriggers = await refineComponentTiming(rewrite.script, triggers);
-
   const outDir = path.join(__dirname, "..", "out");
   mkdirSync(outDir, { recursive: true });
   const audioOutPath = path.join(outDir, `narration-${voiceTone}.wav`);
@@ -145,12 +160,6 @@ async function main() {
     console.log(`  ${slide.startSeconds.toFixed(1)}s — ${slide.entryId}`);
   }
 
-  const components = placeComponentsInTime(rewrite.script, placedTriggers, words);
-  console.log(`\nComponent placements (${components.length}):`);
-  for (const c of components) {
-    console.log(`  ${c.startSeconds.toFixed(1)}s — ${c.tag} (${c.illustrationSrc})`);
-  }
-
   const captions = buildCaptionTrack(estimatedPlan.script, words, plan.totalSeconds);
   console.log(`\nCaption track (${captions.length} chunks) — spot check:`);
   for (const c of captions.slice(0, 5)) {
@@ -159,7 +168,7 @@ async function main() {
 
   console.log("\nRendering video locally via Remotion (captions on, for verification)...");
   const outputPath = path.join(__dirname, "..", "out", "demo-video.mp4");
-  const render = await renderVideoLocally(plan, audioBuffer, outputPath, components, captions, true);
+  const render = await renderVideoLocally(plan, audioBuffer, outputPath, captions, true);
   console.log(`Rendered: ${render.outputPath} (${render.width}x${render.height} @ ${render.fps}fps)`);
 
   const stored = await storeVideo(outputPath, `demo/${Date.now()}.mp4`);

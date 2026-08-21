@@ -4,10 +4,11 @@ import { SlideVideo, slideVideoDurationInFrames, type SlideVideoProps } from "./
 const FPS = 30;
 
 const defaultProps: SlideVideoProps = {
-  slides: [{ entryId: "overview", sectionId: "overview", startSeconds: 0, headline: "Loading...", body: "" }],
+  slides: [
+    { entryId: "overview", sectionId: "overview", startSeconds: 0, headline: "Loading...", body: "", tags: [] },
+  ],
   audioSrc: "",
   totalSeconds: 3,
-  components: [],
   captions: [],
   captionsEnabled: false,
 };

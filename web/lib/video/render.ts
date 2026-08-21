@@ -2,7 +2,6 @@ import path from "node:path";
 import { writeFileSync, mkdtempSync, cpSync } from "node:fs";
 import os from "node:os";
 import type { NarrationPlan } from "./narration";
-import type { TimedComponent } from "./components";
 import type { TimedCaption } from "./captions";
 
 // Known constraint (already resolved in the design doc, not rediscovered here):
@@ -28,7 +27,6 @@ export async function renderVideoLocally(
   plan: NarrationPlan,
   audioBuffer: Buffer,
   outputPath: string,
-  components: TimedComponent[] = [],
   captions: TimedCaption[] = [],
   captionsEnabled = false,
 ): Promise<RenderResult> {
@@ -63,7 +61,6 @@ export async function renderVideoLocally(
     slides: plan.slides,
     audioSrc: audioFilename,
     totalSeconds: plan.totalSeconds,
-    components,
     captions,
     captionsEnabled,
   };
