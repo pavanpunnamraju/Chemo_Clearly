@@ -50,17 +50,36 @@ mantle cell lymphomas. [S1, S2]
 
 **plain:** Here's roughly what one 3-week cycle feels like:
 
-- **Day 1 (infusion day):** You'll be at the infusion center several hours — rituximab is
-  given slowly the first time (it can take hours) to watch for reactions; the other three
-  IV drugs are faster. You'll likely get anti-nausea and anti-allergy medicine first. Most
-  people feel okay to a little tired the rest of that day. [S1, S2]
-- **Days 2–5:** You keep taking prednisone (with food, not at night — it can keep you
-  awake). Some people feel a temporary steroid "boost" of energy or restlessness during
-  these days, followed by a dip once it's stopped. [S3, S4]
-- **Roughly days 7–10 (the "nadir"):** Your white blood cell count is typically at its
-  lowest here, which is why infection precautions matter most in this window. [S1, S2]
-- **Days 11–21:** Most people gradually feel more like themselves as counts recover, until
-  the next cycle starts.
+### Day 1 (infusion day)
+
+**plain:** You'll be at the infusion center several hours — rituximab is given slowly the
+first time (it can take hours) to watch for reactions; the other three IV drugs are
+faster. You'll likely get anti-nausea and anti-allergy medicine first. Most people feel
+okay to a little tired the rest of that day. [S1, S2]
+
+**on-screen:** Several hours at the infusion center, anti-nausea meds keep you comfortable.
+
+### Days 2-5
+
+**plain:** You keep taking prednisone (with food, not at night — it can keep you awake).
+Some people feel a temporary steroid "boost" of energy or restlessness during these days,
+followed by a dip once it's stopped. [S3, S4]
+
+**on-screen:** Prednisone days bring a burst of energy, then a brief dip.
+
+### Roughly days 7-10 (the "nadir")
+
+**plain:** Your white blood cell count is typically at its lowest here, which is why
+infection precautions matter most in this window. [S1, S2]
+
+**on-screen:** White blood cells lowest — infection precautions keep you protected here.
+
+### Days 11-21
+
+**plain:** Most people gradually feel more like themselves as counts recover, until the
+next cycle starts.
+
+**on-screen:** Counts bounce back; most people start feeling like themselves again.
 
 **detail:** Hair loss, if it happens, usually starts within about 3 weeks of the first
 infusion. [S1] Red/orange urine on the day of and day after infusion is expected — that's
@@ -104,6 +123,10 @@ log can help you and your team spot patterns cycle to cycle.
 ---
 
 ## `side_effects`
+
+**plain:** These are the common effects most people notice at some point during R-CHOP —
+some just need simple self-care, others are worth a call to your team. Each one below
+tells you which.
 
 ### Low white blood cells / infection risk
 **tags:** `infection-risk`

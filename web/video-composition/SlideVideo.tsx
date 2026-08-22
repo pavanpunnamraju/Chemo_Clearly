@@ -51,10 +51,12 @@ const ALERT_SETTLED_BG = "#fdfbfa";
 const ALERT_SETTLED_BORDER = "#e7d9d6";
 const ALERT_EMPTY_BORDER = "#dcd7cb";
 
-// Scene archetype sections this round (video_visual_system.md's per-section
-// mapping) — daily_life/side_effects/fertility_intimacy/overview only.
-// Timeline/Alert/Quote sections keep the pre-existing plain Slide below,
-// untouched, since those archetypes are out of scope this round.
+// Scene archetype sections (video_visual_system.md's per-section mapping) —
+// daily_life/side_effects/fertility_intimacy/overview. Timeline/Alert/Quote
+// each have their own dedicated component below (TimelineSection/
+// AlertSection/QuoteSection) — together these 7 section ids cover every
+// entry in NARRATED_SECTIONS (lib/video/select.ts), so no generic fallback
+// slide layout is needed any more.
 const SCENE_SECTIONS = new Set(["overview", "daily_life", "side_effects", "fertility_intimacy"]);
 
 // Fixed two-line two-tone headlines for the 3 Scene sections that are a
@@ -100,6 +102,31 @@ const SCENE_LAYOUT: Record<string, { characterSide: Side; headlineVAlign: "top" 
 // visually contradicts the asset it's applied to.
 const SIDE_EFFECT_CORAL_TAGS = new Set(["infection-risk"]);
 
+// Title Card archetype (video_visual_system.md) — full-frame, character-free
+// section-opening beat for the 2 sections that otherwise open cold (no
+// headline/scene treatment of their own): `timeline`/`side_effects`'s
+// section-level intro sentence (the pre-first-`###` `**plain:**` text the
+// parser fix above now captures as its own nameless entry, id === sectionId)
+// gets its own card instead of being silently dropped. The other 5 narrated
+// sections keep their existing opening treatment untouched.
+const TITLE_CARD_SECTIONS = new Set(["timeline", "side_effects"]);
+
+// The single phrase (verbatim substring of the entry's own `plain`, per
+// `entryOnScreen` in lib/video/narration.ts) that names what makes each
+// section distinct — switches to teal inline, per the approved mockup
+// (docs/references/handoff.md, design-agent round). Hardcoded per-regimen,
+// same precedent as SCENE_FIXED_HEADLINES/TIMELINE_LOOP_LABEL/QuoteBlock's
+// attribution line above — AC-T's title cards get their own phrase(s) when
+// that regimen's round lands.
+const TITLE_CARD_TEAL_PHRASE: Partial<Record<string, string>> = {
+  timeline: "3-week cycle",
+  side_effects: "some just need simple self-care, others are worth a call to your team",
+};
+
+function isTitleCardIntro(beat: SlideBeat): boolean {
+  return TITLE_CARD_SECTIONS.has(beat.sectionId) && beat.entryId === beat.sectionId;
+}
+
 export const SlideVideo: React.FC<SlideVideoProps> = ({
   slides,
   audioSrc,
@@ -118,6 +145,12 @@ export const SlideVideo: React.FC<SlideVideoProps> = ({
   {
     const counters: Record<string, number> = {};
     for (const beat of slides) {
+      // The Title Card intro beat isn't a real illustrated entry — skip it
+      // so it doesn't consume an index and shift every real entry after it.
+      if (isTitleCardIntro(beat)) {
+        sectionIndexes.push(-1);
+        continue;
+      }
       const idx = counters[beat.sectionId] ?? 0;
       counters[beat.sectionId] = idx + 1;
       sectionIndexes.push(idx);
@@ -131,6 +164,14 @@ export const SlideVideo: React.FC<SlideVideoProps> = ({
         const nextStart = slides[i + 1]?.startSeconds ?? endSeconds;
         const from = Math.round(beat.startSeconds * fps);
         const durationInFrames = Math.max(1, Math.round((nextStart - beat.startSeconds) * fps));
+
+        if (isTitleCardIntro(beat)) {
+          return (
+            <Sequence key={beat.entryId} from={from} durationInFrames={durationInFrames}>
+              <TitleCard text={beat.onScreen ?? ""} tealPhrase={TITLE_CARD_TEAL_PHRASE[beat.sectionId]} />
+            </Sequence>
+          );
+        }
 
         if (beat.sectionId === "emergency") {
           // Alert archetype (video_visual_system.md, round 2 decision #2):
@@ -175,6 +216,34 @@ export const SlideVideo: React.FC<SlideVideoProps> = ({
           );
         }
 
+        if (beat.sectionId === "timeline") {
+          // Timeline archetype (video_visual_system.md) — one spine + node
+          // per bullet, mounted once for the whole section span, same "run"
+          // grouping as AlertSection/QuoteSection so real per-node
+          // startSeconds (already threaded through matchTimestamps() same
+          // as every other section, since each bullet is now its own
+          // `###` sub-entry/beat) drive node-reveal timing. The section's
+          // own Title Card intro beat (handled above) shares `sectionId`
+          // "timeline" but isn't part of this run — without excluding it,
+          // the real first node (right after it) reads as a run
+          // *continuation* instead of a start and TimelineSection never
+          // mounts.
+          const prev = slides[i - 1];
+          const isRunStart = prev?.sectionId !== "timeline" || isTitleCardIntro(prev);
+          if (!isRunStart) return null;
+
+          let runEnd = i;
+          while (slides[runEnd + 1]?.sectionId === "timeline") runEnd++;
+          const runNextStart = slides[runEnd + 1]?.startSeconds ?? endSeconds;
+          const runDurationInFrames = Math.max(1, Math.round((runNextStart - beat.startSeconds) * fps));
+
+          return (
+            <Sequence key={beat.entryId} from={from} durationInFrames={runDurationInFrames}>
+              <TimelineSection beats={slides.slice(i, runEnd + 1)} />
+            </Sequence>
+          );
+        }
+
         if (SCENE_SECTIONS.has(beat.sectionId)) {
           return (
             <Sequence key={beat.entryId} from={from} durationInFrames={durationInFrames}>
@@ -188,12 +257,9 @@ export const SlideVideo: React.FC<SlideVideoProps> = ({
           );
         }
 
-        const illustrationSrc = illustrationForSlide(beat.sectionId, sectionIndexes[i]!);
-        return (
-          <Sequence key={beat.entryId} from={from} durationInFrames={durationInFrames}>
-            <Slide headline={beat.headline} body={beat.body} illustrationSrc={illustrationSrc} />
-          </Sequence>
-        );
+        // Every NARRATED_SECTIONS id (lib/video/select.ts) is handled by one
+        // of the branches above — nothing else should reach here.
+        return null;
       })}
       {captionsEnabled &&
         captions.map((c, i) => {
@@ -238,6 +304,54 @@ const CaptionBar: React.FC<{ text: string }> = ({ text }) => (
     </div>
   </AbsoluteFill>
 );
+
+// Splits `text` on the first verbatim occurrence of `phrase`, for the Title
+// Card archetype's inline teal highlight. Returns the whole text as the
+// "before" part (no highlight) if `phrase` isn't found or is undefined —
+// same defensive shape as splitClosingSentences above, so a content edit
+// that changes the intro sentence's wording degrades to plain navy text
+// instead of throwing.
+function splitOnPhrase(text: string, phrase: string | undefined): [string, string, string] {
+  const index = phrase ? text.indexOf(phrase) : -1;
+  if (index === -1) return [text, "", ""];
+  return [text.slice(0, index), text.slice(index, index + phrase!.length), text.slice(index + phrase!.length)];
+}
+
+/**
+ * Title Card archetype (video_visual_system.md) — full-frame, character-free
+ * opening beat for a section's intro sentence: solid frame background, no
+ * gradient blob/illustration, one left-aligned text block roughly two-thirds
+ * frame width, vertically centered. The section's own intro sentence sets as
+ * one navy block at headline weight, with the single phrase that names what
+ * makes the section distinct switching to teal inline — a full sentence,
+ * not a two-line authored headline like SceneSlide's, so no split-into-lines
+ * treatment. Approved mockup: docs/references/handoff.md, design-agent round.
+ */
+const TitleCard: React.FC<{ text: string; tealPhrase?: string }> = ({ text, tealPhrase }) => {
+  const [before, highlighted, after] = splitOnPhrase(text, tealPhrase);
+  return (
+    <AbsoluteFill style={{ backgroundColor: FRAME_BG, overflow: "hidden" }}>
+      <div
+        style={{
+          position: "absolute",
+          left: "9%",
+          top: "50%",
+          transform: "translateY(-50%)",
+          width: "66%",
+          fontWeight: 700,
+          fontSize: 34,
+          lineHeight: 1.35,
+          color: NAVY,
+          overflowWrap: "break-word",
+        }}
+      >
+        {before}
+        {highlighted ? <span style={{ color: TEAL }}>{highlighted}</span> : null}
+        {after}
+      </div>
+    </AbsoluteFill>
+  );
+};
 
 /**
  * Scene archetype (video_visual_system.md): off-center whole-body character,
@@ -705,58 +819,230 @@ const QuoteDots: React.FC<{ total: number; activeIndex: number }> = ({ total, ac
   </div>
 );
 
-// Long `detail` bodies (depth: "detailed") need a smaller size to stay
-// within the frame's vertical space — same box, same padding, just less
-// text per line/more lines, so it scales down as word count grows.
-function bodyFontSize(body: string): number {
-  const words = body.split(/\s+/).filter(Boolean).length;
-  if (words > 130) return 20;
-  if (words > 80) return 24;
-  return 28;
-}
+// Timeline archetype (video_visual_system.md, `timeline` section) — one
+// horizontal spine, one node per bullet, callouts all above the spine,
+// connected to their node by a colored stem, closing on a curved loop-back
+// arrow once every node has been reached (R-CHOP's timeline is one
+// repeating cycle, not a one-off sequence). Node count/positions always
+// come from `beats.length` — however many `###` sub-entries the content
+// doc's `## timeline` block has (one bullet per phase-grouping) — never
+// hardcoded, per the multi-spine mechanism's own rule. Mounted once for the
+// whole section span, same "run" pattern as AlertSection/QuoteSection.
+const TIMELINE_SPINE_Y_PERCENT = 50;
+// Callout boxes are 220px wide, centered on their node — 12%/88% (vs. the
+// visually-tighter 8%/92% tried first) leaves enough margin that the first
+// and last node's callout doesn't clip against the frame edge (verified
+// against a real still render at 1280x720; 8%/92% clipped "the infusion" on
+// the leftmost node).
+const TIMELINE_NODE_LEFT_PERCENT = 12;
+const TIMELINE_NODE_RIGHT_PERCENT = 88;
+const TIMELINE_REVEAL_SECONDS = 0.3;
+// Gap between the spine and the callout's nearest edge (the stem fills it) —
+// was computed as `100 - SPINE - 4`, which is the mirror of the correct
+// `100 - SPINE + GAP` (only coincidentally landing on a plausible-looking
+// number at SPINE=50%, still 8% short of the intended gap) and left the
+// callout box overlapping the spine/dot. Named as its own constant now
+// instead of a bare literal buried in the anchor expression.
+const TIMELINE_CALLOUT_GAP_PERCENT = 6;
+// All 4 callouts sit above the spine (round 5 decision, replacing the
+// original above/below alternation) — the loop-back arrow dips below the
+// spine on its way from the last node back to the first, and with every
+// callout on the far side, that whole half of the frame is guaranteed clear
+// of text for the arrow to cross. Alternating callouts left the arrow's dip
+// clipping through whichever "below" node sat nearest the dip's midpoint.
 
-// Pre-existing plain slide layout — still used by the one archetype out of
-// scope so far (timeline). Emergency/patient_voices now have their own
-// components (AlertSection/QuoteSection) above.
-const Slide: React.FC<{ headline: string; body?: string; illustrationSrc?: string | null }> = ({
-  headline,
-  body,
-  illustrationSrc,
-}) => (
-  <AbsoluteFill
-    style={{
-      justifyContent: "center",
-      alignItems: "center",
-      flexDirection: "column",
-      padding: 80,
-      textAlign: "center",
-      overflow: "hidden",
-    }}
-  >
-    {illustrationSrc ? (
-      <Img
-        src={staticFile(illustrationSrc)}
-        style={{ position: "absolute", bottom: 24, left: 24, width: 220, height: 220, objectFit: "contain" }}
+// R-CHOP's own loop-back fact, shortened to a label — the exact figure
+// ("6 cycles, 3 weeks apart, so about 18 weeks total") already lives
+// verbatim in `## overview`, so this isn't new content, just a display
+// label for it. Hardcoded per-regimen the same way SCENE_FIXED_HEADLINES
+// and QuoteBlock's "— other patients, R-CHOP" attribution are above — AC-T's
+// two-spine timeline gets its own label(s) when that round lands.
+const TIMELINE_LOOP_LABEL = "×6 cycles, ~18 weeks";
+
+const TimelineSection: React.FC<{ beats: SlideBeat[] }> = ({ beats }) => {
+  const { fps, width, height } = useVideoConfig();
+  const frame = useCurrentFrame();
+  const relSeconds = frame / fps;
+  const sectionStart = beats[0]!.startSeconds;
+  const relStart = (b: SlideBeat) => b.startSeconds - sectionStart;
+
+  let activeIndex = -1;
+  beats.forEach((b, i) => {
+    if (relSeconds >= relStart(b)) activeIndex = i;
+  });
+
+  const nodeX = (i: number) =>
+    beats.length > 1
+      ? TIMELINE_NODE_LEFT_PERCENT + ((TIMELINE_NODE_RIGHT_PERCENT - TIMELINE_NODE_LEFT_PERCENT) * i) / (beats.length - 1)
+      : (TIMELINE_NODE_LEFT_PERCENT + TIMELINE_NODE_RIGHT_PERCENT) / 2;
+
+  // Deterministic (frame-driven, not random) pulse on the active node's ring.
+  const pulseScale = 1 + 0.25 * (0.5 + 0.5 * Math.sin(relSeconds * Math.PI * 2));
+
+  const lastReveal = interpolate(
+    relSeconds,
+    [relStart(beats[beats.length - 1]!), relStart(beats[beats.length - 1]!) + TIMELINE_REVEAL_SECONDS],
+    [0, 1],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+  );
+
+  return (
+    <AbsoluteFill style={{ overflow: "hidden" }}>
+      <div
+        style={{
+          position: "absolute",
+          left: `${TIMELINE_NODE_LEFT_PERCENT}%`,
+          right: `${100 - TIMELINE_NODE_RIGHT_PERCENT}%`,
+          top: `${TIMELINE_SPINE_Y_PERCENT}%`,
+          height: 3,
+          backgroundColor: `${NAVY}33`,
+          borderRadius: 2,
+        }}
+      />
+      {lastReveal > 0 ? (
+        <TimelineLoopArrow
+          fromXPercent={nodeX(beats.length - 1)}
+          toXPercent={nodeX(0)}
+          opacity={lastReveal}
+          width={width}
+          height={height}
+        />
+      ) : null}
+      {beats.map((beat, i) => {
+        const opacity = interpolate(relSeconds, [relStart(beat), relStart(beat) + TIMELINE_REVEAL_SECONDS], [0, 1], {
+          extrapolateLeft: "clamp",
+          extrapolateRight: "clamp",
+        });
+        return (
+          <TimelineNode
+            key={beat.entryId}
+            x={nodeX(i)}
+            opacity={opacity}
+            active={i === activeIndex}
+            pulseScale={pulseScale}
+            title={beat.headline}
+            onScreen={beat.onScreen ?? ""}
+          />
+        );
+      })}
+    </AbsoluteFill>
+  );
+};
+
+const TimelineNode: React.FC<{
+  x: number;
+  opacity: number;
+  active: boolean;
+  pulseScale: number;
+  title: string;
+  onScreen: string;
+}> = ({ x, opacity, active, pulseScale, title, onScreen }) => (
+  <>
+    {active ? (
+      <div
+        style={{
+          position: "absolute",
+          left: `${x}%`,
+          top: `${TIMELINE_SPINE_Y_PERCENT}%`,
+          width: 28,
+          height: 28,
+          marginLeft: -14,
+          marginTop: -14,
+          borderRadius: "50%",
+          backgroundColor: `${TEAL}33`,
+          transform: `scale(${pulseScale})`,
+        }}
       />
     ) : null}
-    <h1 style={{ fontSize: 56, color: NAVY, marginBottom: 24, maxWidth: 1120, overflowWrap: "break-word" }}>
-      {headline}
-    </h1>
-    {body ? (
-      <p
+    <div
+      style={{
+        position: "absolute",
+        left: `${x}%`,
+        top: `${TIMELINE_SPINE_Y_PERCENT}%`,
+        width: 16,
+        height: 16,
+        marginLeft: -8,
+        marginTop: -8,
+        borderRadius: "50%",
+        // No recede/dim once revealed (round 4 decision) — a node is either
+        // not-yet-reached (empty placeholder) or fully teal, no in-between
+        // "settled" shade the way Alert's cards fade after their beat ends.
+        backgroundColor: opacity > 0.5 ? TEAL : `${NAVY}33`,
+        border: `3px solid ${FRAME_BG}`,
+        opacity: Math.max(opacity, 0.5),
+      }}
+    />
+    <div
+      style={{
+        position: "absolute",
+        left: `${x}%`,
+        bottom: `${100 - TIMELINE_SPINE_Y_PERCENT + TIMELINE_CALLOUT_GAP_PERCENT}%`,
+        transform: "translateX(-50%)",
+        width: 220,
+        display: "flex",
+        flexDirection: "column-reverse",
+        alignItems: "center",
+        gap: 8,
+        opacity,
+      }}
+    >
+      <div style={{ width: 2, height: 30, backgroundColor: `${TEAL}88` }} />
+      <div style={{ textAlign: "center" }}>
+        <div style={{ fontSize: 20, fontWeight: 800, color: NAVY, lineHeight: 1.25 }}>{title}</div>
+        <div style={{ fontSize: 15, fontWeight: 500, color: "#3a5a56", marginTop: 4, lineHeight: 1.3 }}>
+          {onScreen}
+        </div>
+      </div>
+    </div>
+  </>
+);
+
+const TimelineLoopArrow: React.FC<{
+  fromXPercent: number;
+  toXPercent: number;
+  opacity: number;
+  width: number;
+  height: number;
+}> = ({ fromXPercent, toXPercent, opacity, width, height }) => {
+  const fromX = (fromXPercent / 100) * width;
+  const toX = (toXPercent / 100) * width;
+  const spineY = (TIMELINE_SPINE_Y_PERCENT / 100) * height;
+  const dipY = spineY + 90;
+  const midX = (fromX + toX) / 2;
+
+  return (
+    <div style={{ position: "absolute", inset: 0, opacity }}>
+      <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} style={{ position: "absolute", inset: 0 }}>
+        <defs>
+          <marker id="timeline-loop-arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 Z" fill={TEAL} />
+          </marker>
+        </defs>
+        <path
+          d={`M ${fromX} ${spineY + 14} Q ${midX} ${dipY} ${toX} ${spineY + 14}`}
+          fill="none"
+          stroke={TEAL}
+          strokeWidth={3}
+          markerEnd="url(#timeline-loop-arrowhead)"
+        />
+      </svg>
+      <div
         style={{
-          fontSize: bodyFontSize(body),
-          lineHeight: 1.4,
-          color: "#3a5a56",
-          maxWidth: 900,
-          overflowWrap: "break-word",
+          position: "absolute",
+          left: "50%",
+          top: dipY + 14,
+          transform: "translateX(-50%)",
+          fontSize: 20,
+          fontWeight: 800,
+          color: TEAL,
+          whiteSpace: "nowrap",
         }}
       >
-        {body}
-      </p>
-    ) : null}
-  </AbsoluteFill>
-);
+        {TIMELINE_LOOP_LABEL}
+      </div>
+    </div>
+  );
+};
 
 export function slideVideoDurationInFrames(totalSeconds: number, fps: number): number {
   return Math.round((totalSeconds + TAIL_SECONDS) * fps);

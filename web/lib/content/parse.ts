@@ -106,6 +106,15 @@ export function parseRegimenContent(regimenId: string, filePath: string): Regime
       continue;
     }
 
+    // Text before the first `###` (e.g. a section-level `**plain:**` intro
+    // sentence) was previously discarded entirely once a section had any
+    // sub-headers — `sectionBody.slice(sub.end, ...)` below only ever looked
+    // *after* each `###`. Parse it the same way a no-sub-header section's
+    // whole body is parsed, as its own entry (id: sectionId, no name).
+    const introBody = sectionBody.slice(0, subHeaders[0]!.index);
+    const introEntry = parseEntry(introBody, sectionId, undefined);
+    if (introEntry) entries.push(introEntry);
+
     for (let j = 0; j < subHeaders.length; j++) {
       const sub = subHeaders[j]!;
       const end = subHeaders[j + 1]?.index ?? sectionBody.length;

@@ -99,6 +99,11 @@ function buildPrompt(entries: ContentEntry[], filter: PersonalizationFilter, ret
     "  source entries.",
     "- Never drop safety-critical content (emergency / call-your-team instructions)",
     "  if the entry has it, even when compressing.",
+    "- Write flowing spoken sentences only — never a numbered or bulleted list,",
+    "  even when the source entries below read like one (e.g. a run of short",
+    "  side-effect entries). A voice narrates this; list markers like \"1.\" or",
+    "  \"11.\" are read aloud as literal numbers and also trip the fact-checking",
+    "  guardrail downstream.",
     "- Return exactly one rewritten chunk per entry, same ids, same order as given.",
     "",
     retryFeedback ? `Your previous attempt was rejected: ${retryFeedback} Try again, following the rules above.\n` : "",
@@ -309,6 +314,7 @@ export async function rewriteNarration(
     if (!entityDiff.ok) {
       retryFeedback = `it introduced content not present in the source: ${entityDiff.introduced.join(", ")}.`;
       console.warn(`Narration rewrite attempt ${attempt + 1} rejected: ${retryFeedback}`);
+      if (process.env.REWRITE_DEBUG) console.error("REWRITE_DEBUG failing script:", script);
       continue;
     }
 

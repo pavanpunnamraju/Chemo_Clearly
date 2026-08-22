@@ -137,11 +137,21 @@ export function buildCaptionTrack(
       j++;
       endSeconds = j + 1 < groups.length ? resolvedStarts[j + 1]! : audioDurationSeconds;
     }
-    captions.push({
-      text: groups.slice(i, j + 1).flat().join(" "),
-      startSeconds,
-      endSeconds: Math.min(endSeconds, startSeconds + MAX_DISPLAY_SECONDS),
-    });
+    // Split into MAX_DISPLAY_SECONDS-long segments (repeating the same text)
+    // rather than truncating and dropping the remainder — a single capped
+    // cue previously left a blank gap between its cut-off end and the next
+    // chunk's real start whenever the natural window (this chunk's start to
+    // the next chunk's start) ran past the cap, e.g. from a chunk whose
+    // start fell back to prevEnd and whose end then inherited a distant real
+    // match (see MAX_DISPLAY_SECONDS's comment above). Caught live: a ~3s
+    // blank span mid-narration with no caption despite continuous speech.
+    const text = groups.slice(i, j + 1).flat().join(" ");
+    let segStart = startSeconds;
+    do {
+      const segEnd = Math.min(endSeconds, segStart + MAX_DISPLAY_SECONDS);
+      captions.push({ text, startSeconds: segStart, endSeconds: Math.max(segEnd, segStart) });
+      segStart = segEnd;
+    } while (segStart < endSeconds);
     i = j + 1;
   }
   return captions;

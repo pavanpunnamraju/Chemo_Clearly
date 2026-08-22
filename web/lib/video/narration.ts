@@ -95,7 +95,7 @@ export function buildNarrationPlanFromChunks(
       tier: entry.tier,
       call911: entry.call911,
       callTeam: entry.callTeam,
-      onScreen: entry.onScreen,
+      onScreen: entryOnScreen(entry),
     });
 
     scriptParts.push(chunk.text);
@@ -116,6 +116,19 @@ function entryHeadline(entry: ContentEntry): string {
     .split("_")
     .map((w) => w[0]!.toUpperCase() + w.slice(1))
     .join(" ");
+}
+
+// A section-level entry (no `name` — e.g. `timeline`/`side_effects`'s
+// pre-first-`###` intro) has nothing authored in its own `**on-screen:**`
+// field today, but its `**plain:**` is already the one short display
+// sentence the Title Card archetype (video_visual_system.md) needs verbatim
+// — not the LLM-rewritten narration `body`, same reasoning `onScreen` exists
+// for at all (patient_voices quotes, timeline sub-entries). Falls back to it
+// only when nothing was explicitly authored, so every other entry's
+// (possibly-undefined) `onScreen` is untouched.
+function entryOnScreen(entry: ContentEntry): string | undefined {
+  if (entry.onScreen) return entry.onScreen;
+  return entry.name ? undefined : cleanForSpeechAndDisplay(entry.plain);
 }
 
 function entryNarrationText(entry: ContentEntry, includeDetail: boolean): string {
@@ -158,7 +171,7 @@ export function buildNarrationPlan(
       tier: entry.tier,
       call911: entry.call911,
       callTeam: entry.callTeam,
-      onScreen: entry.onScreen,
+      onScreen: entryOnScreen(entry),
     });
 
     scriptParts.push(text);
@@ -175,6 +188,44 @@ export function buildNarrationPlan(
 
 function normalizeWord(word: string): string {
   return word.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+// Cloud Speech-to-Text normalizes every spoken number to digits in its
+// transcript ("seven" -> "7", "eleven" -> "11", even a compound like
+// "twenty-one" collapses to the single token "21") regardless of how the
+// script spelled it — verified against real aligned output (see round 6's
+// investigation, docs/references/handoff.md). matchTimestamps searches the
+// script's own words against that transcript, so any anchor phrase that
+// happens to spell a number out in words rather than digits (the LLM
+// rewriter isn't told which form to use, and picks one or the other
+// per-call) never matches at all, silently falling back to the word-count
+// *estimate* for that slide — a real, no-warning position error, not a rare
+// edge case (this round's rewrite spelled every timeline day number as
+// words and 3 of 4 timeline nodes fell back). Spelling every number word
+// out to its digit string before matching, so both sides compare in the
+// same (digit) form STT actually produces, fixes it regardless of which
+// style a given rewrite happens to use. Scoped to 0-99 (everyday
+// day/cycle/week counts in this content) — a token beyond that range is
+// left as-is and just won't match, same as before this fix.
+const NUMBER_WORDS: Record<string, number> = {
+  zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9,
+  ten: 10, eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16,
+  seventeen: 17, eighteen: 18, nineteen: 19, twenty: 20, thirty: 30, forty: 40, fifty: 50,
+  sixty: 60, seventy: 70, eighty: 80, ninety: 90,
+};
+const TENS_WORDS = "twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety";
+const ONES_WORDS =
+  "one|two|three|four|five|six|seven|eight|nine";
+
+function spelledNumbersToDigits(text: string): string {
+  return text
+    .replace(new RegExp(`\\b(${TENS_WORDS})[\\s-](${ONES_WORDS})\\b`, "gi"), (_, tens, ones) =>
+      String(NUMBER_WORDS[tens.toLowerCase()]! + NUMBER_WORDS[ones.toLowerCase()]!),
+    )
+    .replace(/\b[a-z]+\b/gi, (word) => {
+      const n = NUMBER_WORDS[word.toLowerCase()];
+      return n === undefined ? word : String(n);
+    });
 }
 
 /** First index in `[from, to)` where `haystack` contains `needle` as a contiguous run, or -1. */
@@ -280,6 +331,29 @@ export function applyTimepoints(
 const MAX_1WORD_LOOKAHEAD = 40;
 const MAX_2WORD_LOOKAHEAD = 60;
 
+// Tries the 3/2/1-word tiers (documented above) against `anchorWords`
+// starting at `from`. Factored out so it can run twice per anchor — once
+// against the anchor's own leading words, once (see matchTimestamps) against
+// the same anchor with its first word dropped.
+function matchTiered(
+  normalizedAligned: string[],
+  anchorWords: string[],
+  from: number,
+): { index: number; phraseLength: number } | null {
+  for (const phraseLength of [3, 2, 1]) {
+    if (anchorWords.length < phraseLength) continue;
+    const to =
+      phraseLength === 1
+        ? from + MAX_1WORD_LOOKAHEAD
+        : phraseLength === 2
+          ? from + MAX_2WORD_LOOKAHEAD
+          : normalizedAligned.length;
+    const index = findPhrase(normalizedAligned, anchorWords.slice(0, phraseLength), from, to);
+    if (index !== -1) return { index, phraseLength };
+  }
+  return null;
+}
+
 export function matchTimestamps(
   anchorTexts: string[],
   alignedWords: { word: string; startSeconds: number }[],
@@ -287,24 +361,42 @@ export function matchTimestamps(
   const normalizedAligned = alignedWords.map((w) => normalizeWord(w.word));
   let cursor = 0;
 
-  return anchorTexts.map((text) => {
-    const words = text.split(/\s+/).filter(Boolean).map(normalizeWord).filter(Boolean);
+  return anchorTexts.map((text, anchorIndex) => {
+    const words = spelledNumbersToDigits(text)
+      .split(/\s+/)
+      .filter(Boolean)
+      .map(normalizeWord)
+      .filter(Boolean);
 
-    let matchIndex = -1;
-    for (const phraseLength of [3, 2, 1]) {
-      if (words.length < phraseLength) continue;
-      const to =
-        phraseLength === 1
-          ? cursor + MAX_1WORD_LOOKAHEAD
-          : phraseLength === 2
-            ? cursor + MAX_2WORD_LOOKAHEAD
-            : normalizedAligned.length;
-      matchIndex = findPhrase(normalizedAligned, words.slice(0, phraseLength), cursor, to);
-      if (matchIndex !== -1) break;
+    let result = matchTiered(normalizedAligned, words, cursor);
+    // Every tier above is anchored at the anchor's own word 0, so none of
+    // them can recover when STT mishears/drops that specific word — verified
+    // live: Speech-to-Text transcribed "Vincristine" (an uncommon drug name)
+    // as "Christine", so "vincristine"/"vincristine one"/"vincristine one of"
+    // all failed to appear anywhere in the transcript even though "one of
+    // the medications..." right after it matched perfectly. Retrying once
+    // with the anchor's first word dropped catches exactly that case.
+    // Bounded to a single skipped word (not open-ended) — same
+    // weak-match-drifts-forward risk as the 1/2-word tiers themselves, so
+    // this isn't a general "search anywhere" fallback, just enough to
+    // survive one bad leading word.
+    let skippedLeadWord = false;
+    if (!result && words.length > 1) {
+      result = matchTiered(normalizedAligned, words.slice(1), cursor);
+      skippedLeadWord = result !== null;
     }
-    if (matchIndex === -1) return null;
+    if (process.env.MATCH_DEBUG) {
+      console.error(
+        `MATCH_DEBUG anchor[${anchorIndex}] "${words.slice(0, 3).join(" ")}" -> ${
+          result === null
+            ? "NO MATCH"
+            : `${skippedLeadWord ? "skip-lead+" : ""}${result.phraseLength}-word match @ word ${result.index}`
+        }`,
+      );
+    }
+    if (result === null) return null;
 
-    cursor = matchIndex;
-    return alignedWords[matchIndex]!.startSeconds;
+    cursor = result.index;
+    return alignedWords[result.index]!.startSeconds;
   });
 }
