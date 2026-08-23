@@ -23,7 +23,7 @@ export interface SelectionResult {
 // replaces the old tag-matching filter, which went dead once
 // `PersonalizationFilter.tags` became the full taxonomy for every patient
 // (2026-08-10 topics-removal amendment).
-const NARRATED_SECTIONS = new Set<string>([
+export const NARRATED_SECTIONS = new Set<string>([
   "overview",
   "timeline",
   "daily_life",

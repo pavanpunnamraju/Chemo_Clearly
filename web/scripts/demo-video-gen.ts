@@ -20,65 +20,59 @@ loadEnvLocal({ path: path.join(__dirname, "..", ".env.local") });
 import { IntakeSchema, toPersonalizationFilter, hashPersonalizationFilter } from "../lib/intake/schema";
 import { loadRegimenContent } from "../lib/content";
 import { selectContent } from "../lib/video/select";
-import { rewriteNarration, type RewriteResult } from "../lib/video/rewrite";
 import { buildNarrationPlanFromChunks, applyTimepoints } from "../lib/video/narration";
 import { buildCaptionTrack } from "../lib/video/captions";
-import { synthesizeNarration, type SynthesizeResult } from "../lib/video/tts";
-import { alignAudioToScript, type WordOffset } from "../lib/video/align";
 import { renderVideoLocally } from "../lib/video/render";
 import { storeVideo } from "../lib/storage";
+import {
+  groupEntriesBySection,
+  hashSection,
+  runSectionPipeline,
+  stitchSections,
+  type SectionPipelineOutput,
+} from "../lib/video/pipeline";
 
 // Dev-only cache for the pipeline's expensive stages (LLM rewrite, Gemini-TTS,
-// Cloud Speech-to-Text alignment), keyed on the same filter hash the real app
-// uses for `generated_videos.filter_hash` (web/lib/intake/schema.ts) — reused
-// here rather than reinvented. Downstream steps (component placement,
-// captions, render) always run fresh; those are what demo iteration targets.
+// Cloud Speech-to-Text alignment), keyed per narrated section (Phase 2a goal
+// #13) rather than as one whole-script blob — editing a couple of lines in
+// one section of docs/content/*.md no longer forces a full re-rewrite +
+// re-TTS + re-align of the whole ~33-entry script; only the changed
+// section(s) re-run. Layout: `.demo-cache/<filterHash>/sections/<sectionId>/
+// {meta.json,audio.wav}`. Downstream steps (component placement, captions,
+// render) always run fresh; those are what demo iteration targets.
 // Force a fresh run with `--fresh` or `DEMO_FORCE_REFRESH=1`.
 const FORCE_REFRESH = process.argv.includes("--fresh") || process.env.DEMO_FORCE_REFRESH === "1";
 
-interface DemoCacheEntry {
-  rewrite: RewriteResult;
-  tts: Omit<SynthesizeResult, "audioBuffer">;
-  align: { words: WordOffset[]; durationSeconds: number };
+type SectionMeta = Omit<SectionPipelineOutput, "audioBuffer">;
+
+function sectionCacheDir(cacheRoot: string, sectionId: string): string {
+  return path.join(cacheRoot, "sections", sectionId);
 }
 
-function loadDemoCache(cacheDir: string, currentEntryIds: string[]): (DemoCacheEntry & { audioBuffer: Buffer }) | null {
-  if (FORCE_REFRESH || !existsSync(path.join(cacheDir, "meta.json"))) return null;
-  const meta = JSON.parse(readFileSync(path.join(cacheDir, "meta.json"), "utf-8")) as DemoCacheEntry;
+function loadSectionCache(cacheRoot: string, sectionId: string, expectedHash: string): SectionPipelineOutput | null {
+  const dir = sectionCacheDir(cacheRoot, sectionId);
+  if (FORCE_REFRESH || !existsSync(path.join(dir, "meta.json"))) return null;
 
-  // The cache key is the intake filter hash only — it says nothing about
-  // which entries the (LLM-based, not perfectly deterministic) selection
-  // step actually picked, or about docs/content/*.md's structure at cache
-  // time. A cached rewrite whose chunk entryIds don't match this run's
-  // selection is stale in a way that silently drops content rather than
-  // erroring: buildNarrationPlanFromChunks skips any chunk whose entryId
-  // isn't in the current entries (see lib/video/narration.ts), so a stale
-  // cache can make a whole section vanish from the video while its cached
-  // *audio* still narrates it — desyncing every slide after it. Caught this
-  // live: a cache predating rchop.md's `emergency` per-item split (single
-  // "emergency" chunk id) silently dropped the entire emergency section
-  // once the content moved to per-item ids, with knock-on timing corruption
-  // for everything after it. Treat a mismatch as a cache miss.
-  const cachedEntryIds = new Set(meta.rewrite.chunks.map((c) => c.entryId));
-  const missing = currentEntryIds.filter((id) => !cachedEntryIds.has(id));
-  if (missing.length > 0) {
-    console.log(`Cache at ${cacheDir} is stale (missing entries: ${missing.join(", ")}) — refreshing.`);
+  const meta = JSON.parse(readFileSync(path.join(dir, "meta.json"), "utf-8")) as SectionMeta;
+  if (meta.hash !== expectedHash) {
+    console.log(`Section "${sectionId}" cache is stale (content changed) — re-running.`);
     return null;
   }
 
-  const audioBuffer = readFileSync(path.join(cacheDir, "audio.wav"));
+  const audioBuffer = readFileSync(path.join(dir, "audio.wav"));
   return { ...meta, audioBuffer };
 }
 
-function saveDemoCache(cacheDir: string, entry: DemoCacheEntry & { audioBuffer: Buffer }): void {
-  mkdirSync(cacheDir, { recursive: true });
-  const { audioBuffer, ...meta } = entry;
-  writeFileSync(path.join(cacheDir, "meta.json"), JSON.stringify(meta, null, 2));
-  writeFileSync(path.join(cacheDir, "audio.wav"), audioBuffer);
+function saveSectionCache(cacheRoot: string, output: SectionPipelineOutput): void {
+  const dir = sectionCacheDir(cacheRoot, output.sectionId);
+  mkdirSync(dir, { recursive: true });
+  const { audioBuffer, ...meta } = output;
+  writeFileSync(path.join(dir, "meta.json"), JSON.stringify(meta, null, 2));
+  writeFileSync(path.join(dir, "audio.wav"), audioBuffer);
 }
 
 async function main() {
-  const voiceTone = process.argv[2] ?? "neutral";
+  const voiceTone = process.argv[2] ?? "friendly";
   const intake = IntakeSchema.parse({
     regimenId: "rchop",
     educationLevel: "some_college",
@@ -96,51 +90,38 @@ async function main() {
   console.log(`Selection (${selection.method}):`, selection.entryIds);
 
   const entryById = new Map(content.entries.map((e) => [e.id, e]));
-  const entries = selection.entryIds.map((id) => entryById.get(id)).filter((e) => e !== undefined);
+  const selectedEntries = selection.entryIds.map((id) => entryById.get(id)).filter((e) => e !== undefined);
 
-  const cacheDir = path.join(__dirname, "..", ".demo-cache", hashPersonalizationFilter(filter));
-  const cached = loadDemoCache(cacheDir, entries.map((e) => e.id));
+  const cacheRoot = path.join(__dirname, "..", ".demo-cache", hashPersonalizationFilter(filter));
+  const groups = groupEntriesBySection(selectedEntries);
 
-  let rewrite: RewriteResult;
-  let audioBuffer: Buffer;
-  let durationSeconds: number, sampleRateHertz: number, charactersSent: number, voice: string;
-  let words: WordOffset[], alignedDurationSeconds: number;
+  const sectionOutputs: SectionPipelineOutput[] = [];
+  for (const group of groups) {
+    const hash = hashSection(group.sectionId, group.entries);
+    const cached = loadSectionCache(cacheRoot, group.sectionId, hash);
+    if (cached) {
+      console.log(`Section "${group.sectionId}": cache hit — skipping rewrite/TTS/alignment.`);
+      sectionOutputs.push(cached);
+      continue;
+    }
 
-  if (cached) {
-    console.log(`\nCache hit (${cacheDir}) — skipping rewrite/TTS/alignment.`);
-    ({ rewrite, audioBuffer } = cached);
-    ({ durationSeconds, sampleRateHertz, charactersSent, voice } = cached.tts);
-    ({ words, durationSeconds: alignedDurationSeconds } = cached.align);
-  } else {
-    console.log("\nRewriting narration (LLM, guardrailed)...");
-    rewrite = await rewriteNarration(entries, filter);
-    console.log(`Narration script (${rewrite.script.length} chars).`);
-
-    console.log(`\nCalling Gemini-TTS (voiceTone: ${voiceTone})...`);
-    ({ audioBuffer, charactersSent, voice, durationSeconds, sampleRateHertz } = await synthesizeNarration(
-      buildNarrationPlanFromChunks(rewrite.chunks, entries).script,
-      voiceTone,
-    ));
+    console.log(`Section "${group.sectionId}": rewriting/synthesizing/aligning (${group.entries.length} entries)...`);
+    const output = await runSectionPipeline(group.sectionId, group.entries, filter, voiceTone);
     console.log(
-      `TTS OK: ${charactersSent} chars sent, voice ${voice}, ${audioBuffer.length} audio bytes, ${durationSeconds.toFixed(1)}s actual duration`,
+      `Section "${group.sectionId}" OK: ${output.tts.charactersSent} chars, ${output.durationSeconds.toFixed(1)}s audio, ${output.words.length} aligned words.`,
     );
-
-    console.log("\nAligning audio to script via Cloud Speech-to-Text...");
-    ({ words, durationSeconds: alignedDurationSeconds } = await alignAudioToScript(
-      audioBuffer,
-      buildNarrationPlanFromChunks(rewrite.chunks, entries).script,
-      sampleRateHertz,
-    ));
-    console.log(`Alignment OK: ${words.length} words, ${alignedDurationSeconds.toFixed(1)}s aligned duration`);
-
-    saveDemoCache(cacheDir, {
-      rewrite,
-      tts: { charactersSent, voice, durationSeconds, sampleRateHertz },
-      align: { words, durationSeconds: alignedDurationSeconds },
-      audioBuffer,
-    });
-    console.log(`Cached pipeline outputs: ${cacheDir}`);
+    saveSectionCache(cacheRoot, output);
+    sectionOutputs.push(output);
   }
+
+  // Stitched entries follow the same canonical section order groupEntriesBySection
+  // used, so they line up 1:1 with the concatenated chunks below.
+  const entries = groups.flatMap((g) => g.entries);
+  const stitched = stitchSections(sectionOutputs);
+  const rewrite = { chunks: stitched.chunks, script: stitched.chunks.map((c) => c.text).join(" ") };
+  const audioBuffer = stitched.audioBuffer;
+  const words = stitched.words;
+  const durationSeconds = stitched.durationSeconds;
 
   const estimatedPlan = buildNarrationPlanFromChunks(rewrite.chunks, entries);
   console.log(`~${estimatedPlan.totalSeconds.toFixed(1)}s estimated:`);

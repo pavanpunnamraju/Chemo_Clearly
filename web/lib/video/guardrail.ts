@@ -13,7 +13,7 @@ import { cleanForSpeechAndDisplay } from "./narration";
 
 function extractNumbers(text: string): Set<string> {
   const matches = text.match(/\d[\d.,]*\s?%?/g) ?? [];
-  return new Set(matches.map((m) => m.replace(/\s+/g, "").replace(/,$/, "")));
+  return new Set(matches.map((m) => m.replace(/\s+/g, "").replace(/[,.]$/, "")));
 }
 
 // Candidate proper-noun phrases: capitalized-word runs, kept as phrases (not

@@ -32,7 +32,13 @@ export interface SynthesizeResult {
   sampleRateHertz: number;
 }
 
-function pcmToWav(pcm: Buffer, sampleRateHertz: number): Buffer {
+/** `ms` of silent 16-bit mono PCM at the given sample rate — used to pad section joins (pipeline.ts). */
+export function silencePcm(ms: number, sampleRateHertz: number): Buffer {
+  const numSamples = Math.round((ms / 1000) * sampleRateHertz);
+  return Buffer.alloc(numSamples * 2, 0);
+}
+
+export function pcmToWav(pcm: Buffer, sampleRateHertz: number): Buffer {
   const numChannels = 1;
   const bitsPerSample = 16;
   const byteRate = sampleRateHertz * numChannels * (bitsPerSample / 8);
