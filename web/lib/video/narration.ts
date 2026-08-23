@@ -43,6 +43,11 @@ export interface NarrationPlan {
 // timing is acceptable for v1's narrated-slides format.
 const WORDS_PER_SECOND = 2.5;
 
+// Phase 2a goal #10a: threshold for the illustration-timing check in
+// applyTimepoints below (~1s, per human sign-off — a visible mistime, not
+// normal alignment jitter).
+const ILLUSTRATION_TIMING_THRESHOLD_SECONDS = 1;
+
 export function cleanForSpeechAndDisplay(text: string): string {
   // Display/narration cleanup only — never changes a claim or its phrasing,
   // just the raw-markdown formatting from docs/content/*.md that isn't
@@ -297,6 +302,16 @@ export function applyTimepoints(
     const candidate = matched == null ? slide.startSeconds : matched;
     const startSeconds = Math.max(candidate, previousStart);
     previousStart = startSeconds;
+    // Phase 2a goal #10a: illustration-timing check — log only, never block
+    // (illustration placement is a soft degrade, same as Agent 4's own
+    // fallback-not-block design). A few ms of drift is normal; only flag a
+    // clamp large enough to visibly show the wrong slide's illustration
+    // while the wrong narration is playing.
+    if (matched != null && Math.abs(startSeconds - matched) > ILLUSTRATION_TIMING_THRESHOLD_SECONDS) {
+      console.warn(
+        `Illustration timing check: slide "${slide.entryId}" clamped from its matched cue ${matched.toFixed(2)}s to ${startSeconds.toFixed(2)}s (drift ${(startSeconds - matched).toFixed(2)}s) — its illustration may show during the wrong narration content.`,
+      );
+    }
     return { ...slide, startSeconds };
   });
 

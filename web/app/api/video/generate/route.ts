@@ -10,6 +10,7 @@ import { buildNarrationPlanFromChunks, applyTimepoints } from "@/lib/video/narra
 import { synthesizeNarration } from "@/lib/video/tts";
 import { alignAudioToScript } from "@/lib/video/align";
 import { renderVideoLocally } from "@/lib/video/render";
+import { checkLayoutOverflow } from "@/lib/video/layout-qa";
 import { storeVideo } from "@/lib/storage";
 import { getSupabaseServerClient } from "@/lib/supabase/client";
 
@@ -76,6 +77,19 @@ export async function POST(req: NextRequest) {
   );
   const { words } = await alignAudioToScript(audioBuffer, estimatedPlan.script, sampleRateHertz);
   const plan = applyTimepoints(estimatedPlan, words, durationSeconds);
+
+  // Phase 2a goal #10c: text-overflow render-QA, no captions on this path yet
+  // (captionsEnabled defaults off — see render.ts/SlideVideo.tsx). Blocks
+  // before the render: this is a code/CSS defect a retry can't fix, so
+  // there's no value in paying for the render first.
+  const layoutIssues = checkLayoutOverflow(plan, []);
+  if (layoutIssues.length > 0) {
+    console.error("Render-QA layout overflow check failed:", layoutIssues);
+    return NextResponse.json(
+      { error: "Video layout check failed. Please try again shortly." },
+      { status: 404 },
+    );
+  }
 
   const tmpDir = mkdtempSync(path.join(os.tmpdir(), "chemo-render-"));
   const localOutput = path.join(tmpDir, "video.mp4");

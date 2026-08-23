@@ -39,6 +39,16 @@ export interface RewriteResult {
   script: string;
 }
 
+// Phase 2a goal #10b: readability gate, per education level — was basic-only,
+// now blocks for every level (advanced stays effectively uncapped since
+// clinical terminology is explicitly allowed there per EDUCATION_LEVEL_GUIDANCE).
+// Reuses checkReadingLevel's existing avg-words/sentence proxy, no new library.
+const READING_LEVEL_MAX_AVG_WORDS_PER_SENTENCE: Record<string, number> = {
+  basic: 20,
+  some_college: 25,
+  advanced: 1000,
+};
+
 // Phase 2a goal 1: per-entry length budgets so the rewrite targets a
 // noticeably shorter total script (rough NHS-benchmark ~7min spoken ≈
 // ~1000-1100 words/regimen) instead of rewriting every entry at roughly
@@ -325,13 +335,14 @@ export async function rewriteNarration(
       continue;
     }
 
-    if (filter.educationLevel === "basic") {
-      const readingLevel = checkReadingLevel(script);
-      if (!readingLevel.ok) {
-        retryFeedback = `sentences are too long for a basic reading level (avg ${readingLevel.avgWordsPerSentence.toFixed(1)} words/sentence) — use shorter sentences.`;
-        console.warn(`Narration rewrite attempt ${attempt + 1} rejected: ${retryFeedback}`);
-        continue;
-      }
+    const maxAvgWordsPerSentence =
+      READING_LEVEL_MAX_AVG_WORDS_PER_SENTENCE[filter.educationLevel] ??
+      READING_LEVEL_MAX_AVG_WORDS_PER_SENTENCE.basic!;
+    const readingLevel = checkReadingLevel(script, maxAvgWordsPerSentence);
+    if (!readingLevel.ok) {
+      retryFeedback = `sentences are too long for a ${filter.educationLevel} reading level (avg ${readingLevel.avgWordsPerSentence.toFixed(1)} words/sentence) — use shorter sentences.`;
+      console.warn(`Narration rewrite attempt ${attempt + 1} rejected: ${retryFeedback}`);
+      continue;
     }
 
     const critic = await callCritic(entries, chunks);

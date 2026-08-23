@@ -17,7 +17,10 @@
     "demo:rewrite": "tsx scripts/demo-rewrite.ts",
     "demo:notes": "tsx scripts/demo-notes.ts",
     "sync:schema": "tsx scripts/sync-schema.ts",
-    "check:reduced-motion": "tsx scripts/check-reduced-motion.ts"
+    "check:reduced-motion": "tsx scripts/check-reduced-motion.ts",
+    "validate:content": "tsx scripts/validate-content.ts",
+    "test:parse": "tsx lib/content/parse.test.ts",
+    "test:layout-qa": "tsx lib/video/layout-qa.test.ts"
   },
   "dependencies": {
     "@google-cloud/speech": "^7.5.0",

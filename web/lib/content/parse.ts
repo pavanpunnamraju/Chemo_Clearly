@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { SECTION_IDS, type ContentEntry, type RegimenContent, type SectionId, type Tier } from "./types";
 
-function extractField(block: string, prefix: string): string | undefined {
+export function extractField(block: string, prefix: string): string | undefined {
   // (?![A-Za-z0-9_]) after the prefix stops "call_team" from matching a
   // "**call_team_if:**" label (prefix is a literal substring of it) — real
   // trailing slack like "plain — AC phase:" / "plain framing for the app:"
@@ -22,7 +22,7 @@ function extractField(block: string, prefix: string): string | undefined {
   return text && text.length > 0 ? text : undefined;
 }
 
-function slugify(text: string): string {
+export function slugify(text: string): string {
   return text
     .toLowerCase()
     .replace(/\([^)]*\)/g, "")
@@ -30,13 +30,13 @@ function slugify(text: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-function parseTags(block: string): string[] {
+export function parseTags(block: string): string[] {
   const raw = extractField(block, "tags");
   if (!raw) return [];
   return [...raw.matchAll(/`([a-z0-9-]+)`/g)].map((m) => m[1]!);
 }
 
-function parseTier(block: string): Tier | undefined {
+export function parseTier(block: string): Tier | undefined {
   const raw = extractField(block, "tier");
   if (!raw) return undefined;
   const cleaned = raw.replace(/[`*]/g, "").trim() as Tier;
