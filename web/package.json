@@ -16,7 +16,8 @@
     "demo:video": "tsx scripts/demo-video-gen.ts",
     "demo:rewrite": "tsx scripts/demo-rewrite.ts",
     "demo:notes": "tsx scripts/demo-notes.ts",
-    "sync:schema": "tsx scripts/sync-schema.ts"
+    "sync:schema": "tsx scripts/sync-schema.ts",
+    "check:reduced-motion": "tsx scripts/check-reduced-motion.ts"
   },
   "dependencies": {
     "@google-cloud/speech": "^7.5.0",

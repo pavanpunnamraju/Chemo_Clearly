@@ -28,6 +28,16 @@ export interface SlideVideoProps {
   /** Off by default per the goal wording — no app-chrome toggle exists yet
    * (Phase 2b), so this is the only control for now. */
   captionsEnabled?: boolean;
+  /** `prefers-reduced-motion` (goal #5) — same "off by default, no live
+   * app-chrome toggle yet" shape as captionsEnabled above: rendering happens
+   * server-side (lib/video/render.ts), not in the viewer's own browser, so
+   * there's no browser media query to read yet. Wire this to an actual
+   * viewer signal once Phase 2b's player exists; until then it's a plumbing
+   * seam only. Suppresses the one continuous/looping decorative animation
+   * (Timeline's active-node pulse) rather than the content-legibility fades
+   * (Quote crossfade, Timeline node reveal), which stay as-is per the goal's
+   * own "don't just disable motion outright" instruction. */
+  reducedMotion?: boolean;
   [key: string]: unknown;
 }
 
@@ -133,6 +143,7 @@ export const SlideVideo: React.FC<SlideVideoProps> = ({
   totalSeconds,
   captions,
   captionsEnabled = false,
+  reducedMotion = false,
 }) => {
   const { fps } = useVideoConfig();
   const endSeconds = totalSeconds + TAIL_SECONDS;
@@ -239,7 +250,7 @@ export const SlideVideo: React.FC<SlideVideoProps> = ({
 
           return (
             <Sequence key={beat.entryId} from={from} durationInFrames={runDurationInFrames}>
-              <TimelineSection beats={slides.slice(i, runEnd + 1)} />
+              <TimelineSection beats={slides.slice(i, runEnd + 1)} reducedMotion={reducedMotion} />
             </Sequence>
           );
         }
@@ -859,7 +870,18 @@ const TIMELINE_CALLOUT_GAP_PERCENT = 6;
 // two-spine timeline gets its own label(s) when that round lands.
 const TIMELINE_LOOP_LABEL = "×6 cycles, ~18 weeks";
 
-const TimelineSection: React.FC<{ beats: SlideBeat[] }> = ({ beats }) => {
+// Pure so the reduced-motion behavior is checkable without a real render
+// (see scripts/check-reduced-motion.ts) — reducedMotion freezes the ring at
+// its resting scale instead of letting it keep oscillating, since a looping
+// pulse is exactly the kind of decorative motion prefers-reduced-motion
+// targets (the fades elsewhere are content reveals, not decoration, so they
+// stay untouched per the goal's own instruction).
+export function timelinePulseScale(relSeconds: number, reducedMotion: boolean): number {
+  if (reducedMotion) return 1;
+  return 1 + 0.25 * (0.5 + 0.5 * Math.sin(relSeconds * Math.PI * 2));
+}
+
+const TimelineSection: React.FC<{ beats: SlideBeat[]; reducedMotion: boolean }> = ({ beats, reducedMotion }) => {
   const { fps, width, height } = useVideoConfig();
   const frame = useCurrentFrame();
   const relSeconds = frame / fps;
@@ -877,7 +899,7 @@ const TimelineSection: React.FC<{ beats: SlideBeat[] }> = ({ beats }) => {
       : (TIMELINE_NODE_LEFT_PERCENT + TIMELINE_NODE_RIGHT_PERCENT) / 2;
 
   // Deterministic (frame-driven, not random) pulse on the active node's ring.
-  const pulseScale = 1 + 0.25 * (0.5 + 0.5 * Math.sin(relSeconds * Math.PI * 2));
+  const pulseScale = timelinePulseScale(relSeconds, reducedMotion);
 
   const lastReveal = interpolate(
     relSeconds,

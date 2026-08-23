@@ -29,6 +29,7 @@ export async function renderVideoLocally(
   outputPath: string,
   captions: TimedCaption[] = [],
   captionsEnabled = false,
+  reducedMotion = false,
 ): Promise<RenderResult> {
   const { bundle } = await import("@remotion/bundler");
   const { renderMedia, selectComposition } = await import("@remotion/renderer");
@@ -63,6 +64,7 @@ export async function renderVideoLocally(
     totalSeconds: plan.totalSeconds,
     captions,
     captionsEnabled,
+    reducedMotion,
   };
 
   const composition = await selectComposition({

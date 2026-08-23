@@ -42,6 +42,9 @@ import {
 // render) always run fresh; those are what demo iteration targets.
 // Force a fresh run with `--fresh` or `DEMO_FORCE_REFRESH=1`.
 const FORCE_REFRESH = process.argv.includes("--fresh") || process.env.DEMO_FORCE_REFRESH === "1";
+// Goal #5 verification render — same on/off-by-default shape as FORCE_REFRESH
+// above, doesn't touch the section cache (only the render step reads this).
+const REDUCED_MOTION = process.argv.includes("--reduced-motion") || process.env.DEMO_REDUCED_MOTION === "1";
 
 type SectionMeta = Omit<SectionPipelineOutput, "audioBuffer">;
 
@@ -147,9 +150,9 @@ async function main() {
     console.log(`  ${c.startSeconds.toFixed(2)}s-${c.endSeconds.toFixed(2)}s (${(c.endSeconds - c.startSeconds).toFixed(2)}s): "${c.text}"`);
   }
 
-  console.log("\nRendering video locally via Remotion (captions on, for verification)...");
-  const outputPath = path.join(__dirname, "..", "out", "demo-video.mp4");
-  const render = await renderVideoLocally(plan, audioBuffer, outputPath, captions, true);
+  console.log(`\nRendering video locally via Remotion (captions on${REDUCED_MOTION ? ", reducedMotion on" : ""}, for verification)...`);
+  const outputPath = path.join(__dirname, "..", "out", REDUCED_MOTION ? "demo-video-reduced-motion.mp4" : "demo-video.mp4");
+  const render = await renderVideoLocally(plan, audioBuffer, outputPath, captions, true, REDUCED_MOTION);
   console.log(`Rendered: ${render.outputPath} (${render.width}x${render.height} @ ${render.fps}fps)`);
 
   const stored = await storeVideo(outputPath, `demo/${Date.now()}.mp4`);
