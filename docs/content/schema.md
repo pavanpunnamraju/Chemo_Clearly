@@ -18,11 +18,14 @@ found missing: a timeline, severity triage, and any acknowledgment that the read
 - **Sourced, not vibes.** Every factual claim carries a `source` id resolving to the
   regimen's source list. Forum/anecdotal material is marked `anecdotal: true` and is never
   used for a clinical claim (dosing, mechanism, timing, risk).
-- **Tagged for filtering, not rewritten per patient.** Personalization = which
-  sections/entries get shown, driven by the future intake's education level + topics of
-  interest (Phase 1 goal 2). The content itself is written once. Two reading depths
-  (`plain` / `detail`) exist per section so "education level" has something concrete to
-  switch on without a separate rewrite per patient.
+- **Tagged, not rewritten per patient.** Every video always covers the full
+  content set for the regimen — personalization is education level, content
+  depth, and voice tone, never which topics are included. Tags exist to
+  drive the video's visual layer (which entries get a matching illustration/
+  icon), not to filter what's narrated. The content itself is written once.
+  Two reading depths (`plain` / `detail`) exist per section so "education
+  level" has something concrete to switch on without a separate rewrite per
+  patient.
 
 ## Top-level section list (in display order)
 
@@ -64,11 +67,12 @@ found missing: a timeline, severity triage, and any acknowledgment that the read
 - **`self_care`** — expected and manageable at home with the listed self-care steps;
   care team contact is optional/if-it-worsens.
 
-## Topic tag taxonomy (for intake filtering — Phase 1 goal 2 input)
+## Topic tag taxonomy (drives video illustration/component matching)
 
-Each section/entry carries one or more tags from this shared list so a future intake's
-"topics of interest" can filter what's shown. Kept identical across regimens so the intake
-UI doesn't need per-regimen logic:
+Each section/entry carries one or more tags from this shared list. Tags don't filter
+what's narrated — every video covers everything — they drive which entries get a
+matching on-screen illustration/icon in the video. Kept identical across regimens so
+that matching logic doesn't need per-regimen special-casing:
 
 `what-it-is` · `schedule` · `how-it-feels-daily` · `nausea-appetite` · `hair-skin-appearance` ·
 `infection-risk` · `bleeding-bruising` · `fatigue` · `nerve-tingling` · `aches-pain` ·
@@ -110,6 +114,6 @@ review_note: string (optional, non-rendering)  (sourcing caveats, cross-check fl
 ## Flagged, not built, this round
 
 **Candidate intake addition**: patient choice in *how* they want to receive content
-(read vs. listen, short vs. detailed) — i.e. tone/format preference, not just education
-level + topics. Surfacing this note per the handoff instruction; not designing or building
+(read vs. listen, short vs. detailed) — i.e. tone/format preference, beyond education
+level and depth. Surfacing this note per the handoff instruction; not designing or building
 it this round, it belongs in a future pass at Phase 1 goal 2's intake design.

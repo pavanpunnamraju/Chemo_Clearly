@@ -27,8 +27,8 @@ step 2 below — there is no picker/search page to carry it to.
      QR (rare, but possible) updates the assignment.
 3. **Intake Form** — education level, content-depth preference (short vs.
    detailed), desired voice tone (neutral, friendly, hopeful). No
-   topic/side-effect picker (removed 2026-08-10) — the video always covers
-   the full regimen side-effect set, concisely, not a patient-chosen subset.
+   topic/side-effect picker — the video always covers the full regimen
+   side-effect set, concisely, not a patient-chosen subset.
 4. **Generating** — loading/progress state while the video pipeline runs
    (content selection → TTS → render).
 5. **Video Player** — the tailored narrated video.

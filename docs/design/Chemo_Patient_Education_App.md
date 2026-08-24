@@ -1,7 +1,7 @@
 # Chemo Patient Education App — Design Doc
 
-Date: 2026-08-06
-Status: Approved design, pre-build (v1 target: demo for Dr. Nataraj Reddy)
+Status: Approved design, in build (v1 target: demo for Dr. Nataraj Reddy).
+See `docs/implementation_plan.md` for live build status.
 
 Feature/scope details have moved to `docs/product_requirements.md` (what the
 app does), `docs/implementation_plan.md` (live status/sequencing),
@@ -22,7 +22,7 @@ exact moment they most need clarity.
 
 Idea originated from a conversation with Dr. Nataraj Reddy (oncologist, 25 years
 experience, sees 150-180 patients/week). Full context in
-`networking/Dr.Nataraj_Reddy_Oncologist.md`.
+`docs/notes/requirements_Nataraj.md`.
 
 ## Live Requirements (chemo-relevant only, from Dr. Reddy's notes)
 

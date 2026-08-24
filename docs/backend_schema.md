@@ -31,7 +31,7 @@ One row per intake form submission.
 | `patient_id` | uuid, references `auth.users` | nullable — set once patient auth is wired in; existing rows predate patient accounts |
 | `regimen_id` | text | |
 | `education_level` | text | `basic` / `some_college` / `advanced` |
-| `topics` | text[] | unused as of 2026-08-10 — topic/side-effect selection removed from intake; column and constraint left in place (not ALTERed) in case it's reintroduced, inserts now send `[]` |
+| `topics` | text[] | unused — topic/side-effect selection was removed from intake; column and constraint left in place (not ALTERed) in case it's reintroduced, inserts now send `[]` |
 | `depth_preference` | text | `short` / `detailed` |
 | `voice_tone` | text | `neutral` / `friendly` / `hopeful` — passed to narration TTS as a style prompt |
 | `follow_up_questions` | text[] | nullable |
@@ -46,7 +46,7 @@ of triggering regeneration.
 | Column | Type | Notes |
 |---|---|---|
 | `id` | uuid, PK | |
-| `filter_hash` | text, not null, unique with `regimen_id` | deterministic hash of the normalized personalization filter (tags, depth, education level, voice tone) — the cache lookup key. `tags` is now always the full fixed set (topics selection removed 2026-08-10), so it no longer differentiates entries; the hash formula itself hasn't been cleaned up yet — tracked as Phase 1 #3d, reopened but not started |
+| `filter_hash` | text, not null, unique with `regimen_id` | deterministic hash of the normalized personalization filter (depth, education level, voice tone) — the cache lookup key. `tags` is excluded from the hash input since it's now always the full fixed set for every patient and wouldn't differentiate entries |
 | `regimen_id` | text | |
 | `storage_url` | text | |
 | `selection_method` | text | `gemini` / `fallback` |

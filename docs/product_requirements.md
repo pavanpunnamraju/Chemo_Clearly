@@ -48,17 +48,14 @@ statement, philosophy, and market grounding.
   the canonical source — no live AI generation of medical facts at request
   time.
 - No content is patient-filterable — every generated video always covers
-  the full regimen side-effect set, concisely (changed 2026-08-10; was
-  previously scoped as emergency-signs-only-never-filterable, now applies
-  to all content). See `docs/implementation_plan.md` Phase 1 #2 for the
-  scope-amendment history.
+  the full regimen side-effect set, concisely.
 
 ## Intake
 
 - Structured form: education level, content-depth preference (short vs.
   detailed), and desired voice tone (neutral, friendly, hopeful). No
-  topic/side-effect selection (removed 2026-08-10) — patients no longer
-  choose which side effects to learn about.
+  topic/side-effect selection — patients don't choose which side effects to
+  learn about.
 - Output feeds video personalization (`web/lib/intake/schema.ts`) — voice
   tone becomes a style prompt for the narration TTS step, not a manual
   pitch/rate adjustment.
@@ -74,12 +71,10 @@ statement, philosophy, and market grounding.
   generated per unique combination of regimen + intake filter (see
   Generation Caching below) rather than always from scratch.
 - Agentic selection/assembly layer (fixed sequential pipeline, no
-  autonomous control-flow agent — see
-  `docs/plans/2026-08-08-narration-rewrite-component-triggers-design.md`):
-  an LLM step orders/assembles the full approved content set for the
-  regimen (no longer filters by patient topic selection, removed
-  2026-08-10 — full side-effect coverage is required every time, enforced
-  by a deterministic fallback if the LLM step's output is incomplete); a
+  autonomous control-flow agent): an LLM step orders/assembles the full
+  approved content set for the regimen — it never filters by patient
+  preference; full side-effect coverage is required every time, enforced
+  by a deterministic fallback if the LLM step's output is incomplete. A
   second LLM step rewrites the **combined** content into one continuous
   natural spoken narration script (whole-script, not per-entry) —
   guardrailed to only rephrase, never introduce facts, claims, numbers, or
@@ -104,12 +99,10 @@ statement, philosophy, and market grounding.
 ## Generation Caching
 
 - A generated video is uniquely determined by (regimen, education level,
-  depth preference, voice tone) — the same combination should reuse
-  the same generated video rather than regenerating per patient. The
-  underlying `filter_hash` computation still includes a `tags` component in
-  code as of 2026-08-10 (not yet cleaned up — tracked as Phase 1 #3d,
-  reopened but not started); since `tags` is now always the full fixed set
-  for every patient, it no longer differentiates cache entries in practice.
+  depth preference, voice tone) — the same combination reuses the same
+  generated video rather than regenerating per patient. `filter_hash`
+  excludes `tags` from its input, since `tags` is now always the full fixed
+  set for every patient and wouldn't differentiate cache entries.
 - New patients whose intake matches an existing combination get the cached
   video; a new combination triggers generation once, then is cached for
   future matches.

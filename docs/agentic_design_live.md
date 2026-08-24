@@ -14,17 +14,31 @@ If any agent's output fails its checks after all allowed attempts, the system st
 
 ## Patient data used
 
-Only the patient's chosen topics of interest, reading level, and tone preference reach these agents. No names, no identifiers, no medical record data.
+Only the patient's reading level and tone preference reach these agents. No
+names, no identifiers, no medical record data. Patients don't choose topics
+— every video covers the full regimen side-effect set, so no patient
+preference reaches Agent 1 at all.
 
 ## Agent 1
 
 - **position_in_pipeline:** 1
 - **name:** Content Selector
-- **goal:** Decide which pieces of the pre-approved medical content should go into this specific patient's video, based on the topics the patient said they care about.
-- **context_passed:** The patient's stated topics of interest, and the full list of available content pieces (their category and safety level only, not the medical wording itself).
-- **guardrails_set:** Can only choose from the list it was given, so it cannot invent a new content piece. Every emergency-level piece and the overview piece are always included no matter what the patient chose.
-- **desired_output:** A list of which content pieces to include, and in what order.
-- **fallback:** true. If the call fails or returns something invalid, a simple rule-based selection (match by topic, always include emergency and overview content) runs instead. The patient still gets a complete, safe video either way.
+- **goal:** Order the full set of pre-approved medical content for this
+  regimen into a sensible narration sequence. It is an orderer, not a
+  filter — every video covers every piece of approved content, regardless
+  of patient preference.
+- **context_passed:** The full list of available content pieces for the
+  regimen (their category and safety level only, not the medical wording
+  itself).
+- **guardrails_set:** Can only choose from the list it was given, so it
+  cannot invent a new content piece. Must include every piece in the
+  catalog — if its output drops any, the deterministic fallback runs
+  instead, so incomplete coverage never reaches the patient.
+- **desired_output:** Every content piece, in a narration order.
+- **fallback:** true. If the call fails, returns something invalid, or
+  omits any content piece, a deterministic canonical ordering (grouped by
+  section) runs instead. The patient always gets a complete, safe video
+  either way.
 
 ## Agent 2
 

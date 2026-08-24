@@ -449,6 +449,6 @@ maximum dose because of heart-risk buildup — tell your team if you've ever rec
 before (including in a prior cancer treatment). [S3]
 
 **review_note:** Remission-likelihood statistic/framing routed to Dr. Reddy per
-orchestrator handoff (2026-08-06) — deliberately not guessed.
+orchestrator handoff — deliberately not guessed.
 
 **source:** S1, S3

@@ -1,17 +1,17 @@
 # UI/UX Design Brief — Chemo Patient Education App
 
-Status: **stub — pending Phase 2 discovery.**
+Status: **stub — pending Phase 2b discovery.**
 
-Not written yet. Phase 1 (current work) is backend-only; visual/tonal design
-goes through a real brainstorming/discovery pass when Phase 2 (frontend)
-starts, per `implementation_plan.md`.
-
-When that phase starts, this doc should cover: overall feel/tone, color
+This brief covers the app-chrome UI (Phase 2b #2: overall feel/tone, color
 palette, typography, and any reference points for a calm, plain-language,
-accessible experience aimed at someone newly diagnosed and overwhelmed — one
-that reads as genuinely engaging, not placeholder slides.
+accessible experience aimed at someone newly diagnosed and overwhelmed —
+one that reads as genuinely engaging, not placeholder slides). It goes
+through a real brainstorming/discovery pass when Phase 2b starts, per
+`implementation_plan.md`. The video's own visual system (Phase 2a) is
+separately specified in `docs/design/video_visual_system.md` and is not
+this doc's scope.
 
-## Copy framing (decided 2026-08-23, human-confirmed)
+## Copy framing (human-confirmed)
 
 Frame the video/content as **"your care team's approved information,"** never
 as an "AI-generated" badge or disclaimer. Backed by health-education-video

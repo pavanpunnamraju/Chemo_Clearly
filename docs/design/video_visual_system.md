@@ -91,11 +91,10 @@ break is in the cards, not the frame.
   left-aligned and bold — flat/immediate, not the stacked two-tone headline; urgency
   reads better this way.
 
-**Fixed-slot bullet-reveal mechanic (resolved this round, replaces the earlier
-fade/clear-and-replace proposal logic-agent flagged as a real risk — see git history
-of `docs/references/handoff.md` for that verdict's full reasoning; revised again
-2026-08-20 to drop position-1 emphasis, per human review of the storyboard mockup —
-see below).**
+**Fixed-slot bullet-reveal mechanic (replaces an earlier fade/clear-and-replace
+proposal logic-agent flagged as a real risk — see git history of
+`docs/references/handoff.md` for that verdict's full reasoning; revised again to
+drop position-1 emphasis, per human review of the storyboard mockup — see below).**
 
 - Every entry gets its own fixed row from the start of the section, in a single
   left-aligned column centered at roughly 85% of frame width — not a stack that
@@ -215,7 +214,7 @@ scene depicts is decided by the entry's tag, not by its wording:
 - **Felt/visible-symptom tags** (`nausea-appetite`, `hair-skin-appearance`,
   `mouth-digestion`, `nerve-tingling`, `aches-pain`, `urinary`,
   `emotional-support`, `fatigue`) → the scene depicts that symptom directly. `fatigue`
-  added 2026-08-20 (R-CHOP's anemia entry uses it, not covered in the original 9-tag
+  was added later (R-CHOP's anemia entry uses it, not covered in the original 9-tag
   round) — reuses the pre-existing `tiredness-pana.svg` rather than a newly-sourced
   illustration, human call, not vetted under the current color/style pass.
 - **Invisible-condition tags** (`infection-risk`, `bleeding-bruising`) → the scene
@@ -232,8 +231,8 @@ text.
 ### `fertility_intimacy`
 
 Headline "Before you start," (navy) / "ask about this" (teal). Scene: the existing
-`family-bro`/`asian-family-pana` illustrations (family scene, not a couple) — human call
-2026-08-20: satisfied with how these look as-is, no new couple-specific illustration
+`family-bro`/`asian-family-pana` illustrations (family scene, not a couple) — human
+call: satisfied with how these look as-is, no new couple-specific illustration
 sourced; this paragraph describes the illustration actually in use, not an unmet target.
 Softest palette in the video (pastel blob, muted accent) — the most emotionally sensitive
 section. No build/reveal: a single held shot the narration plays over. That stillness is
@@ -262,7 +261,7 @@ section they are across sequential crossfades with no character/scene change to 
 CSS only, no new asset.
 
 Verified against a real interactive mockup: `docs/references/handoff.md`, Phase 2a goal #6
-storyboard round (2026-08-20), design-agent.
+storyboard round, design-agent.
 
 ## Prerequisites — satisfied
 
@@ -279,6 +278,6 @@ Both blockers below have landed; implementation is unblocked.
    tags and both invisible-condition tags. Verified against
    `web/public/illustrations/MANIFEST.md`.
 
-Verified for the Phase 2a goal #6 storyboard round (2026-08-20) — see the R-CHOP
+Verified for the Phase 2a goal #6 storyboard round — see the R-CHOP
 storyboard mockup this round produced for how the spec above actually lays out
 against real content.

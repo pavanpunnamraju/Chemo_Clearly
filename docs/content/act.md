@@ -60,7 +60,7 @@ paclitaxel can go through a regular arm/hand IV or the same port. [S2]
 - **Rest of the cycle:** Gradual recovery until the next AC dose. [S1, S2]
 
 **review_note:** Growth-factor-support schedule for this protocol is unconfirmed —
-routed to Dr. Reddy per orchestrator handoff (2026-08-06). Do not guess a cadence
+routed to Dr. Reddy per orchestrator handoff. Do not guess a cadence
 (single injection vs. multi-day) until he answers; the TODO line above is a deliberate
 placeholder, not a sourcing gap to fill independently.
 
