@@ -34,6 +34,14 @@ export interface SectionGroup {
  * order matches what the deterministic fallback already produces, so
  * section-level caching has a stable, well-defined unit to hash regardless
  * of which selection path ran.
+ *
+ * Within a section, entries are kept in whatever order `selectContent()`
+ * returned — that order is *narrated*, and some sections (e.g. `timeline`)
+ * depend on it reading in a real sequence (day 1, then days 2-5, ...).
+ * Entry ids aren't uniformly formatted enough to re-sort into that same
+ * sequence generically (`timeline.roughly-days-7-10` vs
+ * `timeline.days-2-5` don't share a sortable prefix), so hashSection is
+ * the one that canonicalizes order — separately, only for the cache key.
  */
 export function groupEntriesBySection(entries: ContentEntry[]): SectionGroup[] {
   const bySection = new Map<string, ContentEntry[]>();
@@ -50,11 +58,23 @@ export function groupEntriesBySection(entries: ContentEntry[]): SectionGroup[] {
   return groups;
 }
 
-/** Staleness key for one section's cached pipeline output: section id + entry ids + entry source text. */
+/**
+ * Staleness key for one section's cached pipeline output: section id +
+ * entry ids + entry source text. Entries are sorted by `id` (stable,
+ * content-derived) before hashing, independent of the order they're
+ * narrated in — `selectContent()` (select.ts) calls Gemini every render to
+ * order entries, and Gemini's internal ordering of same-section entries
+ * isn't deterministic across calls. Sections with few entries rarely show
+ * it, but a section with enough similarly-tagged entries (e.g.
+ * `side_effects`) can reorder every run, which would otherwise change this
+ * hash's JSON.stringify input — and thus the cache key — with no actual
+ * content change.
+ */
 export function hashSection(sectionId: string, entries: ContentEntry[]): string {
+  const sorted = [...entries].sort((a, b) => a.id.localeCompare(b.id));
   const canonical = JSON.stringify({
     sectionId,
-    entries: entries.map((e) => ({ id: e.id, plain: e.plain, detail: e.detail ?? null })),
+    entries: sorted.map((e) => ({ id: e.id, plain: e.plain, detail: e.detail ?? null })),
   });
   return createHash("sha256").update(canonical).digest("hex");
 }
@@ -125,8 +145,20 @@ export function stitchSections(sections: SectionPipelineOutput[]): StitchedPipel
     chunks.push(...section.chunks);
     for (const w of section.words) words.push({ word: w.word, startSeconds: w.startSeconds + cumulativeSeconds });
     // Strip each section's own WAV header (tts.ts's pcmToWav) before concatenating raw PCM.
-    pcmParts.push(section.audioBuffer.subarray(44));
-    cumulativeSeconds += section.durationSeconds;
+    const pcm = section.audioBuffer.subarray(44);
+    pcmParts.push(pcm);
+    // Advance by the section's *actual* audio length (from PCM byte count),
+    // not `section.durationSeconds` (align.ts's max end-time over recognized
+    // words) — verified live: every cached section's real WAV runs ~0.4-0.5s
+    // longer than that estimate, because Speech-to-Text's last recognized
+    // word never quite reaches the clip's true end. Using the estimate here
+    // under-advances the cursor by that amount at every section boundary, so
+    // the deficit stacks section over section — it both offsets every word
+    // timestamp after the first section increasingly early (compounding
+    // slide/caption drift) and understates the stitched track's total
+    // duration (the render then trims before the real audio, and the
+    // narration, finishes).
+    cumulativeSeconds += pcm.length / (sampleRateHertz * 2);
 
     if (i < sections.length - 1) {
       pcmParts.push(pad);

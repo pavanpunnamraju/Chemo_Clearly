@@ -61,16 +61,22 @@ export interface GuardrailResult {
 
 /**
  * Checks that `rewrittenText` introduces no number or proper-noun phrase
- * absent from the union of `sourceEntries`' plain+detail text. Whole-pool
- * scope (not per-entry 1:1) per the design doc. A proper-noun phrase counts
- * as "introduced" only if at least one of its words doesn't appear anywhere
- * in the source (word-level, case-insensitive) — this is what a rewrite
- * inventing a new drug/person name looks like, as opposed to just
- * re-casing/re-ordering source vocabulary.
+ * absent from the union of `sourceEntries`' heading+plain+detail text.
+ * Whole-pool scope (not per-entry 1:1) per the design doc. A proper-noun
+ * phrase counts as "introduced" only if at least one of its words doesn't
+ * appear anywhere in the source (word-level, case-insensitive) — this is
+ * what a rewrite inventing a new drug/person name looks like, as opposed to
+ * just re-casing/re-ordering source vocabulary.
+ *
+ * The heading (`entry.name`) counts as source text, not just `plain`/
+ * `detail`: it's part of the same Dr. Reddy-approved entry, so a fact that
+ * only appears there (e.g. a timeline entry's day range, or a name like
+ * "nadir" in "Roughly days 7-10 (the 'nadir')") isn't invented — the
+ * narration is allowed to draw on it.
  */
 export function checkEntityDiff(rewrittenText: string, sourceEntries: ContentEntry[]): GuardrailResult {
   const sourceText = sourceEntries
-    .map((e) => cleanForSpeechAndDisplay(`${e.plain} ${e.detail ?? ""}`))
+    .map((e) => cleanForSpeechAndDisplay(`${e.name ?? ""} ${e.plain} ${e.detail ?? ""}`))
     .join(" ");
   const sourceNumbers = extractNumbers(sourceText);
   const sourceWords = extractWordSet(sourceText);

@@ -30,6 +30,16 @@ const sourceEntries: ContentEntry[] = [
     plain: "R-CHOP is given in cycles, typically every 21 days, for a **total of six cycles**.",
     anecdotal: false,
   },
+  {
+    // Mirrors the real timeline bug (docs/references/handoff.md): the day
+    // range and "nadir" live only in the heading, never restated in plain.
+    id: "timeline.roughly-days-7-10",
+    sectionId: "timeline",
+    name: 'Roughly days 7-10 (the "nadir")',
+    tags: [],
+    plain: "Your blood counts are typically at their lowest here, which is why infection risk peaks during this window.",
+    anecdotal: false,
+  },
 ];
 
 const cases: { name: string; text: string; expectOk: boolean }[] = [
@@ -71,6 +81,19 @@ const cases: { name: string; text: string; expectOk: boolean }[] = [
   {
     name: "invented drug name still caught mid-sentence",
     text: "Your team may suggest Zofran alongside your regular medication.",
+    expectOk: false,
+  },
+  {
+    // Day numbers and "nadir" live only in timeline.roughly-days-7-10's
+    // heading (see sourceEntries above), never in its plain/detail — a
+    // faithful narration has to say them.
+    name: "reuses a number and proper noun present only in the entry heading",
+    text: "Days 7 to 10 are usually the nadir, when your counts are lowest.",
+    expectOk: true,
+  },
+  {
+    name: "invented fact absent from heading, plain, and detail alike",
+    text: "Days 7 to 10 carry about a 40% infection risk, per Dr. Zofran's team.",
     expectOk: false,
   },
 ];

@@ -302,13 +302,13 @@ export function applyTimepoints(
     const candidate = matched == null ? slide.startSeconds : matched;
     const startSeconds = Math.max(candidate, previousStart);
     previousStart = startSeconds;
-    // Phase 2a goal #10a: illustration-timing check — log only, never block
-    // (illustration placement is a soft degrade, same as Agent 4's own
-    // fallback-not-block design). A few ms of drift is normal; only flag a
-    // clamp large enough to visibly show the wrong slide's illustration
-    // while the wrong narration is playing.
+    // Phase 2a goal #10a: illustration-timing check — hard failure, not a
+    // warning (a badly-mistimed render must not exit 0 and get published).
+    // A few ms of drift is normal; only a clamp large enough to visibly show
+    // the wrong slide's illustration while the wrong narration is playing
+    // trips this.
     if (matched != null && Math.abs(startSeconds - matched) > ILLUSTRATION_TIMING_THRESHOLD_SECONDS) {
-      console.warn(
+      throw new Error(
         `Illustration timing check: slide "${slide.entryId}" clamped from its matched cue ${matched.toFixed(2)}s to ${startSeconds.toFixed(2)}s (drift ${(startSeconds - matched).toFixed(2)}s) — its illustration may show during the wrong narration content.`,
       );
     }
@@ -346,7 +346,42 @@ export function applyTimepoints(
 const MAX_1WORD_LOOKAHEAD = 40;
 const MAX_2WORD_LOOKAHEAD = 60;
 
-// Tries the 3/2/1-word tiers (documented above) against `anchorWords`
+// Being the *only* occurrence in the lookahead window (the ambiguity guard
+// above) isn't proof a weak candidate is actually this anchor's word — it
+// only rules out a second copy of that same word nearby. Verified live
+// (round 8): when Speech-to-Text drops an entire run of an anchor's real
+// words outright (documented above — not just mis-hearing one), the weak
+// tier can still land on a *different*, nearby anchor's word that happens to
+// be the only copy of itself in the window, and wrongly accept it — visible
+// as several captions collapsing to the same timestamp and then jumping
+// ("freeze-then-catch-up"). Requiring at least one of the anchor's own next
+// few words to also turn up shortly after the candidate confirms it's really
+// sitting inside this anchor's speech, not a coincidence, while still
+// allowing the single-mis-heard-leading-word recovery this tier exists for
+// (the anchor's later words still corroborate even when its first token
+// didn't survive Speech-to-Text — see round 6's "vincristine" case above).
+const WEAK_MATCH_CONFIRM_WORDS = 4;
+const WEAK_MATCH_CONFIRM_WINDOW = 8;
+
+function weakMatchCorroborated(
+  normalizedAligned: string[],
+  anchorWords: string[],
+  phraseLength: number,
+  candidateIndex: number,
+): boolean {
+  // Nothing left of the anchor to check against — accept as before.
+  if (anchorWords.length <= phraseLength) return true;
+  const confirmWords = anchorWords.slice(phraseLength, phraseLength + WEAK_MATCH_CONFIRM_WORDS);
+  const from = candidateIndex + phraseLength;
+  const to = from + WEAK_MATCH_CONFIRM_WINDOW;
+  return confirmWords.some((word) => findPhrase(normalizedAligned, [word], from, to) !== -1);
+}
+
+// Longest phrase the ambiguity-aware tier below will try before giving up
+// and falling back to the bounded 2-/1-word tiers.
+const MAX_PHRASE_LENGTH = 8;
+
+// Tries the 3+/2/1-word tiers (documented above) against `anchorWords`
 // starting at `from`. Factored out so it can run twice per anchor — once
 // against the anchor's own leading words, once (see matchTimestamps) against
 // the same anchor with its first word dropped.
@@ -355,16 +390,45 @@ function matchTiered(
   anchorWords: string[],
   from: number,
 ): { index: number; phraseLength: number } | null {
-  for (const phraseLength of [3, 2, 1]) {
+  // A 3-word match repeating by chance is rare, but this content
+  // deliberately repeats some safety lines verbatim (e.g. "call your care
+  // team"), so trusting the first 3-word hit unconditionally can grab the
+  // wrong occurrence and strand every later anchor behind it (shared
+  // forward-only cursor). Instead, grow the phrase (3, 4, 5, ... up to
+  // MAX_PHRASE_LENGTH) until one is found that occurs exactly once from
+  // `from` onward; only that unambiguous hit is trusted.
+  const maxLen = Math.min(MAX_PHRASE_LENGTH, anchorWords.length);
+  for (let phraseLength = 3; phraseLength <= maxLen; phraseLength++) {
+    const needle = anchorWords.slice(0, phraseLength);
+    const firstHit = findPhrase(normalizedAligned, needle, from);
+    if (firstHit === -1) continue;
+    const secondHit = findPhrase(normalizedAligned, needle, firstHit + phraseLength);
+    if (secondHit === -1) return { index: firstHit, phraseLength };
+    // Ambiguous (occurs again later) — try one word longer instead of
+    // trusting this occurrence.
+  }
+  for (const phraseLength of [2, 1]) {
     if (anchorWords.length < phraseLength) continue;
-    const to =
-      phraseLength === 1
-        ? from + MAX_1WORD_LOOKAHEAD
-        : phraseLength === 2
-          ? from + MAX_2WORD_LOOKAHEAD
-          : normalizedAligned.length;
-    const index = findPhrase(normalizedAligned, anchorWords.slice(0, phraseLength), from, to);
-    if (index !== -1) return { index, phraseLength };
+    const to = phraseLength === 1 ? from + MAX_1WORD_LOOKAHEAD : from + MAX_2WORD_LOOKAHEAD;
+    const needle = anchorWords.slice(0, phraseLength);
+    const index = findPhrase(normalizedAligned, needle, from, to);
+    if (index === -1) continue;
+    // Same ambiguity guard as the 3+ word tier above, extended down here:
+    // verified live that Speech-to-Text can drop a whole run of words from
+    // its transcript outright (not just mis-hear one), so the anchor's real
+    // occurrence simply isn't in `normalizedAligned` at all — yet a common
+    // short word (e.g. "a") is almost always still findable somewhere in the
+    // bounded lookahead window by coincidence. Without this check that
+    // coincidence gets accepted as if it were the real position, which
+    // permanently strands the forward-only cursor ahead of every anchor
+    // still waiting behind it (freeze-then-catch-up in captions/slides).
+    // Requiring the fallback word/bigram to be the *only* one in the window
+    // rejects exactly that false-positive case while still allowing a
+    // genuinely distinctive skip-lead recovery (e.g. "vincristine" mis-heard
+    // but "one" right after it unique nearby) to succeed.
+    if (findPhrase(normalizedAligned, needle, index + phraseLength, to) !== -1) continue;
+    if (!weakMatchCorroborated(normalizedAligned, anchorWords, phraseLength, index)) continue;
+    return { index, phraseLength };
   }
   return null;
 }
