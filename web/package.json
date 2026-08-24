@@ -20,7 +20,10 @@
     "check:reduced-motion": "tsx scripts/check-reduced-motion.ts",
     "validate:content": "tsx scripts/validate-content.ts",
     "test:parse": "tsx lib/content/parse.test.ts",
-    "test:layout-qa": "tsx lib/video/layout-qa.test.ts"
+    "test:layout-qa": "tsx lib/video/layout-qa.test.ts",
+    "test:ducking": "tsx lib/video/ducking.test.ts",
+    "test:narration": "tsx lib/video/narration.test.ts",
+    "test:pipeline": "tsx lib/video/pipeline.test.ts"
   },
   "dependencies": {
     "@google-cloud/speech": "^7.5.0",

@@ -1,8 +1,9 @@
 import path from "node:path";
-import { writeFileSync, mkdtempSync, cpSync } from "node:fs";
+import { writeFileSync, mkdtempSync, cpSync, existsSync } from "node:fs";
 import os from "node:os";
 import type { NarrationPlan } from "./narration";
 import type { TimedCaption } from "./captions";
+import { computeDuckingEnvelope } from "./ducking";
 
 // Known constraint (already resolved in the design doc, not rediscovered here):
 // Remotion can't render inside a standard Vercel serverless function. In
@@ -55,6 +56,16 @@ export async function renderVideoLocally(
     { recursive: true },
   );
 
+  // Music bed (Phase 2a #7) — the human sources the actual track file later;
+  // this is a safe no-op until web/public/audio/bg-music.mp3 exists.
+  const bgMusicPath = path.join(process.cwd(), "public", "audio", "bg-music.mp3");
+  const hasMusic = existsSync(bgMusicPath);
+  if (hasMusic) {
+    cpSync(path.join(process.cwd(), "public", "audio"), path.join(publicDir, "audio"), { recursive: true });
+  }
+  const musicSrc = hasMusic ? "audio/bg-music.mp3" : undefined;
+  const ducking = hasMusic ? computeDuckingEnvelope(audioBuffer) : undefined;
+
   const entryPoint = path.join(process.cwd(), "video-composition", "index.ts");
   const serveUrl = await bundle({ entryPoint, publicDir });
 
@@ -65,6 +76,8 @@ export async function renderVideoLocally(
     captions,
     captionsEnabled,
     reducedMotion,
+    musicSrc,
+    ducking,
   };
 
   const composition = await selectComposition({

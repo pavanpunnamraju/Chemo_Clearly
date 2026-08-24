@@ -36,6 +36,17 @@ credit link where practical, so one is included per collection below.
 | `side_effects/side_effects__aches-pain.svg` | side_effects | https://storyset.com/illustration/physical-therapy-exercise/pana | [Wellness illustrations by Storyset](https://storyset.com/wellness) |
 | `side_effects/side_effects__emotional-support.svg` | side_effects | https://storyset.com/illustration/anxiety/pana | [Wellness illustrations by Storyset](https://storyset.com/wellness) |
 
+## Background music (Phase 2a goal #7)
+
+`web/public/audio/bg-music.mp3` — **"long bg music"** by u_lj2gazwuc9, 12:31,
+Pixabay Content License (commercial use OK, no attribution required).
+https://pixabay.com/music/ambient-long-bg-music-449263/
+Corporate/Instrumental, tagged Uplifting, Bright, Hopeful, Elegant, Smooth —
+no vocals. Human downloaded and selected this over a shorter calmer-tagged
+candidate to comfortably cover the full narration length without looping.
+Ducked under narration per `computeDuckingEnvelope` (0.3/1.0 multipliers,
+`web/lib/video/ducking.ts`); render/listen check done 2026-08-24.
+
 ## Color principle (settled)
 
 Standing principle for all Storyset downloads, current and future — see

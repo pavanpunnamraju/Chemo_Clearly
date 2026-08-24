@@ -3,6 +3,7 @@ import { loadFont, fontFamily } from "@remotion/google-fonts/Figtree";
 import type { SlideBeat } from "../lib/video/narration";
 import { illustrationForSlide, sceneIllustrationForSideEffectTags } from "../lib/video/components";
 import type { TimedCaption } from "../lib/video/captions";
+import type { DuckingEnvelope } from "../lib/video/ducking";
 
 // video_visual_system.md's Typography section: Figtree system-wide, loaded
 // once at module scope so Remotion's renderer waits on it (loadFont
@@ -38,10 +39,54 @@ export interface SlideVideoProps {
    * (Quote crossfade, Timeline node reveal), which stay as-is per the goal's
    * own "don't just disable motion outright" instruction. */
   reducedMotion?: boolean;
+  /** Background music bed (Phase 2a #7) — filename relative to the bundle's
+   * public dir, same shape as audioSrc. Undefined until the human sources a
+   * real track file (lib/video/render.ts checks for it and leaves both this
+   * and `ducking` undefined otherwise). */
+  musicSrc?: string;
+  /** Auto-ducking envelope computed from the real narration audio
+   * (lib/video/ducking.ts) — undefined has the same effect as an
+   * empty/missing envelope: music plays at flat base volume. */
+  ducking?: DuckingEnvelope;
   [key: string]: unknown;
 }
 
 const TAIL_SECONDS = 2;
+
+// "Low-volume" per the goal wording — the music bed should read as ambience,
+// not compete with narration even at its "open" (non-ducked) multiplier.
+const MUSIC_BASE_VOLUME = 0.12;
+
+// Fade-in applied at the start of every top-level section Sequence (Part B,
+// visual pacing pass) — long enough to read as a gentle transition, short
+// enough not to eat into the section's own content time.
+const SECTION_FADE_IN_FRAMES = 18;
+
+/** Linear interpolation between DuckingEnvelope step values at `seconds`.
+ * Returns 1 (no ducking) if `ducking` is undefined/empty, so musicSrc
+ * without a ducking envelope just plays at base volume. */
+function duckingVolumeAt(seconds: number, ducking: DuckingEnvelope | undefined): number {
+  if (!ducking || ducking.values.length === 0) return 1;
+  const { stepSeconds, values } = ducking;
+  const pos = seconds / stepSeconds;
+  const i0 = Math.max(0, Math.min(values.length - 1, Math.floor(pos)));
+  const i1 = Math.min(values.length - 1, i0 + 1);
+  const t = pos - i0;
+  return values[i0]! + (values[i1]! - values[i0]!) * t;
+}
+
+/** Wraps a top-level section Sequence's content in a short opacity fade-in,
+ * relative to the Sequence's own local frame 0 (Remotion resets
+ * useCurrentFrame() per-Sequence for its children) — replaces every
+ * section-to-section hard cut with a consistent gentle fade (Part B). */
+const FadeIn: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const frame = useCurrentFrame();
+  const opacity = interpolate(frame, [0, SECTION_FADE_IN_FRAMES], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+  return <div style={{ opacity, width: "100%", height: "100%" }}>{children}</div>;
+};
 
 // video_visual_system.md color principle — system-wide, not just the
 // illustration library. Teal = clinical/system-facing, coral = patient doing
@@ -144,6 +189,8 @@ export const SlideVideo: React.FC<SlideVideoProps> = ({
   captions,
   captionsEnabled = false,
   reducedMotion = false,
+  musicSrc,
+  ducking,
 }) => {
   const { fps } = useVideoConfig();
   const endSeconds = totalSeconds + TAIL_SECONDS;
@@ -171,6 +218,13 @@ export const SlideVideo: React.FC<SlideVideoProps> = ({
   return (
     <AbsoluteFill style={{ backgroundColor: FRAME_BG, fontFamily }}>
       <Audio src={staticFile(audioSrc)} />
+      {musicSrc ? (
+        <Audio
+          src={staticFile(musicSrc)}
+          loop
+          volume={(f) => MUSIC_BASE_VOLUME * duckingVolumeAt(f / fps, ducking)}
+        />
+      ) : null}
       {slides.map((beat, i) => {
         const nextStart = slides[i + 1]?.startSeconds ?? endSeconds;
         const from = Math.round(beat.startSeconds * fps);
@@ -179,7 +233,9 @@ export const SlideVideo: React.FC<SlideVideoProps> = ({
         if (isTitleCardIntro(beat)) {
           return (
             <Sequence key={beat.entryId} from={from} durationInFrames={durationInFrames}>
-              <TitleCard text={beat.onScreen ?? ""} tealPhrase={TITLE_CARD_TEAL_PHRASE[beat.sectionId]} />
+              <FadeIn>
+                <TitleCard text={beat.onScreen ?? ""} tealPhrase={TITLE_CARD_TEAL_PHRASE[beat.sectionId]} />
+              </FadeIn>
             </Sequence>
           );
         }
@@ -201,7 +257,9 @@ export const SlideVideo: React.FC<SlideVideoProps> = ({
 
           return (
             <Sequence key={beat.entryId} from={from} durationInFrames={runDurationInFrames}>
-              <AlertSection beats={slides.slice(i, runEnd + 1)} />
+              <FadeIn>
+                <AlertSection beats={slides.slice(i, runEnd + 1)} />
+              </FadeIn>
             </Sequence>
           );
         }
@@ -222,7 +280,9 @@ export const SlideVideo: React.FC<SlideVideoProps> = ({
 
           return (
             <Sequence key={beat.entryId} from={from} durationInFrames={runDurationInFrames}>
-              <QuoteSection beats={slides.slice(i, runEnd + 1)} />
+              <FadeIn>
+                <QuoteSection beats={slides.slice(i, runEnd + 1)} />
+              </FadeIn>
             </Sequence>
           );
         }
@@ -250,7 +310,9 @@ export const SlideVideo: React.FC<SlideVideoProps> = ({
 
           return (
             <Sequence key={beat.entryId} from={from} durationInFrames={runDurationInFrames}>
-              <TimelineSection beats={slides.slice(i, runEnd + 1)} reducedMotion={reducedMotion} />
+              <FadeIn>
+                <TimelineSection beats={slides.slice(i, runEnd + 1)} reducedMotion={reducedMotion} />
+              </FadeIn>
             </Sequence>
           );
         }
@@ -258,12 +320,14 @@ export const SlideVideo: React.FC<SlideVideoProps> = ({
         if (SCENE_SECTIONS.has(beat.sectionId)) {
           return (
             <Sequence key={beat.entryId} from={from} durationInFrames={durationInFrames}>
-              <SceneSlide
-                sectionId={beat.sectionId}
-                headline={beat.headline}
-                tags={beat.tags}
-                indexInSection={sectionIndexes[i]!}
-              />
+              <FadeIn>
+                <SceneSlide
+                  sectionId={beat.sectionId}
+                  headline={beat.headline}
+                  tags={beat.tags}
+                  indexInSection={sectionIndexes[i]!}
+                />
+              </FadeIn>
             </Sequence>
           );
         }
