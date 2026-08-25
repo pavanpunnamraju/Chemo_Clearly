@@ -36,6 +36,16 @@ export function parseTags(block: string): string[] {
   return [...raw.matchAll(/`([a-z0-9-]+)`/g)].map((m) => m[1]!);
 }
 
+// Same backtick-quoted-list convention as `parseTags`, but drug names
+// (unlike tags) are proper nouns — mixed case, can contain spaces/hyphens
+// ("Hydroxydaunorubicin", "R-CHOP") — so the charset is wider than tags'
+// lowercase-slug one.
+export function parseDrugNames(block: string): string[] {
+  const raw = extractField(block, "drug_names");
+  if (!raw) return [];
+  return [...raw.matchAll(/`([A-Za-z][A-Za-z0-9 '-]*)`/g)].map((m) => m[1]!);
+}
+
 export function parseTier(block: string): Tier | undefined {
   const raw = extractField(block, "tier");
   if (!raw) return undefined;
@@ -52,6 +62,7 @@ function parseEntry(
   if (!plain) return null;
 
   const id = name ? `${sectionId}.${slugify(name)}` : sectionId;
+  const drugNames = parseDrugNames(block);
 
   return {
     id,
@@ -59,6 +70,7 @@ function parseEntry(
     name,
     tags: parseTags(block),
     tier: parseTier(block),
+    drugNames: drugNames.length > 0 ? drugNames : undefined,
     plain,
     detail: extractField(block, "detail"),
     selfCare: extractField(block, "self_care"),

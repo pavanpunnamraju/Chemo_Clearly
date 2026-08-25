@@ -29,6 +29,15 @@ export interface ContentEntry {
   name?: string;
   tags: string[];
   tier?: Tier;
+  /** `overview`'s per-drug tag beat (video_visual_system.md, round 4) — the
+   * regimen's own drug names, structured the same way `call911`/`callTeam`
+   * are: a duplicate of what's already spelled out in `plain`'s prose, so
+   * `SlideVideo.tsx` doesn't need to parse drug names out of free text
+   * (which has no consistent convention across regimens — R-CHOP bolds each
+   * drug's leading letter, AC-T doesn't mark drug names at all). Authored
+   * content, not app-derived; count/order come from however many a regimen
+   * actually names, never hardcoded in the app. */
+  drugNames?: string[];
   plain: string;
   detail?: string;
   selfCare?: string;

@@ -102,6 +102,14 @@ plain: string
 detail: string (optional)
 self_care: [string]                        (self_care/call_team tiers)
 call_team_if: [string]                     (concrete, numeric where possible)
+drug_names: [`Drug Name`, ...]             (overview only — the regimen's own drug
+                                            names, backtick-quoted, comma-separated,
+                                            in the order they're narrated. Structured
+                                            duplicate of what `plain` already spells
+                                            out, same reasoning as call_911/call_team:
+                                            the video's per-drug tag beat needs the
+                                            list without parsing free text, which has
+                                            no consistent convention across regimens.)
 source: source id(s)
 anecdotal: bool (default false)
 review_note: string (optional, non-rendering)  (sourcing caveats, cross-check flags, or

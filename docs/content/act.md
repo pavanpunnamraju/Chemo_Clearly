@@ -24,6 +24,8 @@ Schema: `docs/content/schema.md`.
 
 **tags:** `what-it-is`, `schedule`
 
+**drug_names:** `doxorubicin`, `cyclophosphamide`, `paclitaxel`
+
 **plain:** AC-T is three chemotherapy medicines given in two back-to-back phases to treat
 breast cancer. First "AC": doxorubicin (Adriamycin) plus cyclophosphamide (Cytoxan) — 4
 doses, one every 2–3 weeks. Then "T": paclitaxel (Taxol) — 4 more doses. All three are
