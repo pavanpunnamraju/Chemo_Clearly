@@ -4,7 +4,7 @@
 // caller) exists. Run: npm run demo:guardrail
 
 import assert from "node:assert/strict";
-import { checkEntityDiff, checkReadingLevel, checkTtsSafety } from "../lib/video/guardrail";
+import { checkAnchorPhrases, checkEntityDiff, checkReadingLevel, checkTtsSafety } from "../lib/video/guardrail";
 import type { ContentEntry } from "../lib/content/types";
 
 // Markdown shapes exercised here all come from real docs/content/*.md
@@ -131,6 +131,76 @@ for (const c of readingLevelCases) {
   const result = checkReadingLevel(c.text);
   console.log(`${result.ok === c.expectOk ? "PASS" : "FAIL"} — reading-level: ${c.name}`, `avg=${result.avgWordsPerSentence.toFixed(1)}`);
   assert.equal(result.ok, c.expectOk, `case "${c.name}" expected ok=${c.expectOk}, got ok=${result.ok} (avg=${result.avgWordsPerSentence.toFixed(1)})`);
+}
+
+// Round 9: `checkAnchorPhrases` — overview's countdown-cards beat (round 8)
+// times its cut/reveals off "A typical course" surviving the LLM rewrite
+// verbatim. Nothing else catches a rewrite that paraphrases it away (that's
+// not an "introduced fact" checkEntityDiff would flag), so this needs its
+// own check.
+const anchorEntries: ContentEntry[] = [
+  {
+    id: "overview",
+    sectionId: "overview",
+    tags: ["what-it-is"],
+    plain: "A typical course is 6 cycles, 3 weeks apart, so about 18 weeks total.",
+    cycleCount: 6,
+    weeksApart: 3,
+    weeksTotal: 18,
+    anecdotal: false,
+  },
+  {
+    // No cycleCount/weeksApart/weeksTotal — requiredAnchorPhrase is
+    // undefined for this one, so it has no anchor requirement at all
+    // (this is AC-T's exact shape: the gate is the 3 fields, not the
+    // regimen or section id).
+    id: "timeline",
+    sectionId: "timeline",
+    tags: [],
+    plain: "Here's roughly what one 3-week cycle feels like.",
+    anecdotal: false,
+  },
+];
+
+const anchorCases: { name: string; chunks: { entryId: string; text: string }[]; expectOk: boolean }[] = [
+  {
+    name: "phrase preserved verbatim",
+    chunks: [
+      { entryId: "overview", text: "A typical course is six cycles, three weeks apart, about 18 weeks total." },
+      { entryId: "timeline", text: "Here's what one cycle feels like." },
+    ],
+    expectOk: true,
+  },
+  {
+    name: "phrase preserved with different surrounding wording and whitespace",
+    chunks: [
+      { entryId: "overview", text: "You'll go through this: a  typical\ncourse involves 6 cycles." },
+      { entryId: "timeline", text: "Here's what one cycle feels like." },
+    ],
+    expectOk: true,
+  },
+  {
+    name: "phrase paraphrased away — the exact bug this guardrail exists to catch",
+    chunks: [
+      { entryId: "overview", text: "You'll typically get 6 cycles, spaced 3 weeks apart, about 18 weeks total." },
+      { entryId: "timeline", text: "Here's what one cycle feels like." },
+    ],
+    expectOk: false,
+  },
+  {
+    name: "entry with no anchor requirement never flagged, whatever its wording",
+    chunks: [
+      { entryId: "overview", text: "A typical course is six cycles." },
+      { entryId: "timeline", text: "Every 3 weeks, a new cycle begins." },
+    ],
+    expectOk: true,
+  },
+];
+
+for (const c of anchorCases) {
+  const result = checkAnchorPhrases(c.chunks, anchorEntries);
+  console.log(`${result.ok === c.expectOk ? "PASS" : "FAIL"} — anchor-phrases: ${c.name}`, result.ok ? "" : result.missing);
+  assert.equal(result.ok, c.expectOk, `case "${c.name}" expected ok=${c.expectOk}, got ok=${result.ok} (missing: ${result.missing.join(", ")})`);
 }
 
 console.log("\nAll guardrail self-checks passed.");

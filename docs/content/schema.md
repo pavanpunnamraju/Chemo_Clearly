@@ -110,6 +110,19 @@ drug_names: [`Drug Name`, ...]             (overview only — the regimen's own 
                                             the video's per-drug tag beat needs the
                                             list without parsing free text, which has
                                             no consistent convention across regimens.)
+cycle_count: number                        (overview only, optional — the video's
+weeks_apart: number                        countdown-cards beat's 3 numbers, structured
+weeks_total: number                        duplicates of what `plain` already states in
+                                            prose. Only present when the regimen's
+                                            schedule reduces to one clean cycles/
+                                            interval/total-duration triple (e.g.
+                                            R-CHOP's "6 cycles, 3 weeks apart, ~18 weeks
+                                            total"); omitted entirely — not guessed or
+                                            averaged — when a regimen's schedule is
+                                            multi-phase or interval/total are given as a
+                                            range rather than one number (e.g. AC-T).
+                                            Presence of all three is what gates the
+                                            video beat on, not the regimen name.)
 source: source id(s)
 anecdotal: bool (default false)
 review_note: string (optional, non-rendering)  (sourcing caveats, cross-check flags, or

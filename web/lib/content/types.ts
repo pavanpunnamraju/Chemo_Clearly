@@ -38,6 +38,15 @@ export interface ContentEntry {
    * content, not app-derived; count/order come from however many a regimen
    * actually names, never hardcoded in the app. */
   drugNames?: string[];
+  /** `overview`'s countdown-cards beat — structured duplicates of the 3
+   * numbers `plain` already states in prose (cycle count, weeks between
+   * cycles, total weeks), same reasoning as `drugNames`: no consistent
+   * prose convention to parse across regimens. All three or none — a
+   * regimen whose schedule doesn't reduce to one clean triple (AC-T) omits
+   * all of them, which is what gates the video beat, not the regimen name. */
+  cycleCount?: number;
+  weeksApart?: number;
+  weeksTotal?: number;
   plain: string;
   detail?: string;
   selfCare?: string;

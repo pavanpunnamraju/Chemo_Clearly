@@ -46,6 +46,15 @@ export function parseDrugNames(block: string): string[] {
   return [...raw.matchAll(/`([A-Za-z][A-Za-z0-9 '-]*)`/g)].map((m) => m[1]!);
 }
 
+// cycle_count/weeks_apart/weeks_total (overview's countdown-cards beat) —
+// plain integers, no backtick/list convention needed.
+export function parseNumberField(block: string, prefix: string): number | undefined {
+  const raw = extractField(block, prefix);
+  if (!raw) return undefined;
+  const n = Number(raw.replace(/[^0-9.]/g, ""));
+  return Number.isFinite(n) ? n : undefined;
+}
+
 export function parseTier(block: string): Tier | undefined {
   const raw = extractField(block, "tier");
   if (!raw) return undefined;
@@ -71,6 +80,9 @@ function parseEntry(
     tags: parseTags(block),
     tier: parseTier(block),
     drugNames: drugNames.length > 0 ? drugNames : undefined,
+    cycleCount: parseNumberField(block, "cycle_count"),
+    weeksApart: parseNumberField(block, "weeks_apart"),
+    weeksTotal: parseNumberField(block, "weeks_total"),
     plain,
     detail: extractField(block, "detail"),
     selfCare: extractField(block, "self_care"),

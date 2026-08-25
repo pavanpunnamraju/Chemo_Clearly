@@ -1,5 +1,5 @@
 import type { ContentEntry } from "../content/types";
-import { cleanForSpeechAndDisplay } from "./narration";
+import { cleanForSpeechAndDisplay, requiredAnchorPhrase } from "./narration";
 
 // Entity-diff guardrail for the narration rewrite step (#3c). Pure and
 // deterministic — no LLM/network involved, so it's testable on its own
@@ -127,4 +127,41 @@ export function checkReadingLevel(text: string, maxAvgWordsPerSentence = 20): Re
   const totalWords = text.trim().split(/\s+/).filter(Boolean).length;
   const avgWordsPerSentence = sentences.length ? totalWords / sentences.length : 0;
   return { ok: avgWordsPerSentence <= maxAvgWordsPerSentence, avgWordsPerSentence };
+}
+
+export interface AnchorPhraseResult {
+  ok: boolean;
+  /** entryIds whose rewritten chunk dropped their required anchor phrase — empty when ok. */
+  missing: string[];
+}
+
+/**
+ * Checks that every entry needing a literal timing-anchor phrase
+ * (`requiredAnchorPhrase`, narration.ts — currently just `overview` once it
+ * carries the countdown-cards beat's `cycleCount`/`weeksApart`/`weeksTotal`
+ * fields) still has that phrase, verbatim (case-insensitive, tolerant of
+ * whitespace differences), in its own rewritten chunk.
+ *
+ * Nothing else catches this: `checkEntityDiff` only flags *introduced*
+ * facts, never a *dropped* one, and a paraphrase of "A typical course is 6
+ * cycles..." into "You'll typically get 6 cycles..." introduces nothing new
+ * — it just silently breaks `computeAnchoredReveals`' exact-phrase search,
+ * degrading that beat's cut/reveal timing to its interpolated fallback with
+ * no error, no failed render, nothing a human would notice short of
+ * happening to watch that exact beat closely.
+ */
+export function checkAnchorPhrases(
+  chunks: { entryId: string; text: string }[],
+  entries: ContentEntry[],
+): AnchorPhraseResult {
+  const textByEntry = new Map(chunks.map((c) => [c.entryId, c.text]));
+  const missing: string[] = [];
+  for (const entry of entries) {
+    const anchor = requiredAnchorPhrase(entry);
+    if (!anchor) continue;
+    const text = textByEntry.get(entry.id) ?? "";
+    const pattern = new RegExp(anchor.trim().split(/\s+/).join("\\s+"), "i");
+    if (!pattern.test(text)) missing.push(entry.id);
+  }
+  return { ok: missing.length === 0, missing };
 }

@@ -42,6 +42,22 @@ export interface SlideBeat {
    * entry, same order — computed by `applyTimepoints`. Undefined until
    * `drugNames` is set and timepoints have been applied. */
   drugTagReveals?: number[];
+  /** `overview`'s countdown-cards beat: the entry's own `cycleCount`/
+   * `weeksApart`/`weeksTotal` (`ContentEntry`), threaded the same way
+   * `drugNames` is. Undefined (any of the three) until content authoring
+   * sets all three — that's also what gates the beat's rendering on. */
+  cycleCount?: number;
+  weeksApart?: number;
+  weeksTotal?: number;
+  /** One real (or interpolated-fallback) reveal timestamp per card, order
+   * [cycleCount, weeksApart, weeksTotal] — computed by `applyTimepoints`,
+   * same mechanism as `drugTagReveals`. */
+  overviewTimelineReveals?: number[];
+  /** Real (or interpolated-fallback) timestamp of "A typical course" itself
+   * (round 8, human direction) — when `SceneSlide` cuts to the full-frame
+   * CountdownScene. Undefined only if the beat's own gate fields aren't set
+   * (same as `overviewTimelineReveals`). */
+  overviewTimelineCutSeconds?: number;
 }
 
 export interface NarrationPlan {
@@ -113,6 +129,9 @@ export function buildNarrationPlanFromChunks(
       body: chunk.text,
       tags: entry.tags,
       drugNames: entry.drugNames,
+      cycleCount: entry.cycleCount,
+      weeksApart: entry.weeksApart,
+      weeksTotal: entry.weeksTotal,
       tier: entry.tier,
       call911: entry.call911,
       callTeam: entry.callTeam,
@@ -190,6 +209,9 @@ export function buildNarrationPlan(
       body: text,
       tags: entry.tags,
       drugNames: entry.drugNames,
+      cycleCount: entry.cycleCount,
+      weeksApart: entry.weeksApart,
+      weeksTotal: entry.weeksTotal,
       tier: entry.tier,
       call911: entry.call911,
       callTeam: entry.callTeam,
@@ -356,9 +378,9 @@ const DRUG_ANCHOR_CONTEXT_WORDS = 3;
 function buildDrugAnchor(bodyWords: string[], bodyNormalized: string[], drugName: string, stopIndex: number): string {
   const drugWords = drugName.split(/\s+/).filter(Boolean).map(normalizeWord).filter(Boolean);
   const index = findPhrase(bodyNormalized, drugWords, 0);
-  // Drug name not found verbatim in this render's (possibly LLM-rewritten)
-  // prose — fall back to the bare name; still handled by matchTiered's own
-  // weak tiers, just without the extra context boost.
+  // Target not found verbatim in this render's (possibly LLM-rewritten)
+  // prose — fall back to the bare target text; still handled by matchTiered's
+  // own weak tiers, just without the extra context boost.
   if (index === -1) return drugName;
   const wordsEnd = index + drugWords.length;
   const to = Math.max(wordsEnd, Math.min(bodyWords.length, stopIndex, wordsEnd + DRUG_ANCHOR_CONTEXT_WORDS));
@@ -366,54 +388,77 @@ function buildDrugAnchor(bodyWords: string[], bodyNormalized: string[], drugName
 }
 
 /**
- * Per-drug tag reveal timestamps for `overview`'s beat 3 (round 4) — one per
- * `slide.drugNames` entry, same order. Whatever doesn't resolve confidently
- * is interpolated evenly between its nearest resolved neighbors (or the
- * slide's own start/end) instead of being left unplaced — same
- * tolerance-for-imprecision fallback shape this file already uses for
- * slide-level timing (the word-count estimate) and captions.ts uses for
- * caption chunks (starting at the predecessor's end).
+ * Anchored reveal timestamps for a short ordered list of narration-order
+ * target strings inside one slide's body — one per `targets` entry, same
+ * order. Whatever doesn't resolve confidently is interpolated evenly
+ * between its nearest resolved neighbors (or the slide's own start/end)
+ * instead of being left unplaced — same tolerance-for-imprecision fallback
+ * shape this file already uses for slide-level timing (the word-count
+ * estimate) and captions.ts uses for caption chunks (starting at the
+ * predecessor's end).
+ *
+ * Generalized (round 7) from the per-drug-tag-only version to also drive
+ * `overview`'s countdown-cards beat (3 numbers, same slide, same narration-
+ * order-matching + trailing-context-anchor + lead-in-anchor + interpolated-
+ * fallback shape as the drug tags). Number targets need one extra step drug
+ * names don't: the body-side search normalizes spelled-out numbers to
+ * digits too (see `bodyNormalized` below), not just the transcript-side
+ * search `matchTimestamps` already did — see its comment for why that alone
+ * wasn't enough.
  */
-function computeDrugTagReveals(
+function computeAnchoredReveals(
   slide: SlideBeat,
   sectionEndSeconds: number,
   alignedWords: { word: string; startSeconds: number }[],
+  targets: string[],
 ): number[] {
-  const drugNames = slide.drugNames!;
   const scoped = alignedWords.filter(
     (w) => w.startSeconds >= slide.startSeconds && w.startSeconds < sectionEndSeconds,
   );
 
   const bodyWords = slide.body.split(/\s+/).filter(Boolean);
-  const bodyNormalized = bodyWords.map(normalizeWord);
-  // Each drug's own body position, in narration order — used both to build
-  // its anchor and to cap the *next* drug's trailing-context window so it
-  // can never swallow this one's name (see buildDrugAnchor).
-  const drugBodyIndexes = drugNames.map((name) => {
+  // spelledNumbersToDigits here too, not just inside matchTimestamps below:
+  // the countdown-cards beat's number targets are literal digit strings
+  // ("6", "3", "18"), but the LLM rewrite is free to spell a number out in
+  // words ("six cycles") — verified live, this round's real rewrite did
+  // exactly that for 2 of 3 numbers. Without normalizing the body side too,
+  // `findPhrase` below never finds the target's own position in the body at
+  // all, which skips the lead-in-anchor entirely (it only fires when the
+  // first target's body position is found) and leaves every anchor to search
+  // from a fresh cursor at the slide's very start — for `overview` (one long
+  // ~700-word slide) that's far past every match tier's bounded lookahead,
+  // so all 3 silently fall back to naive full-slide-span interpolation
+  // instead of their real narrated position (verified live: reveals landed
+  // at 13s/27s/40s while the numbers are actually spoken around 45-50s,
+  // *after* the beat's own cut point).
+  const bodyNormalized = bodyWords.map((w) => normalizeWord(spelledNumbersToDigits(w)));
+  // Each target's own body position, in narration order — used both to build
+  // its anchor and to cap the *next* target's trailing-context window so it
+  // can never swallow this one's text (see buildDrugAnchor).
+  const targetBodyIndexes = targets.map((name) => {
     const words = name.split(/\s+/).filter(Boolean).map(normalizeWord).filter(Boolean);
     return findPhrase(bodyNormalized, words, 0);
   });
-  const anchors = drugNames.map((name, i) => {
-    const next = drugBodyIndexes[i + 1];
+  const anchors = targets.map((name, i) => {
+    const next = targetBodyIndexes[i + 1];
     const stopIndex = next != null && next !== -1 ? next : bodyWords.length;
     return buildDrugAnchor(bodyWords, bodyNormalized, name, stopIndex);
   });
 
-  // `overview` is one long slide (no per-drug sub-beats), so the first drug
-  // name commonly sits well past the 1-word fallback tier's bounded
+  // `overview` is one long slide (no per-target sub-beats), so the first
+  // target commonly sits well past the 1-word fallback tier's bounded
   // lookahead from a fresh cursor — verified live: real R-CHOP narration
   // puts "Rituximab" ~50 words in, past MAX_1WORD_LOOKAHEAD (40). A comma-
-  // packed drug list ("Rituximab, Cyclophosphamide, ...") also often leaves
-  // *no* safe trailing word before the next drug's own name, so the first
-  // anchor can be as short as the bare drug name. A throwaway lead-in
-  // anchor — real body prose right before the first drug name, using the
-  // same 3-8 word ambiguity-checked tier every other anchor in this file
-  // already relies on — advances the shared cursor close enough that every
-  // real per-drug anchor after it is comfortably inside the lookahead
-  // window. Its own match is discarded; only reveal timing for `drugNames`
-  // matters.
+  // packed list ("Rituximab, Cyclophosphamide, ...") also often leaves *no*
+  // safe trailing word before the next target's own text, so the first
+  // anchor can be as short as the bare target text. A throwaway lead-in
+  // anchor — real body prose right before the first target, using the same
+  // 3-8 word ambiguity-checked tier every other anchor in this file already
+  // relies on — advances the shared cursor close enough that every real
+  // per-target anchor after it is comfortably inside the lookahead window.
+  // Its own match is discarded; only reveal timing for `targets` matters.
   const LEAD_IN_WORDS = 8;
-  const firstDrugIndex = drugBodyIndexes[0];
+  const firstDrugIndex = targetBodyIndexes[0];
   const hasLeadIn = firstDrugIndex != null && firstDrugIndex > 0;
   const leadInAnchor = hasLeadIn
     ? bodyWords.slice(Math.max(0, firstDrugIndex! - LEAD_IN_WORDS), firstDrugIndex!).join(" ")
@@ -449,6 +494,66 @@ function computeDrugTagReveals(
   }
 
   return reveals as number[];
+}
+
+function computeDrugTagReveals(
+  slide: SlideBeat,
+  sectionEndSeconds: number,
+  alignedWords: { word: string; startSeconds: number }[],
+): number[] {
+  return computeAnchoredReveals(slide, sectionEndSeconds, alignedWords, slide.drugNames!);
+}
+
+// `overview`'s countdown-cards beat (round 8): the cut to the full-frame
+// CountdownScene fires on this phrase itself (human direction), not on a
+// fixed hold after the drug-tag cascade. Exported (not just a local
+// literal) so the narration-rewrite guardrail (guardrail.ts) and prompt
+// (rewrite.ts) can require/check the same string the timing code actually
+// searches for, instead of a second hardcoded copy that could drift out of
+// sync with this one.
+export const OVERVIEW_COUNTDOWN_CUT_ANCHOR = "A typical course";
+
+/**
+ * The literal phrase, if any, a given entry's rewritten narration must
+ * preserve verbatim for one of its video beats' STT-timed reveals to find
+ * their real position — same gate condition the beat itself renders on
+ * (round 9: added after a round-8 human report that nothing enforced this,
+ * so a future rewrite could silently paraphrase the anchor away and
+ * regress the beat back to its degraded interpolated-fallback timing).
+ * Undefined for every entry today except `overview` once it carries the
+ * countdown-cards beat's 3 fields. A future beat with the same
+ * "timing depends on one literal phrase surviving rewrite" shape adds
+ * another condition here, not a parallel mechanism.
+ */
+export function requiredAnchorPhrase(entry: ContentEntry): string | undefined {
+  if (entry.cycleCount != null && entry.weeksApart != null && entry.weeksTotal != null) {
+    return OVERVIEW_COUNTDOWN_CUT_ANCHOR;
+  }
+  return undefined;
+}
+
+// The cut to the full-frame CountdownScene fires on OVERVIEW_COUNTDOWN_CUT_ANCHOR
+// itself (human direction), not on a fixed hold after the drug-tag cascade —
+// so that phrase is its own leading anchor here, ahead of the 3 number
+// targets. Real digit-string targets ("6"/"3"/"18"); `computeAnchoredReveals`
+// digit-normalizes both the body and the transcript before matching.
+// Bundling the cut anchor into the same anchors array (rather than a
+// separate matchTimestamps call) also gives the number anchors a real
+// lead-in for free — the phrase naturally advances the shared cursor to
+// right where the numbers start.
+function computeOverviewTimelineReveals(
+  slide: SlideBeat,
+  sectionEndSeconds: number,
+  alignedWords: { word: string; startSeconds: number }[],
+): { cutSeconds: number; numberReveals: number[] } {
+  const targets = [
+    OVERVIEW_COUNTDOWN_CUT_ANCHOR,
+    String(slide.cycleCount!),
+    String(slide.weeksApart!),
+    String(slide.weeksTotal!),
+  ];
+  const [cutSeconds, ...numberReveals] = computeAnchoredReveals(slide, sectionEndSeconds, alignedWords, targets);
+  return { cutSeconds: cutSeconds!, numberReveals };
 }
 
 export function applyTimepoints(
@@ -502,7 +607,16 @@ export function applyTimepoints(
     return { ...slide, drugTagReveals: computeDrugTagReveals(slide, sectionEnd, alignedWords) };
   });
 
-  return { ...plan, slides: slidesWithDrugTags, totalSeconds: audioDurationSeconds };
+  const slidesWithTimeline = slidesWithDrugTags.map((slide, i) => {
+    if (slide.sectionId !== "overview" || slide.cycleCount == null || slide.weeksApart == null || slide.weeksTotal == null) {
+      return slide;
+    }
+    const sectionEnd = slidesWithDrugTags[i + 1]?.startSeconds ?? audioDurationSeconds;
+    const { cutSeconds, numberReveals } = computeOverviewTimelineReveals(slide, sectionEnd, alignedWords);
+    return { ...slide, overviewTimelineCutSeconds: cutSeconds, overviewTimelineReveals: numberReveals };
+  });
+
+  return { ...plan, slides: slidesWithTimeline, totalSeconds: audioDurationSeconds };
 }
 
 /**

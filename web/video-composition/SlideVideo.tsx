@@ -1,4 +1,4 @@
-import { Audio, Img, Sequence, AbsoluteFill, useVideoConfig, useCurrentFrame, staticFile, interpolate } from "remotion";
+import { Audio, Img, Sequence, AbsoluteFill, useVideoConfig, useCurrentFrame, staticFile, interpolate, spring } from "remotion";
 import { loadFont, fontFamily } from "@remotion/google-fonts/Figtree";
 import type { SlideBeat } from "../lib/video/narration";
 import { illustrationForSlide, sceneIllustrationForSideEffectTags } from "../lib/video/components";
@@ -179,6 +179,148 @@ const ALERT_CARD_BG = "#fff8f6";
 const ALERT_SETTLED_BG = "#fdfbfa";
 const ALERT_SETTLED_BORDER = "#e7d9d6";
 const ALERT_EMPTY_BORDER = "#dcd7cb";
+
+// `overview`'s countdown-cards beat (round 7, handoff.md; sizing/color/
+// animation redone round 8 per direct human feedback on the real render).
+// Navy fill + white numbers (round 8) — replaces the original cream
+// (`#FDF6EC`), which was never recoverable from any original brief and read
+// wrong against the real render; navy/white also ties into the system's
+// established navy/teal/coral palette instead of a 4th one-off color.
+const COUNTDOWN_CARD_BG = NAVY;
+const COUNTDOWN_CARD_WIDTH = 224;
+const COUNTDOWN_CARD_HEIGHT = 192;
+const COUNTDOWN_CARD_GAP = 40;
+const COUNTDOWN_LABELS = ["cycles", "weeks apart", "weeks total"] as const;
+
+// Fallback-only cut trigger (round 8): the real trigger is
+// `overviewTimelineCutSeconds` ("A typical course" itself). This only
+// applies if that STT guard failed upstream — same "after the drug-tag
+// cascade holds" shape round 7 used as its primary trigger, now demoted to
+// a safety net so the beat still has a sane cut point rather than never
+// firing.
+const COUNTDOWN_CUT_HOLD_FRAMES = SECTION_FADE_IN_FRAMES;
+
+// Pop-in entrance (round 8) — human asked for an "appear transition,
+// opposite of dissolve" for each card, replacing the original instant
+// empty-to-lit swap. A fast opacity ramp (near-instant, decoupled from the
+// bounce below so it doesn't flicker) plus an underdamped spring driving
+// scale (deliberately bounces slightly past 1 before settling) reads as a
+// snappy "pop", the opposite motion quality from a slow opacity dissolve.
+// Only the box pops — the dashed empty placeholder itself doesn't animate,
+// same "fixed-slot, only the fill changes" shape as before.
+const COUNTDOWN_POP_OPACITY_FRAMES = 6;
+const COUNTDOWN_POP_SPRING_CONFIG = { damping: 14, stiffness: 180, mass: 0.6 };
+
+/** One card of `overview`'s countdown-cards beat — navy/white/teal empty ->
+ * lit states, same dashed-empty-slot border tone as Alert's fixed-slot
+ * cards (ALERT_EMPTY_BORDER), but clearing/holding per-card rather than
+ * clearing-on-column-fill: no persistent "settled" distinct state, since
+ * once lit a card just holds its final look for the rest of the beat
+ * (spec's "appear-and-hold" — this is 3 factual numbers, not Alert's
+ * must-not-disappear emergency list). Takes `revealFrame` directly (not a
+ * precomputed `lit` bool) so it can drive its own pop-in animation off
+ * frames-since-reveal. */
+const CountdownCard: React.FC<{ value: number; label: string; revealFrame: number }> = ({
+  value,
+  label,
+  revealFrame,
+}) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const lit = frame >= revealFrame;
+  const framesSinceReveal = frame - revealFrame;
+  const popScale = lit
+    ? spring({ frame: framesSinceReveal, fps, config: COUNTDOWN_POP_SPRING_CONFIG })
+    : 1;
+  const popOpacity = lit
+    ? interpolate(framesSinceReveal, [0, COUNTDOWN_POP_OPACITY_FRAMES], [0, 1], {
+        extrapolateLeft: "clamp",
+        extrapolateRight: "clamp",
+      })
+    : 1;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+      <div
+        style={{
+          width: COUNTDOWN_CARD_WIDTH,
+          height: COUNTDOWN_CARD_HEIGHT,
+          borderRadius: 16,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          ...(lit
+            ? { backgroundColor: COUNTDOWN_CARD_BG, transform: `scale(${popScale})`, opacity: popOpacity }
+            : { backgroundColor: "transparent", border: `2px dashed ${ALERT_EMPTY_BORDER}` }),
+        }}
+      >
+        {lit ? <span style={{ fontSize: 84, fontWeight: 800, color: "#ffffff" }}>{value}</span> : null}
+      </div>
+      <div
+        style={{
+          marginTop: 16,
+          fontSize: 26,
+          fontWeight: 700,
+          color: TEAL,
+          textTransform: "uppercase",
+          letterSpacing: "0.05em",
+          opacity: lit ? 1 : 0.5,
+          textAlign: "center",
+        }}
+      >
+        {label}
+      </div>
+    </div>
+  );
+};
+
+/** `overview`'s beat 4 (round 7: human-directed redesign from an in-scene
+ * overlay to a full cut; round 8: cut trigger, sizing, color, and animation
+ * redone per direct human feedback on the real render). SceneSlide hard-cuts
+ * here the moment narration reaches "A typical course" — same "distinct
+ * cut, not composited alongside the rest" shape as Alert's closing
+ * split-card. Solves the real placement conflict the original dead-space-
+ * overlay spec didn't account for: the drug-tag cascade already fills the
+ * entire right-side band (top 16%-65%) the overlay was meant to share. Own
+ * full-frame background (no character/headline), 3 cards centered, same
+ * empty-dashed -> lit-and-hold per-card mechanic as before (now pop-in
+ * animated, see CountdownCard). */
+const CountdownScene: React.FC<{
+  startSeconds: number;
+  cycleCount: number;
+  weeksApart: number;
+  weeksTotal: number;
+  reveals?: number[];
+}> = ({ startSeconds, cycleCount, weeksApart, weeksTotal, reveals }) => {
+  const { fps } = useVideoConfig();
+  const values = [cycleCount, weeksApart, weeksTotal];
+
+  return (
+    <AbsoluteFill style={{ backgroundColor: FRAME_BG, overflow: "hidden", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <div
+          style={{
+            marginBottom: 28,
+            fontSize: 28,
+            fontWeight: 800,
+            letterSpacing: 2,
+            textTransform: "uppercase",
+            color: NAVY,
+          }}
+        >
+          Typical course
+        </div>
+        <div style={{ display: "flex", gap: COUNTDOWN_CARD_GAP }}>
+          {values.map((value, i) => {
+            const revealSeconds = reveals?.[i];
+            const revealFrame = revealSeconds != null ? Math.round((revealSeconds - startSeconds) * fps) : 0;
+            return <CountdownCard key={COUNTDOWN_LABELS[i]} value={value} label={COUNTDOWN_LABELS[i]!} revealFrame={revealFrame} />;
+          })}
+        </div>
+      </div>
+    </AbsoluteFill>
+  );
+};
 
 // Scene archetype sections (video_visual_system.md's per-section mapping) —
 // daily_life/side_effects/fertility_intimacy/overview. Timeline/Alert/Quote
@@ -404,6 +546,11 @@ export const SlideVideo: React.FC<SlideVideoProps> = ({
                   headlineRevealSeconds={beat.headlineRevealSeconds}
                   drugNames={beat.drugNames}
                   drugTagReveals={beat.drugTagReveals}
+                  cycleCount={beat.cycleCount}
+                  weeksApart={beat.weeksApart}
+                  weeksTotal={beat.weeksTotal}
+                  overviewTimelineReveals={beat.overviewTimelineReveals}
+                  overviewTimelineCutSeconds={beat.overviewTimelineCutSeconds}
                 />
               </FadeIn>
             </Sequence>
@@ -530,10 +677,68 @@ const SceneSlide: React.FC<{
    * — no tags render, same as before this beat existed. */
   drugNames?: string[];
   drugTagReveals?: number[];
-}> = ({ sectionId, headline, tags, indexInSection, startSeconds, headlineRevealSeconds, drugNames, drugTagReveals }) => {
+  /** `overview`'s countdown-cards beat (round 7) — the entry's own
+   * cycleCount/weeksApart/weeksTotal (`ContentEntry`, docs/content/schema.md)
+   * and their reveal timestamps, same undefined-means-skip shape as
+   * drugNames/drugTagReveals above. All three numbers required together;
+   * a regimen without a clean single triple (AC-T) never sets them, which
+   * is what gates this beat instead of a regimen-name check. */
+  cycleCount?: number;
+  weeksApart?: number;
+  weeksTotal?: number;
+  overviewTimelineReveals?: number[];
+  /** Real (or interpolated-fallback) timestamp of "A typical course" itself
+   * (round 8, human direction) — when this cuts to CountdownScene. Falls
+   * back to the old "after the drug-tag cascade holds" trigger only if this
+   * is unset (STT guard failed upstream), same guarded-fallback shape as
+   * every other STT-timed reveal in this file. */
+  overviewTimelineCutSeconds?: number;
+}> = ({
+  sectionId,
+  headline,
+  tags,
+  indexInSection,
+  startSeconds,
+  headlineRevealSeconds,
+  drugNames,
+  drugTagReveals,
+  cycleCount,
+  weeksApart,
+  weeksTotal,
+  overviewTimelineReveals,
+  overviewTimelineCutSeconds,
+}) => {
   const { fps } = useVideoConfig();
+  const frame = useCurrentFrame();
   const layout = SCENE_LAYOUT[sectionId]!;
   const twoLine = SCENE_FIXED_HEADLINES[sectionId];
+
+  // `overview`'s countdown-cards beat (round 8) — cut to CountdownScene the
+  // moment narration reaches "A typical course" (human direction, replacing
+  // round 7's "after the drug-tag cascade holds" trigger), before this
+  // Scene's own character/headline render below. Gated on all 3 number
+  // fields being present (content-shape gate, not a regimen check — a
+  // regimen like AC-T whose schedule doesn't reduce to one clean triple
+  // never sets them, so this branch never triggers for it).
+  if (sectionId === "overview" && cycleCount != null && weeksApart != null && weeksTotal != null) {
+    const fallbackCutSeconds =
+      drugTagReveals && drugTagReveals.length > 0
+        ? Math.max(...drugTagReveals) + COUNTDOWN_CUT_HOLD_FRAMES / fps
+        : startSeconds;
+    const cutSeconds = overviewTimelineCutSeconds ?? fallbackCutSeconds;
+    const cutFrame = Math.round((cutSeconds - startSeconds) * fps);
+    if (frame >= cutFrame) {
+      return (
+        <CountdownScene
+          startSeconds={startSeconds}
+          cycleCount={cycleCount}
+          weeksApart={weeksApart}
+          weeksTotal={weeksTotal}
+          reveals={overviewTimelineReveals}
+        />
+      );
+    }
+  }
 
   let illustrationSrc: string | null;
   let blobTint = layout.blobTint;

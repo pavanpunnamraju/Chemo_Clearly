@@ -1,8 +1,8 @@
 import type { ContentEntry } from "../content/types";
 import type { PersonalizationFilter } from "../intake/schema";
 import { getGenAIClient } from "../gemini/client";
-import { checkEntityDiff, checkReadingLevel, checkTtsSafety } from "./guardrail";
-import { cleanForSpeechAndDisplay } from "./narration";
+import { checkAnchorPhrases, checkEntityDiff, checkReadingLevel, checkTtsSafety } from "./guardrail";
+import { cleanForSpeechAndDisplay, requiredAnchorPhrase } from "./narration";
 
 // Narration Rewriter (#3c) — takes all selected entries together and
 // produces one continuous, natural-sounding narration script. GUARDRAIL:
@@ -80,6 +80,11 @@ function buildPrompt(entries: ContentEntry[], filter: PersonalizationFilter, ret
     plain: cleanForSpeechAndDisplay(e.plain),
     detail: filter.includeDetail && e.detail ? cleanForSpeechAndDisplay(e.detail) : undefined,
     lengthGuidance: lengthGuidance(e),
+    // A video beat times itself off this exact phrase surviving into the
+    // rewrite (narration.ts's requiredAnchorPhrase/checkAnchorPhrases) —
+    // undefined for every entry except overview once it carries the
+    // countdown-cards beat's 3 fields.
+    requiredPhrase: requiredAnchorPhrase(e),
   }));
 
   const tone = VOICE_TONE_GUIDANCE[filter.voiceTone] ?? VOICE_TONE_GUIDANCE.neutral;
@@ -115,6 +120,11 @@ function buildPrompt(entries: ContentEntry[], filter: PersonalizationFilter, ret
     "  \"11.\" are read aloud as literal numbers and also trip the fact-checking",
     "  guardrail downstream.",
     "- Return exactly one rewritten chunk per entry, same ids, same order as given.",
+    "- If an entry's `requiredPhrase` field is set, your rewritten text for that",
+    "  entry MUST contain that exact phrase, verbatim, word-for-word — a",
+    "  downstream system times video visuals off finding it literally in your",
+    "  output. You may still rephrase everything around it; just don't",
+    "  paraphrase the phrase itself away.",
     "",
     retryFeedback ? `Your previous attempt was rejected: ${retryFeedback} Try again, following the rules above.\n` : "",
     "Source entries (JSON):",
@@ -325,6 +335,13 @@ export async function rewriteNarration(
       retryFeedback = `it introduced content not present in the source: ${entityDiff.introduced.join(", ")}.`;
       console.warn(`Narration rewrite attempt ${attempt + 1} rejected: ${retryFeedback}`);
       if (process.env.REWRITE_DEBUG) console.error("REWRITE_DEBUG failing script:", script);
+      continue;
+    }
+
+    const anchorPhrases = checkAnchorPhrases(chunks, entries);
+    if (!anchorPhrases.ok) {
+      retryFeedback = `it dropped wording a video beat needs to time itself against, for: ${anchorPhrases.missing.join(", ")}. That entry's rewrite must include its \`requiredPhrase\` verbatim.`;
+      console.warn(`Narration rewrite attempt ${attempt + 1} rejected: ${retryFeedback}`);
       continue;
     }
 

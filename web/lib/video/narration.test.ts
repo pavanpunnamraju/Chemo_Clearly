@@ -248,4 +248,94 @@ function alignedFrom(words: string[], secondsPerWord = 1): { word: string; start
   assert.equal(reveals[2], aligned[52]!.startSeconds, "Prednisone resolves directly");
 }
 
+// (i) Round-7 countdown-cards beat: same anchored-reveal mechanism as the
+// drug tags, generalized to the 3 numbers from `cycleCount`/`weeksApart`/
+// `weeksTotal`. Numbers resolve via `matchTimestamps`' existing digit
+// normalization even though the transcript below spells them as words
+// (Speech-to-Text always normalizes numbers to digits — matchTimestamps
+// already handles this, verified here rather than assumed). A slide missing
+// any of the three fields must not get `overviewTimelineReveals` at all —
+// that's the gate the video component renders the beat on.
+{
+  const aligned = alignedFrom([
+    "a", "typical", "course", "is", "6", "cycles", "3", "weeks",
+    "apart", "so", "about", "18", "weeks", "total",
+  ]);
+  const slide: SlideBeat = {
+    entryId: "overview",
+    sectionId: "overview",
+    startSeconds: 0,
+    headline: "R-CHOP",
+    body: "A typical course is 6 cycles, 3 weeks apart, so about 18 weeks total.",
+    tags: [],
+    cycleCount: 6,
+    weeksApart: 3,
+    weeksTotal: 18,
+  };
+  const plan: NarrationPlan = { script: slide.body, slides: [slide], totalSeconds: 14 };
+  const [result] = applyTimepoints(plan, aligned, 14).slides;
+  const reveals = result!.overviewTimelineReveals;
+  assert.ok(reveals, "expected overviewTimelineReveals to be set when all 3 fields are present");
+  assert.equal(reveals!.length, 3, "one reveal per number");
+  assert.equal(reveals![0], aligned[4]!.startSeconds, "cycle count resolves to 'six'");
+  assert.equal(reveals![1], aligned[6]!.startSeconds, "weeks-apart resolves to 'three'");
+  assert.equal(reveals![2], aligned[11]!.startSeconds, "weeks-total resolves to 'eighteen'");
+
+  // AC-T-shaped slide (missing weeksTotal, e.g.) never gets the beat's data.
+  const partialSlide: SlideBeat = { ...slide, weeksTotal: undefined };
+  const partialPlan: NarrationPlan = { script: partialSlide.body, slides: [partialSlide], totalSeconds: 14 };
+  const [partialResult] = applyTimepoints(partialPlan, aligned, 14).slides;
+  assert.equal(
+    partialResult!.overviewTimelineReveals,
+    undefined,
+    "missing any of the 3 fields must not compute reveals (this is the beat's render gate)",
+  );
+}
+
+// (j) Round-7 regression, found live against the real cached R-CHOP render:
+// the LLM rewrite is free to spell a number out in words ("involves six
+// cycles"), but the countdown-cards beat's targets are literal digit
+// strings ("6"). Without normalizing the *body* side too (not just the
+// transcript side, which matchTimestamps already handled), the target's own
+// position is never found in the body, the lead-in anchor never fires (it
+// only fires when the first target's body position resolves), and every
+// anchor searches from a cold cursor at the very start of `overview`'s long
+// single-slide body — past every tier's bounded lookahead — so all 3
+// silently fall back to naive full-slide interpolation instead of their
+// real narrated position, near the *end* of a long slide. This reproduces
+// that shape: a long filler preamble, then the schedule sentence with 2
+// numbers spelled as words and 1 kept as a digit (exactly what the real
+// rewrite did), transcript in Speech-to-Text's real digit-normalized form.
+{
+  const preamble = Array.from({ length: 60 }, (_, i) => `filler${i}`);
+  const aligned = alignedFrom([
+    ...preamble, "involves", "6", "cycles", "with", "each", "one", "spaced",
+    "3", "weeks", "apart", "this", "means", "it", "will", "last", "about",
+    "18", "weeks",
+  ]);
+  const slide: SlideBeat = {
+    entryId: "overview",
+    sectionId: "overview",
+    startSeconds: 0,
+    headline: "R-CHOP",
+    body: `${preamble.join(" ")} involves six cycles, with each one spaced three weeks apart. This means it will last about 18 weeks.`,
+    tags: [],
+    cycleCount: 6,
+    weeksApart: 3,
+    weeksTotal: 18,
+  };
+  const plan: NarrationPlan = { script: slide.body, slides: [slide], totalSeconds: 79 };
+  const [result] = applyTimepoints(plan, aligned, 79).slides;
+  const reveals = result!.overviewTimelineReveals!;
+  assert.equal(reveals.length, 3, "one reveal per number");
+  assert.equal(reveals[0], aligned[61]!.startSeconds, "cycle count resolves to the real 'six', not an interpolated fallback");
+  assert.equal(reveals[1], aligned[67]!.startSeconds, "weeks-apart resolves to the real 'three'");
+  assert.equal(reveals[2], aligned[76]!.startSeconds, "weeks-total resolves to the real '18'");
+  // The naive full-span interpolation this bug produced landed all 3
+  // reveals in the first ~40% of the slide (evenly split across [0, 79]) —
+  // asserting every real reveal sits past the halfway point rules that out
+  // directly, on top of the exact-position checks above.
+  assert.ok(reveals.every((r) => r > 39.5), "reveals must not fall back to early-interpolated positions");
+}
+
 console.log("narration.test: ok");

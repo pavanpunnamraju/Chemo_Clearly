@@ -30,6 +30,10 @@ pipeline. Schema: `docs/content/schema.md`.
 
 **drug_names:** `Rituximab`, `Cyclophosphamide`, `doxorubicin`, `vincristine`, `Prednisone`
 
+**cycle_count:** 6
+**weeks_apart:** 3
+**weeks_total:** 18
+
 **plain:** R-CHOP is five medicines given together to treat certain lymphomas (cancers of
 the lymph system). The name is the first letter of each drug: **R**ituximab,
 **C**yclophosphamide, doxorubicin (**H**ydroxydaunorubicin), vincristine (**O**ncovin),
