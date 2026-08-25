@@ -170,10 +170,15 @@ Headline "R-CHOP" (navy, large) / "five medicines, one plan" (teal, smaller),
 lower-left. Scene: person seated in an infusion chair, IV line visible, calm posture,
 small side table with a water cup — the establishing shot for the whole video. Eye
 goes to the person first, then down into the headline. Builds in three beats: (1)
-scene resolves as the "given together" line plays, (2) one small labeled tag animates
-onto the IV line per drug name as it's spoken — count comes from however many drugs
-the entry actually names (5 for R-CHOP, 3 for AC-T), never hardcoded, (3) headline
-settles last.
+scene resolves (character + blob + illustration) as narration opens, (2) headline
+appears at "R-CHOP"'s first spoken mention — real STT-timed, not held to the end;
+guarded (`narration.ts`'s `findOverviewHeadlineReveal`) so a garbled first mention
+falls back to the headline's original immediate-display timing instead of silently
+anchoring to a later, correctly-transcribed occurrence, (3) one small labeled tag
+animates onto the IV line per drug name as it's spoken — count comes from however
+many drugs the entry actually names (5 for R-CHOP, 3 for AC-T), never hardcoded.
+Drug-tag beat (3) not yet built — held pending the round-2 regimen-general
+drug-name-mistranscription fix (`docs/references/handoff-overview-timing.md`).
 
 Known gap: no schema hook today to visually separate AC-T's two phases (AC vs. T) —
 the flat drug-tag list still renders correctly, just doesn't group them. Not a schema

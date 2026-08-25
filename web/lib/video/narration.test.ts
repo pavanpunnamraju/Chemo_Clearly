@@ -131,4 +131,121 @@ function alignedFrom(words: string[], secondsPerWord = 1): { word: string; start
   );
 }
 
+// (e) Round-2 headline-reveal guard: `applyTimepoints` must find "R-CHOP"'s
+// first spoken mention for `overview`'s headline-reveal beat, and must NOT
+// fall back to a later, correctly-transcribed occurrence when the first one
+// is garbled — verified against the actual STT output pattern from a real
+// R-CHOP render (docs/references/handoff-overview-timing.md round 1):
+// Speech-to-Text heard "our chop" for the true first mention and "r chop"
+// for a later one. A naive anchor search finds the later, wrong occurrence;
+// the guard must reject it and leave headlineRevealSeconds undefined instead
+// (caller falls back to immediate/default headline timing).
+{
+  const aligned = alignedFrom([
+    "let's", "talk", "about", "our", "chop", "today", "this", "treatment", "uses",
+    "5", "medicines", "given", "together", "the", "name", "r", "chop", "itself",
+    "is", "an", "acronym",
+  ]);
+  const slide: SlideBeat = {
+    entryId: "overview",
+    sectionId: "overview",
+    startSeconds: 0,
+    headline: "R-CHOP",
+    body: aligned.map((w) => w.word).join(" "),
+    tags: [],
+  };
+  const plan: NarrationPlan = { script: slide.body, slides: [slide], totalSeconds: 21 };
+  const [result] = applyTimepoints(plan, aligned, 21).slides;
+  assert.equal(
+    result!.headlineRevealSeconds,
+    undefined,
+    "garbled first mention outside the guard window must not fall back to the later correct occurrence",
+  );
+}
+
+// (f) Same guard, happy path: a clean, correctly-transcribed "r chop" right
+// at the section's start must resolve to its real timestamp.
+{
+  const aligned = alignedFrom(["let's", "talk", "about", "r", "chop", "today"]);
+  const slide: SlideBeat = {
+    entryId: "overview",
+    sectionId: "overview",
+    startSeconds: 0,
+    headline: "R-CHOP",
+    body: aligned.map((w) => w.word).join(" "),
+    tags: [],
+  };
+  const plan: NarrationPlan = { script: slide.body, slides: [slide], totalSeconds: 6 };
+  const [result] = applyTimepoints(plan, aligned, 6).slides;
+  assert.equal(result!.headlineRevealSeconds, aligned[3]!.startSeconds, "clean early mention should resolve directly");
+}
+
+// (g) Round-4 drug-tag beat: neighbor-context anchors resolve names that
+// transcribe cleanly; a name whose STT is unrecoverable (real evidence,
+// docs/references/handoff-overview-timing.md: doxorubicin/Hydroxydaunorubicin
+// garbles into unrelated tokens even with context) falls back to an
+// interpolated timestamp between its nearest resolved neighbors instead of
+// being left unplaced.
+{
+  const aligned = alignedFrom([
+    "the", "name", "comes", "from", "rituximab", "cyclophosphamide", "doxear",
+    "rubis", "which", "you", "might", "also", "hear", "called", "hydroxy",
+    "donor", "ruben", "vincristine", "also", "known", "as", "ansuon", "and",
+    "prednisone", "four", "of", "these",
+  ]);
+  const slide: SlideBeat = {
+    entryId: "overview",
+    sectionId: "overview",
+    startSeconds: 0,
+    headline: "R-CHOP",
+    body:
+      "The name comes from Rituximab, Cyclophosphamide, doxorubicin, which you might also hear called Hydroxydaunorubicin, vincristine, also known as Oncovin, and Prednisone. Four of these",
+    tags: [],
+    drugNames: ["Rituximab", "Cyclophosphamide", "Hydroxydaunorubicin", "Vincristine", "Prednisone"],
+  };
+  const plan: NarrationPlan = { script: slide.body, slides: [slide], totalSeconds: 27 };
+  const [result] = applyTimepoints(plan, aligned, 27).slides;
+  const reveals = result!.drugTagReveals!;
+  assert.equal(reveals.length, 5, "one reveal per drug name");
+  assert.equal(reveals[0], aligned[4]!.startSeconds, "Rituximab resolves directly");
+  assert.equal(reveals[1], aligned[5]!.startSeconds, "Cyclophosphamide resolves directly");
+  assert.equal(reveals[3], aligned[17]!.startSeconds, "Vincristine resolves directly");
+  assert.equal(reveals[4], aligned[23]!.startSeconds, "Prednisone resolves directly");
+  // Hydroxydaunorubicin never appears verbatim (STT garbled it into two
+  // unrelated tokens) — must be interpolated, not left null, and must land
+  // strictly between its resolved neighbors (Cyclophosphamide, Vincristine)
+  // in sequential order.
+  assert.ok(
+    reveals[2]! > reveals[1]! && reveals[2]! < reveals[3]!,
+    `unresolved drug tag should interpolate between neighbors, got ${reveals[2]}`,
+  );
+}
+
+// (h) Round-4 regression, found live against the real cached R-CHOP render:
+// `overview` is one long slide, so the first drug name commonly sits past
+// `MAX_1WORD_LOOKAHEAD` (40 words) from a fresh cursor, and a comma-packed
+// drug list ("Rituximab, Cyclophosphamide, ...") leaves no safe trailing
+// word before the *next* drug's own name — so the first real per-drug
+// anchor can be as short as the bare drug name, which fails outright this
+// far in without a lead-in anchor to advance the cursor first.
+{
+  const preamble = Array.from({ length: 50 }, (_, i) => `filler${i}`);
+  const aligned = alignedFrom([...preamble, "rituximab", "cyclophosphamide", "prednisone"]);
+  const slide: SlideBeat = {
+    entryId: "overview",
+    sectionId: "overview",
+    startSeconds: 0,
+    headline: "R-CHOP",
+    body: `${preamble.join(" ")} Rituximab, Cyclophosphamide, Prednisone.`,
+    tags: [],
+    drugNames: ["Rituximab", "Cyclophosphamide", "Prednisone"],
+  };
+  const plan: NarrationPlan = { script: slide.body, slides: [slide], totalSeconds: 53 };
+  const [result] = applyTimepoints(plan, aligned, 53).slides;
+  const reveals = result!.drugTagReveals!;
+  assert.equal(reveals[0], aligned[50]!.startSeconds, "Rituximab resolves despite sitting past the bare lookahead cap");
+  assert.equal(reveals[1], aligned[51]!.startSeconds, "Cyclophosphamide resolves directly");
+  assert.equal(reveals[2], aligned[52]!.startSeconds, "Prednisone resolves directly");
+}
+
 console.log("narration.test: ok");

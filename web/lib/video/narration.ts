@@ -27,6 +27,21 @@ export interface SlideBeat {
   /** Quote archetype (video_visual_system.md) pull-quote — threaded from
    * `ContentEntry.onScreen`, `patient_voices` quote entries only. */
   onScreen?: string;
+  /** `overview`'s headline-reveal beat (video_visual_system.md's Scene
+   * archetype, round 2 reorder): the real timestamp of "R-CHOP"'s first
+   * spoken mention, guard-checked by `applyTimepoints` — undefined when no
+   * confident early match was found, in which case the headline renders
+   * immediately (its original, pre-reorder behavior) instead of risking a
+   * mistimed reveal. */
+  headlineRevealSeconds?: number;
+  /** `overview`'s per-drug tag beat (round 4): the entry's own `drugNames`
+   * (`ContentEntry.drugNames`), threaded the same way `tags`/`tier` are.
+   * Undefined until content authoring backfills the field. */
+  drugNames?: string[];
+  /** One real (or interpolated-fallback) reveal timestamp per `drugNames`
+   * entry, same order — computed by `applyTimepoints`. Undefined until
+   * `drugNames` is set and timepoints have been applied. */
+  drugTagReveals?: number[];
 }
 
 export interface NarrationPlan {
@@ -97,6 +112,7 @@ export function buildNarrationPlanFromChunks(
       headline: entryHeadline(entry),
       body: chunk.text,
       tags: entry.tags,
+      drugNames: entry.drugNames,
       tier: entry.tier,
       call911: entry.call911,
       callTeam: entry.callTeam,
@@ -173,6 +189,7 @@ export function buildNarrationPlan(
       headline: entryHeadline(entry),
       body: text,
       tags: entry.tags,
+      drugNames: entry.drugNames,
       tier: entry.tier,
       call911: entry.call911,
       callTeam: entry.callTeam,
@@ -273,6 +290,167 @@ function findPhrase(haystack: string[], needle: string[], from: number, to: numb
  * and making the next slide appear to jump in early/skip content. A 3-word
  * run repeating by chance is far less likely.
  */
+// `overview`'s headline is meant to appear at "R-CHOP"'s *first* spoken
+// mention (round 2 reorder). Cloud Speech-to-Text always splits "R-CHOP"
+// into two separate words ("r", "chop") regardless of the script's hyphen,
+// and a garbled first mention ("our chop" — verified live against a real
+// R-CHOP render) makes a normal forward-scanning anchor match silently skip
+// past it and lock onto a later, correctly-heard occurrence instead — a real
+// mistiming, not a hypothetical. Deliberately not routed through
+// matchTiered/matchTimestamps' shared cursor: this is a one-off, tightly
+// scoped search for one literal two-word pair near the section's own start,
+// not a general anchor. Bounded to a short window after the section starts
+// (comfortably past where "R-CHOP" is actually spoken in every observed
+// render) so a garbled/missing first mention falls back to the slide's
+// default (immediate) headline timing rather than anchoring to the wrong
+// occurrence.
+const HEADLINE_GUARD_SECONDS = 10;
+
+function findOverviewHeadlineReveal(
+  alignedWords: { word: string; startSeconds: number }[],
+  sectionStartSeconds: number,
+): number | undefined {
+  const windowEnd = sectionStartSeconds + HEADLINE_GUARD_SECONDS;
+  for (let i = 0; i < alignedWords.length - 1; i++) {
+    const w = alignedWords[i]!;
+    if (w.startSeconds < sectionStartSeconds) continue;
+    if (w.startSeconds > windowEnd) break;
+    if (normalizeWord(w.word) === "r" && normalizeWord(alignedWords[i + 1]!.word) === "chop") {
+      return w.startSeconds;
+    }
+  }
+  return undefined;
+}
+
+// Round 2's approved candidate 2 for `overview`'s per-drug tag beat: reuse
+// the existing neighbor-context/corroboration matching (`matchTiered`, via
+// `matchTimestamps`) rather than any per-drug lookup/alias table — evidence
+// (docs/references/handoff-overview-timing.md) showed context words already
+// recover most drug names even when the name itself is mis-transcribed, and
+// a bare single-word anchor fails structurally regardless of transcription
+// quality. Anchor text is pulled from the slide's own actual narration prose
+// (the drug name's own real position in `slide.body`, plus a couple of
+// *trailing* words), not hand-written per regimen, so this works on any
+// regimen's drug names without per-regimen code.
+//
+// Deliberately trailing-only, never leading: the anchor's word 0 is always
+// the drug name's own first word, so a clean match lands exactly on the
+// drug's own utterance. Leading context was tried and rejected — it made
+// `matchTiered` return the *context* word's earlier position instead
+// (verified live: an anchor of "comes from Rituximab" resolved to "comes",
+// two words before Rituximab actually plays). When the drug name itself is
+// what's garbled, `matchTimestamps`' own existing skip-lead-word retry
+// (drops the anchor's own first word, tries the trailing words alone)
+// already recovers it — same mechanism round 1 observed rescue "Oncovin" via
+// "and Prednisone" right after it, with no extra code needed here.
+const DRUG_ANCHOR_CONTEXT_WORDS = 3;
+
+// Drug names are typically narrated back-to-back in a comma list ("Rituximab,
+// Cyclophosphamide, doxorubicin, ..."), so a trailing context window can
+// easily reach into the *next* drug's own name — verified live: an
+// unresolvable drug's anchor then skip-lead-retries onto trailing words that
+// turn out to be the next drug's name, landing both tags on the same
+// timestamp. `stopIndex` (the next drug's own body position, precomputed by
+// the caller) caps the window so that never happens, regardless of how
+// tightly a regimen's drug list is packed.
+function buildDrugAnchor(bodyWords: string[], bodyNormalized: string[], drugName: string, stopIndex: number): string {
+  const drugWords = drugName.split(/\s+/).filter(Boolean).map(normalizeWord).filter(Boolean);
+  const index = findPhrase(bodyNormalized, drugWords, 0);
+  // Drug name not found verbatim in this render's (possibly LLM-rewritten)
+  // prose — fall back to the bare name; still handled by matchTiered's own
+  // weak tiers, just without the extra context boost.
+  if (index === -1) return drugName;
+  const wordsEnd = index + drugWords.length;
+  const to = Math.max(wordsEnd, Math.min(bodyWords.length, stopIndex, wordsEnd + DRUG_ANCHOR_CONTEXT_WORDS));
+  return bodyWords.slice(index, to).join(" ");
+}
+
+/**
+ * Per-drug tag reveal timestamps for `overview`'s beat 3 (round 4) — one per
+ * `slide.drugNames` entry, same order. Whatever doesn't resolve confidently
+ * is interpolated evenly between its nearest resolved neighbors (or the
+ * slide's own start/end) instead of being left unplaced — same
+ * tolerance-for-imprecision fallback shape this file already uses for
+ * slide-level timing (the word-count estimate) and captions.ts uses for
+ * caption chunks (starting at the predecessor's end).
+ */
+function computeDrugTagReveals(
+  slide: SlideBeat,
+  sectionEndSeconds: number,
+  alignedWords: { word: string; startSeconds: number }[],
+): number[] {
+  const drugNames = slide.drugNames!;
+  const scoped = alignedWords.filter(
+    (w) => w.startSeconds >= slide.startSeconds && w.startSeconds < sectionEndSeconds,
+  );
+
+  const bodyWords = slide.body.split(/\s+/).filter(Boolean);
+  const bodyNormalized = bodyWords.map(normalizeWord);
+  // Each drug's own body position, in narration order — used both to build
+  // its anchor and to cap the *next* drug's trailing-context window so it
+  // can never swallow this one's name (see buildDrugAnchor).
+  const drugBodyIndexes = drugNames.map((name) => {
+    const words = name.split(/\s+/).filter(Boolean).map(normalizeWord).filter(Boolean);
+    return findPhrase(bodyNormalized, words, 0);
+  });
+  const anchors = drugNames.map((name, i) => {
+    const next = drugBodyIndexes[i + 1];
+    const stopIndex = next != null && next !== -1 ? next : bodyWords.length;
+    return buildDrugAnchor(bodyWords, bodyNormalized, name, stopIndex);
+  });
+
+  // `overview` is one long slide (no per-drug sub-beats), so the first drug
+  // name commonly sits well past the 1-word fallback tier's bounded
+  // lookahead from a fresh cursor — verified live: real R-CHOP narration
+  // puts "Rituximab" ~50 words in, past MAX_1WORD_LOOKAHEAD (40). A comma-
+  // packed drug list ("Rituximab, Cyclophosphamide, ...") also often leaves
+  // *no* safe trailing word before the next drug's own name, so the first
+  // anchor can be as short as the bare drug name. A throwaway lead-in
+  // anchor — real body prose right before the first drug name, using the
+  // same 3-8 word ambiguity-checked tier every other anchor in this file
+  // already relies on — advances the shared cursor close enough that every
+  // real per-drug anchor after it is comfortably inside the lookahead
+  // window. Its own match is discarded; only reveal timing for `drugNames`
+  // matters.
+  const LEAD_IN_WORDS = 8;
+  const firstDrugIndex = drugBodyIndexes[0];
+  const hasLeadIn = firstDrugIndex != null && firstDrugIndex > 0;
+  const leadInAnchor = hasLeadIn
+    ? bodyWords.slice(Math.max(0, firstDrugIndex! - LEAD_IN_WORDS), firstDrugIndex!).join(" ")
+    : null;
+
+  const rawMatches = matchTimestamps(
+    leadInAnchor ? [leadInAnchor, ...anchors] : anchors,
+    scoped.length > 0 ? scoped : alignedWords,
+  );
+  const matches = leadInAnchor ? rawMatches.slice(1) : rawMatches;
+
+  const reveals: (number | null)[] = [...matches];
+  // Fill every null by interpolating between its nearest resolved
+  // neighbors (or the slide's own start/end bounds), one contiguous run at
+  // a time, so an unresolved run spaces out evenly instead of collapsing
+  // onto a single bound.
+  let i = 0;
+  while (i < reveals.length) {
+    if (reveals[i] != null) {
+      i++;
+      continue;
+    }
+    let j = i;
+    while (j < reveals.length && reveals[j] == null) j++;
+    const lowerBound = i === 0 ? slide.startSeconds : reveals[i - 1]!;
+    const upperBound = j === reveals.length ? sectionEndSeconds : reveals[j]!;
+    const runLength = j - i;
+    for (let k = 0; k < runLength; k++) {
+      const t = (k + 1) / (runLength + 1);
+      reveals[i + k] = lowerBound + (upperBound - lowerBound) * t;
+    }
+    i = j;
+  }
+
+  return reveals as number[];
+}
+
 export function applyTimepoints(
   plan: NarrationPlan,
   alignedWords: { word: string; startSeconds: number }[],
@@ -312,10 +490,19 @@ export function applyTimepoints(
         `Illustration timing check: slide "${slide.entryId}" clamped from its matched cue ${matched.toFixed(2)}s to ${startSeconds.toFixed(2)}s (drift ${(startSeconds - matched).toFixed(2)}s) — its illustration may show during the wrong narration content.`,
       );
     }
+    if (slide.sectionId === "overview") {
+      return { ...slide, startSeconds, headlineRevealSeconds: findOverviewHeadlineReveal(alignedWords, startSeconds) };
+    }
     return { ...slide, startSeconds };
   });
 
-  return { ...plan, slides, totalSeconds: audioDurationSeconds };
+  const slidesWithDrugTags = slides.map((slide, i) => {
+    if (slide.sectionId !== "overview" || !slide.drugNames || slide.drugNames.length === 0) return slide;
+    const sectionEnd = slides[i + 1]?.startSeconds ?? audioDurationSeconds;
+    return { ...slide, drugTagReveals: computeDrugTagReveals(slide, sectionEnd, alignedWords) };
+  });
+
+  return { ...plan, slides: slidesWithDrugTags, totalSeconds: audioDurationSeconds };
 }
 
 /**

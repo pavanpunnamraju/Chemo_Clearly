@@ -88,6 +88,80 @@ const FadeIn: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return <div style={{ opacity, width: "100%", height: "100%" }}>{children}</div>;
 };
 
+/** Same short opacity fade as `FadeIn`, but without forcing `width/height:
+ * 100%` — `FadeIn` assumes it wraps a full section block with a defined
+ * height; `overview`'s headline-reveal beat (round 2 reorder) fades in an
+ * inline text block inside an auto-height, `position: absolute` container,
+ * where a 100%-height div would collapse to 0. */
+const HeadlineFadeIn: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const frame = useCurrentFrame();
+  const opacity = interpolate(frame, [0, SECTION_FADE_IN_FRAMES], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+  return <div style={{ opacity }}>{children}</div>;
+};
+
+/** `overview`'s per-drug tag beat (round 4 mechanism, round 6 styling) — a
+ * bold labeled tag, one per drug name, animating onto the IV line as its own
+ * name is spoken. Mounted unconditionally by the caller (one per
+ * `drugNames` entry, positioned by index — see `DRUG_TAG_CASCADE` below);
+ * `revealFrame` gates when it fades in, same `layout="none"` + small-fade
+ * approach as the headline reveal above (this container has no defined
+ * height either). `textTransform: uppercase` handles display casing
+ * generally (content-file `drugNames` values match source prose verbatim,
+ * including mid-sentence lowercase — round 5) — no per-word JS needed now
+ * that the reference styling calls for all-caps regardless. */
+const DrugTagChip: React.FC<{ name: string; revealFrame: number; top: string; right: string }> = ({
+  name,
+  revealFrame,
+  top,
+  right,
+}) => {
+  const chip = (
+    <div
+      style={{
+        position: "absolute",
+        top,
+        right,
+        padding: "10px 18px",
+        borderRadius: 8,
+        background: TEAL,
+        color: "#ffffff",
+        fontWeight: 800,
+        fontSize: 22,
+        textTransform: "uppercase",
+        letterSpacing: 0.5,
+        whiteSpace: "nowrap",
+      }}
+    >
+      {name}
+    </div>
+  );
+  if (revealFrame <= 0) return chip;
+  return (
+    <Sequence from={revealFrame} layout="none">
+      <HeadlineFadeIn>{chip}</HeadlineFadeIn>
+    </Sequence>
+  );
+};
+
+// Loose diagonal zigzag cascade down the frame's right side (reference
+// storyboard, round 6) — trends downward while alternating left/right, so it
+// reads as "down-and-slightly-right then back-left" rather than a straight
+// stack or scattered layout. Position-by-index, not a fixed list: works for
+// any drug count (5 for R-CHOP, 3 for AC-T) without regimen-specific code.
+// Ends above ~65% frame height, clear of the headline's own bottom-10% band.
+const DRUG_TAG_TOP_START = 16;
+const DRUG_TAG_TOP_STEP = 11;
+const DRUG_TAG_RIGHT_ZIGZAG = [18, 6] as const; // alternating right-offset (%), index parity picks one
+function drugTagCascadePosition(index: number): { top: string; right: string } {
+  return {
+    top: `${DRUG_TAG_TOP_START + index * DRUG_TAG_TOP_STEP}%`,
+    right: `${DRUG_TAG_RIGHT_ZIGZAG[index % 2]}%`,
+  };
+}
+
 // video_visual_system.md color principle — system-wide, not just the
 // illustration library. Teal = clinical/system-facing, coral = patient doing
 // something (agency), navy = patient passively experiencing something.
@@ -326,6 +400,10 @@ export const SlideVideo: React.FC<SlideVideoProps> = ({
                   headline={beat.headline}
                   tags={beat.tags}
                   indexInSection={sectionIndexes[i]!}
+                  startSeconds={beat.startSeconds}
+                  headlineRevealSeconds={beat.headlineRevealSeconds}
+                  drugNames={beat.drugNames}
+                  drugTagReveals={beat.drugTagReveals}
                 />
               </FadeIn>
             </Sequence>
@@ -439,7 +517,21 @@ const SceneSlide: React.FC<{
   headline: string;
   tags: string[];
   indexInSection: number;
-}> = ({ sectionId, headline, tags, indexInSection }) => {
+  startSeconds: number;
+  /** `overview`'s headline-reveal beat (round 2 reorder) — real timestamp of
+   * "R-CHOP"'s first spoken mention, computed by narration.ts's
+   * `applyTimepoints`. Undefined (guard failed, or not `overview`) renders
+   * the headline immediately, same as before the reorder. */
+  headlineRevealSeconds?: number;
+  /** `overview`'s per-drug tag beat (round 4) — one small labeled tag per
+   * drug name, each animating in at its own real (or interpolated-fallback)
+   * reveal time from `narration.ts`'s `applyTimepoints`. Either undefined
+   * (not `overview`, or content hasn't been authored with `drugNames` yet)
+   * — no tags render, same as before this beat existed. */
+  drugNames?: string[];
+  drugTagReveals?: number[];
+}> = ({ sectionId, headline, tags, indexInSection, startSeconds, headlineRevealSeconds, drugNames, drugTagReveals }) => {
+  const { fps } = useVideoConfig();
   const layout = SCENE_LAYOUT[sectionId]!;
   const twoLine = SCENE_FIXED_HEADLINES[sectionId];
 
@@ -492,6 +584,20 @@ const SceneSlide: React.FC<{
           }}
         />
       ) : null}
+      {sectionId === "overview" && drugNames && drugTagReveals
+        ? drugNames.map((name, i) => {
+            const { top, right } = drugTagCascadePosition(i);
+            return (
+              <DrugTagChip
+                key={name}
+                name={name}
+                top={top}
+                right={right}
+                revealFrame={Math.round(((drugTagReveals[i] ?? startSeconds) - startSeconds) * fps)}
+              />
+            );
+          })
+        : null}
       <div
         style={{
           position: "absolute",
@@ -501,18 +607,30 @@ const SceneSlide: React.FC<{
           textAlign: characterOnLeft ? "right" : "left",
         }}
       >
-        {twoLine ? (
-          <>
-            <div style={{ fontWeight: 800, fontSize: 52, lineHeight: 1.1, color: NAVY }}>{twoLine[0]}</div>
-            <div style={{ fontWeight: 700, fontSize: 34, lineHeight: 1.2, color: TEAL, marginTop: 8 }}>
-              {twoLine[1]}
+        {(() => {
+          const headlineNode = twoLine ? (
+            <>
+              <div style={{ fontWeight: 800, fontSize: 52, lineHeight: 1.1, color: NAVY }}>{twoLine[0]}</div>
+              <div style={{ fontWeight: 700, fontSize: 34, lineHeight: 1.2, color: TEAL, marginTop: 8 }}>
+                {twoLine[1]}
+              </div>
+            </>
+          ) : (
+            <div style={{ fontWeight: 800, fontSize: 38, lineHeight: 1.2, color: NAVY, overflowWrap: "break-word" }}>
+              {headlineText}
             </div>
-          </>
-        ) : (
-          <div style={{ fontWeight: 800, fontSize: 38, lineHeight: 1.2, color: NAVY, overflowWrap: "break-word" }}>
-            {headlineText}
-          </div>
-        )}
+          );
+
+          const revealFrame =
+            headlineRevealSeconds != null ? Math.round((headlineRevealSeconds - startSeconds) * fps) : 0;
+
+          if (revealFrame <= 0) return headlineNode;
+          return (
+            <Sequence from={revealFrame} layout="none">
+              <HeadlineFadeIn>{headlineNode}</HeadlineFadeIn>
+            </Sequence>
+          );
+        })()}
       </div>
     </AbsoluteFill>
   );
