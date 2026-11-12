@@ -72,10 +72,8 @@ export function toPersonalizationFilter(intake: Intake): PersonalizationFilter {
     // No patient topic selection anymore — always the full tag set, so
     // selection (lib/video/select.ts) includes every side effect.
     tags: [...TOPIC_TAGS],
-    // "basic" education level gets plain-language only; some_college/advanced
-    // get detail too if the patient asked for the detailed depth preference.
-    // Short-depth patients always get plain-only regardless of education level.
-    includeDetail: intake.depthPreference === "detailed" && intake.educationLevel !== "basic",
+    // Amount of information and language complexity are independent choices.
+    includeDetail: intake.depthPreference === "detailed",
     voiceTone: intake.voiceTone,
     educationLevel: intake.educationLevel,
   };

@@ -92,6 +92,43 @@ Each section body is written in two layers:
 This is the concrete hook for "education level" from intake — low education level shows
 `plain` only, higher shows `plain` + `detail` expandable.
 
+## `daily_life` sub-entries
+
+`daily_life`'s Exercise/Driving/Intimacy/Helpful-routines content (currently bold inline
+labels in both `rchop.md` and `act.md`) becomes `###` sub-entries — the exact same shape
+`side_effects` already uses. No parser change is needed: `parse.ts`'s
+`parseRegimenContent`/`parseEntry` already handle any section's `###` sub-headers
+generically. This turns a parser gap into a content-doc formatting fix, which is what keeps
+the parser's field vocabulary regimen-general instead of growing a `daily_life`-only
+allowance.
+
+Per sub-entry:
+
+```
+name: string      (### header text — Exercise | Driving | Intimacy | Helpful routines)
+tags: [topic tags]
+plain: string      (narrate-eligible — same default as every other `plain` field in this
+                    schema; daily_life's sub-entries are short practical guidance meant to
+                    be heard, not captions, so none of the four need a visual-only field.
+                    No `tier` field: these are practical-life items, not a severity-triaged
+                    catalog like side_effects/emergency.)
+source: source id(s)   (optional per sub-entry — omit if it matches the section's overall
+                        source line)
+```
+
+The section-level intro paragraph (today's unlabeled opening `**plain:**`) stays exactly as
+it parses today: an unnamed entry captured from the text before the first `###`. Its
+`call_team_if`/`source` fields should sit right after that intro paragraph and before the
+first `### Exercise` (currently they trail after "Helpful routines" in both docs — move them
+up during the content-doc rewrite, since they apply to the whole section, not to one
+sub-entry).
+
+**Schema rule for `Intimacy` specifically** (not just this entry's wording — a standing rule
+so every future regimen follows it too): its `plain` field must be a short pointer only (one
+sentence — intimacy is generally safe, see `fertility_intimacy`). Any substantive detail
+(barrier-method/bodily-fluid specifics, timing) belongs in `fertility_intimacy`'s
+`plain`/`detail`, never restated in `daily_life`.
+
 ## Per-entry fields (side_effects, emergency)
 
 ```

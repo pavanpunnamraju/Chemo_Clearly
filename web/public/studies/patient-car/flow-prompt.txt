@@ -1,0 +1,11 @@
+Animate the exact supplied reference illustration. This is the actual artwork to animate, not inspiration for a new drawing. Preserve both existing characters, their faces, hairstyles, proportions, clothing, colors, outlines, and shading. Preserve the exact car, seat belts, steering wheel, trees, clouds, and background. Do not replace or redesign any character or object.
+
+Use 16:9 landscape and exactly the supplied framing. The camera is completely locked throughout: no zoom, pan, tilt, roll, tracking, shake, reframing, perspective changes, or cuts. Keep every object at its original scale.
+
+Show a quiet moment in a parked car before departure. The woman in the passenger seat on the LEFT side of the image gives one small, relaxed nod while keeping her existing gaze toward the driver: lower her chin slightly, then smoothly return to her exact starting head position. Include one brief natural blink. Keep her neck connected and shoulders, torso, clothing, and seat belt still. The nod is a gentle acknowledgment, not nodding off, dizziness, or fatigue. Keep her mouth still; no speaking.
+
+The man in the driver’s seat on the RIGHT remains facing forward in his original pose, with both hands continuously resting on the same parts of the steering wheel. Keep his expression, hands, arms, and seat belt unchanged. Do not turn the wheel.
+
+The car is completely stationary. No wheel rotation, bouncing, rocking, vibration, forward travel, or passing scenery. Keep all trees and the large peach background shape fixed. Only the existing outlined clouds gently oscillate horizontally around their original positions. Make one small, slow side-to-side cycle with smooth easing at each turnaround, then return exactly to their starting positions by the end of the clip. Keep the movement subtle, preserve each cloud’s exact shape and size, and keep every cloud inside the frame. No cumulative drifting, vertical bobbing, rotation, or scaling. Do not add clouds, wind streaks, or other effects.
+
+Start with a short still pause, perform the small nod smoothly and unhurriedly, then return both characters to their original reference poses and hold for the final two seconds. Make no additional gestures. Preserve clean, connected anatomy without morphing, stretching, or newly invented details. Add no text, objects, dialogue, or music.

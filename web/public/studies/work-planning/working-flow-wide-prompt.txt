@@ -1,0 +1,10 @@
+Animate only the exact woman in this supplied wide illustration. This is a fixed 16:9 landscape shot. Preserve the supplied framing, scale, white space and camera viewpoint for the entire clip. Keep the complete woman and chair visible, including both hands, both elbows and both shoes at every moment. Use the empty space already supplied for her movement; do not zoom in, auto-reframe, pan, rotate the camera or crop the image.
+
+Preserve her exact identity, face, hairstyle, skin color, body proportions, coral patterned shirt, trousers, shoes and flat vector illustration style. Keep the chair, gray background shape and floor line completely stationary and unchanged.
+
+0–1 seconds: hold the original seated working pose.
+1–4 seconds: smoothly lift both arms outward and upward until both hands are clearly ABOVE the crown, with visible space between hands and hair. Let her hips slide gently forward along the seat, staying supported. Keep the wrists relaxed and aligned with the forearms.
+4–6 seconds: bring the hands together, then lower them BEHIND her head so the fingers are hidden behind the hair and the elbows rest outward. Gently recline her torso toward image-right and tilt her head slightly upward into a comfortable supported stretch. Extend the leg whose shoe originally rested on the floor forward toward image-left; keep the other leg naturally bent. Keep both complete shoes visible within the wide image. Preserve the original limb lengths and the connection between pelvis and seat.
+6–8 seconds: settle smoothly and hold the relaxed hands-behind-head pose.
+
+Hair moves only with her head as one intact shape: no fluttering, spreading or unnecessary hair motion. Keep shoulders, elbows and wrists connected throughout. Keep the face visible. The chair remains fixed and never changes shape. Do not add objects, scenery, text, dialogue or music. Animate this existing illustration only; do not replace the character or invent a new scene.

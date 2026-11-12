@@ -4,6 +4,15 @@ Stack, tools, APIs, and credentials. Update when a tool/service choice
 changes; this is the reference for "how it's built," not "what it does" (see
 `product_requirements.md`) or "when" (see `implementation_plan.md`).
 
+## Current workflow boundary — 2026-10-17
+
+This document includes legacy app/slide-generation infrastructure. Active video
+work uses the separate [directed pipeline](directed-video-pipeline.md): local CTC
+forced alignment follows independent actual-speech checks. The Cloud Speech
+anchor-matching description below concerns the legacy slide path; it is not the
+current directed timing contract. See [alignment contract](../web/lib/video/ALIGNMENT.md).
+Patient-app integration and deployment are outside the current R-CHOP milestone.
+
 ## Stack
 
 - **App framework**: Next.js (App Router, TypeScript)
@@ -82,7 +91,7 @@ set in `web/.env.local` against a live Supabase project — Phase 1 goal #7
 
 - **Supabase project**: provisioned and live, schema applied
   (`web/supabase/schema.sql`, including `voice_tone` on `intake_responses`).
-- **GCP project** (`chemo-education-project`): provisioned, service-account
+- **GCP project** (configured locally): provisioned, service-account
   credentials set. Cloud Speech-to-Text API and Vertex AI API
   (`aiplatform.googleapis.com`) both enabled and verified with real calls.
 - **Google AI Studio**: no longer used — retired in favor of Vertex AI (see

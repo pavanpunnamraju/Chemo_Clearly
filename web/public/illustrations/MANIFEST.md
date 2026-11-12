@@ -16,6 +16,7 @@ credit link where practical, so one is included per collection below.
 | `daily_life/daily_life__healthy-lifestyle-bro.svg` | daily_life | https://storyset.com/illustration/healthy-lifestyle/bro | [People illustrations by Storyset](https://storyset.com/people) |
 | `daily_life/daily_life__training-at-home-pana.svg` | daily_life | https://storyset.com/illustration/training-at-home/pana | [Home illustrations by Storyset](https://storyset.com/home) |
 | `daily_life/daily_life__stretching-exercises-bro.svg` | daily_life | https://storyset.com/illustration/stretching-exercises/bro | [Home illustrations by Storyset](https://storyset.com/home) |
+| `daily_life/daily_life__car-driving-bro.svg` | daily_life | https://storyset.com/illustration/car-driving/bro *(recolored — fills changed to coral `#FF6B4A` per the color principle, Driving is a patient-doing-something/agency moment; outline `#263238` kept, matches the other 3 daily_life SVGs)* | [Driving illustrations by Storyset](https://storyset.com/driving) |
 | `side_effects/side_effects__tiredness-pana.svg` | side_effects | https://storyset.com/illustration/tiredness/pana | [Worker illustrations by Storyset](https://storyset.com/worker) |
 | `side_effects/side_effects__stress-bro.svg` | side_effects | https://storyset.com/illustration/stress/bro | [People illustrations by Storyset](https://storyset.com/people) |
 | `side_effects/side_effects__sleep-analysis-pana.svg` | side_effects | https://storyset.com/illustration/sleep-analysis/pana | [Data illustrations by Storyset](https://storyset.com/data) |
@@ -58,7 +59,7 @@ Standing principle for all Storyset downloads, current and future — see
 - **Navy** — patient shown *experiencing* something passively/difficult,
   used sparingly.
 
-All 29 files are correct as downloaded under the settled color principle
+All 30 files are correct as downloaded under the settled color principle
 above, with two documented exceptions: `side_effects/
 side_effects__sleep-analysis-pana.svg` was re-exported to navy `#1C2B45`
 (from Storyset's default teal `#2FBFA0`), since it depicts the patient

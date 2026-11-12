@@ -1,0 +1,21 @@
+import assert from "node:assert/strict";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { objectDigest, readStage, saveStage, implementationDigest } from "./stage-cache";
+
+const root = mkdtempSync(path.join(os.tmpdir(), "chemo-cache-test-"));
+const key = objectDigest({ source: "source", voice: "friendly" });
+assert.equal(readStage(root, "test", key), null);
+saveStage(root, "test", key, { script: "Checked narration." });
+assert.deepEqual(readStage(root, "test", key), { script: "Checked narration." });
+const filename = path.join(root, "test", `${key}.json`);
+const cached = JSON.parse(readFileSync(filename, "utf8"));
+cached.value.script = "Accidentally edited narration.";
+writeFileSync(filename, JSON.stringify(cached));
+assert.equal(readStage(root, "test", key), null, "changed payload must not retain checked status");
+writeFileSync(filename, "{partial");
+assert.equal(readStage(root, "test", key), null, "interrupted cache writes cannot be read");
+assert.notEqual(objectDigest({ selfCare: "call today" }), objectDigest({ selfCare: "call immediately" }));
+assert.notEqual(implementationDigest(["rewrite.ts"]), implementationDigest(["tts.ts"]));
+console.log("stage-cache.test: ok");

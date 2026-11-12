@@ -2,14 +2,8 @@ import { SECTION_IDS, type ContentEntry, type RegimenContent } from "../content/
 import type { PersonalizationFilter } from "../intake/schema";
 import { getGenAIClient } from "../gemini/client";
 
-// Phase 1 goal 3's agentic layer. GUARDRAIL: this step only ever returns a
-// list of entry ids drawn from the ids it was given — it never generates or
-// rewrites narration text. Narration assembly (narration.ts) pulls the actual
-// `plain`/`detail` text verbatim from the parsed, human-approved content.
-// That makes it structurally impossible for this step to introduce a fact,
-// claim, or phrasing outside the canonical content, regardless of what the
-// model outputs — we validate its output is a subset of the known id set and
-// otherwise ignore/reject it.
+// Selection can order source IDs; it cannot generate text or reduce coverage.
+// This protects entry coverage only. Narration fidelity is checked separately.
 
 export interface SelectionResult {
   entryIds: string[];
@@ -17,21 +11,23 @@ export interface SelectionResult {
   method: "gemini" | "fallback";
 }
 
-// Phase 2a goal 1: sections spoken in the narrated video. `practical_life`
-// and `big_picture` stay in the .md content for reading but are dropped from
-// narration — reference prose, not something read aloud end-to-end. This
-// replaces the old tag-matching filter, which went dead once
-// `PersonalizationFilter.tags` became the full taxonomy for every patient
-// (2026-08-10 topics-removal amendment).
-export const NARRATED_SECTIONS = new Set<string>([
-  "overview",
-  "timeline",
-  "daily_life",
-  "side_effects",
-  "fertility_intimacy",
-  "emergency",
-  "patient_voices",
-]);
+// Approved directed-video scope: every source section is mandatory.
+export const NARRATED_SECTIONS = new Set<string>(SECTION_IDS);
+
+export function hasExactEntryCoverage(ids: string[], entries: ContentEntry[]): boolean {
+  const expected = new Set(entries.map((entry) => entry.id));
+  return expected.size === entries.length && ids.length === expected.size &&
+    new Set(ids).size === ids.length && ids.every((id) => expected.has(id));
+}
+
+export function deterministicSourceSelection(content: RegimenContent): SelectionResult {
+  const sections = new Set(content.entries.map((entry) => entry.sectionId));
+  const missing = SECTION_IDS.filter((id) => !sections.has(id));
+  if (missing.length) throw new Error(`Source content is missing required sections: ${missing.join(", ")}`);
+  const ids = deterministicSelect(content.entries);
+  if (!hasExactEntryCoverage(ids, content.entries)) throw new Error("Source content has duplicate IDs or unsupported sections.");
+  return { entryIds: ids, method: "fallback" };
+}
 
 function narratedEntries(content: RegimenContent): ContentEntry[] {
   return content.entries.filter((e) => NARRATED_SECTIONS.has(e.sectionId));
@@ -62,7 +58,7 @@ function buildGeminiPrompt(entries: ContentEntry[]): string {
   }));
 
   return [
-    "You are ordering which pre-approved patient-education content entries appear",
+    "You are ordering supplied patient-education source entries",
     "in a narrated video. The catalog below is already scoped to what's meant to",
     "be narrated — you must cover everything in it, in full — you are NOT",
     "filtering or trimming content, only choosing the order. You are NOT writing",
@@ -99,9 +95,7 @@ async function geminiSelect(entries: ContentEntry[]): Promise<string[] | null> {
   }
   if (!Array.isArray(parsed) || !parsed.every((x) => typeof x === "string")) return null;
 
-  const knownIds = new Set(entries.map((e) => e.id));
-  const validated = parsed.filter((id): id is string => knownIds.has(id));
-  return validated.length > 0 ? validated : null;
+  return hasExactEntryCoverage(parsed, entries) ? parsed : null;
 }
 
 export async function selectContent(
@@ -113,16 +107,17 @@ export async function selectContent(
   _filter: PersonalizationFilter,
 ): Promise<SelectionResult> {
   const entries = narratedEntries(content);
+  const fallback = deterministicSourceSelection(content);
   try {
     const geminiIds = await geminiSelect(entries);
     // Video must always cover every entry in the narrated scope — if Gemini
     // dropped any (despite being told not to), fall back to the
     // deterministic path, which always includes everything.
-    if (geminiIds && geminiIds.length === entries.length) {
+    if (geminiIds && hasExactEntryCoverage(geminiIds, entries)) {
       return { entryIds: geminiIds, method: "gemini" };
     }
   } catch (err) {
     console.warn("Gemini selection call failed, falling back to deterministic filter:", err);
   }
-  return { entryIds: deterministicSelect(entries), method: "fallback" };
+  return fallback;
 }

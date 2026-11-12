@@ -1,5 +1,15 @@
 # Agentic Design, Live
 
+## Scope — clarified 2026-10-17
+
+This describes the legacy app pipeline's intended agent responsibilities, not the
+active directed-video implementation or evidence of clinical approval. The current
+local workflow adds source-packet review, actual-speech verification, acoustic
+timing and source-bound direction; see [directed pipeline](directed-video-pipeline.md)
+and [active R-CHOP scope](plans/rchop-v1.md). Current source documents are not
+established as clinically approved. Safety/coverage statements below express
+requirements; automated checks do not guarantee a safe or clinically reviewed video.
+
 ## Overview
 
 This system turns pre-approved, clinically reviewed patient education content into a personalized narrated video. Four AI agents make judgment calls in the pipeline, in this order: Content Selector picks what to include, Narration Rewriter turns it into a spoken script, Safety Critic double-checks that script, Component Timing Placer times the on-screen icons. Everything else in the pipeline (voice synthesis, audio to text alignment) is mechanical execution, not judgment, so it is not listed here as an agent.

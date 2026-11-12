@@ -16,6 +16,12 @@ import { getGenAIClient } from "../gemini/client";
 const MODEL = "gemini-2.5-flash-preview-tts";
 const VOICE_NAME = "Kore";
 
+/** Orthographic expansion only: captions/source keep the original regimen id.
+ * Explicit letter boundaries prevent the generative voice dropping AC-T's T. */
+export function speechSurface(script: string): string {
+  return script.replace(/\bAC-T\b/g, "A C T").replace(/\bR-CHOP\b/g, "R CHOP");
+}
+
 // Subtle inflection differences per voiceTone (schema.ts), not caricatures.
 const VOICE_TONE_STYLES: Record<string, string> = {
   neutral: "Say in a calm, clear, informative tone:",
@@ -75,7 +81,17 @@ export async function synthesizeNarration(script: string, voiceTone: string): Pr
   const style = VOICE_TONE_STYLES[voiceTone] ?? VOICE_TONE_STYLES.neutral;
   const response = await ai.models.generateContent({
     model: MODEL,
-    contents: [{ role: "user", parts: [{ text: `${style} ${script}` }] }],
+    contents: [{ role: "user", parts: [{ text: [
+      style,
+      "Read ONLY the narration below, exactly as written. Do not add, omit, summarize or substitute words, even when a different medical term seems more familiar.",
+      "Speak each letter in A C T, including the final T. Speak R CHOP as the letter R followed by chop.",
+      // Pronunciation spellings from the NCI Dictionary of Cancer Terms:
+      // /def/rituximab, /def/prednisone, /def/cyclophosphamide,
+      // /def/doxorubicin-hydrochloride, /def/vincristine-sulfate.
+      "Pronunciation guide (not additional narration): rituximab = rih-TUK-sih-mab; prednisone = PRED-nih-sone; cyclophosphamide = SY-kloh-FOS-fuh-mide; doxorubicin = DOK-soh-ROO-bih-sin; vincristine = vin-KRIS-teen. Prednisone is not prednisolone. Use only the names actually present in the narration.",
+      "Use a measured, conversational pace with natural pauses between sentences and drug names. Instructions above are not part of the spoken narration.",
+      `NARRATION:\n${speechSurface(script)}`,
+    ].join("\n") }] }],
     config: {
       responseModalities: [Modality.AUDIO],
       speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE_NAME } } },

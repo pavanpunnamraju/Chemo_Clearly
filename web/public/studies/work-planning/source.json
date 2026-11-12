@@ -1,0 +1,37 @@
+{
+  "sourcePage": "https://storyset.com/illustration/working/pana",
+  "download": "https://stories.freepiklabs.com/storage/1404/Working-01.svg",
+  "sha256": "995d9c41bff8938c57f5724fe53c5149eb08fe4e1c3e698b67570e8c9b4a5078",
+  "attribution": "Illustration by Storyset / Freepik",
+  "license": "https://storyset.com/terms",
+  "status": "Full work-to-relax Flow room composition approved 2026-10-16, including0.5s overhead pause trim. Static SVG remains source; production library integration pending.",
+  "review": {
+    "humanApproval": "approved-static-human",
+    "approval": {
+      "date": "2026-10-12",
+      "userApproval": "works, lets use this and now replace this in the full svg",
+      "scope": "Static human v6 approval and authorization to use it in full working SVG. Not approval of subsequent animation or full-video integration.",
+      "previewSha256": "d9cfd47a9c466c2f744ab2d8d674cfb397dad426ef35a8769d878c120d56ee87",
+      "closeupSha256": "35287831ba0a3e3712df153011ab153a7b55fd54d86b017031811b47a0b1e1a5",
+      "runtimeSha256": "11e6f3cddf6f5f6e8de584c612d18f7afdc4b30991cd15142b8cade0f85e1a4d",
+      "humanSceneSha256": "7d2bdcdb19035c341e94ad052930dfe63cb31cc7e587bb8f38cab464665693a7"
+    }
+  },
+  "derivedAssets": {
+    "working-typing.svg": "11e6f3cddf6f5f6e8de584c612d18f7afdc4b30991cd15142b8cade0f85e1a4d",
+    "working-typing-no-desk.svg": "7d2bdcdb19035c341e94ad052930dfe63cb31cc7e587bb8f38cab464665693a7"
+  },
+  "activeApprovedAssets": {
+    "fullScene": {
+      "path": "working-typing-straight-sleeve.svg",
+      "sha256": "f5855ae37922acffaccf882d14e0a251d51c5bfc26b1d016df3e63104544389f"
+    },
+    "isolated": {
+      "path": "working-typing-straight-sleeve-no-desk.svg",
+      "sha256": "c3b68d90ee2f7b7cacdbf483d8fe23a8efc3b6e91c38179136d0dc38140390ae"
+    },
+    "approvalRecord": "care-work-plan-straight-sleeve-and-ownership",
+    "preparation": "WorkPlanningArmatureRevision.ts"
+  },
+  "approvedFlowScene": "care-work-plan-flow-final-scene"
+}

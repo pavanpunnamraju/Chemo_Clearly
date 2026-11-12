@@ -1,0 +1,12 @@
+{
+  "asset": "context-support",
+  "reference": "support-flow-wide-start.png",
+  "referenceSha256": "942c648a31d348f60426fdb8f0e63dee69fd770bddcf01477afcc758002d8bb8",
+  "originalSource": "illustrations/fertility_intimacy/fertility_intimacy__family-bro.svg",
+  "preparation": "Existing library removes child and background groups; complete remaining artwork fitted into 1920x1080 white canvas.",
+  "status": "Supplied Flow character motion approved; coded hearts and narrated integration pending.",
+  "workflow": "Flow character motion, then deterministic heart overlay after verified contact.",
+  "approvedSource": "support-flow-approved.mp4",
+  "approvedSourceSha256": "31a36fc7481b3375d907dd3d908e5c00fc2566101e359301d1912cedf80d4f3f",
+  "suppliedFilename": "Animate_illustration_of_embracin\u2026_1080p_20261019164357.mp4"
+}
