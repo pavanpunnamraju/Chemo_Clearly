@@ -2,6 +2,7 @@ node_modules
 .next
 out
 .demo-cache
+.video-cache
 *.local
 .env*.local
 .DS_Store

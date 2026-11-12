@@ -1,0 +1,19 @@
+{
+  "source": "web/public/illustrations/daily_life/daily_life__car-driving-bro.svg",
+  "sourceSha256": "159599083a9e161cf5a579c63702a2e21f475136295d266f3811b366ed31d697",
+  "reference": "car-flow-wide-start.png",
+  "referenceSha256": "7c8dcc789acdda20f42974901ad6d1cc8b3cd49a233b8c3e24105e9e5b8d9823",
+  "width": 1920,
+  "height": 1080,
+  "preparation": "Complete original SVG rasterized to 1620x1080 and centered at x150 y0 on a 1920x1080 white canvas. No crop, distortion or artwork changes.",
+  "prompt": "flow-prompt.txt",
+  "status": "Supplied animation visually approved by Pavan 2026-10-19. Final scene integration pending.",
+  "generatedSource": "car-flow-approved.mp4",
+  "generatedSourceSha256": "1207ede13934c4b51e0980f6300cb2fa05dc03ad18ff09fe98bc9c42eb9e5e5a",
+  "userApproval": "Here, looks good to me",
+  "integrationAudio": "Mute generated audio; preserve narration clock.",
+  "loopStatus": "Derived 10-second repeatable runtime prepared for Pavan review; loop approval pending.",
+  "loopRuntime": "car-flow-loop.mp4",
+  "loopRuntimeSha256": "df90ecd1b2e6553e8a2b003c81729f821cd68c4fcdfdc1140251ea9d745f2a90",
+  "loopEdit": "car-loop-edit.json"
+}

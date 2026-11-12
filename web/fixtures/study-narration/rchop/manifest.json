@@ -1,0 +1,207 @@
+{
+  "version": 1,
+  "variantKey": "52fdc5ea7212847e99ce91240720e9dd27b7107c0a0a1d93b979561f22364d59",
+  "intake": {
+    "regimenId": "rchop",
+    "educationLevel": "some_college",
+    "depthPreference": "short",
+    "voiceTone": "friendly"
+  },
+  "sourceDigest": "970b82cfe2599acc3582b796ae9595a4ff08dbbff2accd4dd4862a17505928e0",
+  "audioDigest": "a019d2399858f32bb45d2b48aec6f6e8237f1c0d4e014469c0a64941cccca504",
+  "files": {
+    "narration.wav": "a019d2399858f32bb45d2b48aec6f6e8237f1c0d4e014469c0a64941cccca504",
+    "narration.txt": "18b8dda8a1cbbbc55cf2a9762ebc584fc1a5407f96b7c71b0ba79b7a00a6ce5b",
+    "captions.vtt": "28d5bd06ef75c5a8fe19a6fb21232b2327a77e37abdba14005b6c045121e04ee",
+    "captions.json": "beddefc4ae697efefe0dad27ee4571eea2f8c72085b4150d3e58ad9af3f0effe",
+    "storyboard.json": "1c84a952d45d4915c5df50d0d81157a718f97a284ad7824475b7d6f58fa4f35d",
+    "timing.json": "d72d7ea40c6cc894e7468c029881414162026cf2a56285665680dfc4a7863e72",
+    "acoustic-review.json": "46db609ed85cc65dfffd17f9d48d548e779c2022676d940c843313d157f4f3f3",
+    "speech-review.json": "6d9c485ea8a66a432d52774a953f5374469b78b7ff5d0f6948d21006bef3b75b",
+    "props.json": "b2f17004ec296401f6b79edbe865d12308f9f04135a30863399bda3d9e96e800"
+  },
+  "stageKeys": [
+    {
+      "sectionId": "overview",
+      "narrationKey": "9d36b1aefdfefcd8cc3a893e11611d5ac90e4c1bd165ec8f548ce6de2bd93127",
+      "audioKey": "e81a709549cb5d0767ab181e42942e474faaa0db90fbdff6986da760a92123b5",
+      "alignmentKey": "5e42bb2362d41eb4e3fc0b0863408bc10801ccbe288d020ac6ab02e62ab6445e",
+      "speechReviewVersion": "8489a5a1043aecb7d7300c6cfc707e528b4fe9ba07a683206954e8b58cfd4b02"
+    },
+    {
+      "sectionId": "timeline",
+      "narrationKey": "e64e039901c71175e921c1ca9ce530e16d18b969c06bd2e317b5180992a024dc",
+      "audioKey": "98f88613a0848ec25196a0827b1ff33efb99dc8736f1f15f22c24bb2d003198b",
+      "alignmentKey": "0844c46bdd15d70aeedfe6febbc0009d2e9e703a94760b0689dc2cf7acd48b15",
+      "speechReviewVersion": "8489a5a1043aecb7d7300c6cfc707e528b4fe9ba07a683206954e8b58cfd4b02"
+    },
+    {
+      "sectionId": "daily_life",
+      "narrationKey": "3bc4e98a467022ccc04766f86a4d9de497fe24e95240b31fc1242e0c33a7019a",
+      "audioKey": "990ac441d33c38f314e0e0356e879f28b1984eacb1b688c314c61fecf096dba2",
+      "alignmentKey": "dea5890f04879d63e5399f734726262a0299e3f841647ef51236ff44f49899af",
+      "speechReviewVersion": "8489a5a1043aecb7d7300c6cfc707e528b4fe9ba07a683206954e8b58cfd4b02"
+    },
+    {
+      "sectionId": "side_effects",
+      "narrationKey": "6fc255c9b6c0ae5ed8f98236af76e144e79d70daeb44572181e2c0a977d5169f",
+      "audioKey": "1ef85ebc3435eea751e0366a2f074642bf911fed63aae2927ce6cb4c384950d7",
+      "alignmentKey": "1ccc5948923a7661c9db8f992ddf30a704beeb90021334819ef3387de3aaa22b",
+      "speechReviewVersion": "8489a5a1043aecb7d7300c6cfc707e528b4fe9ba07a683206954e8b58cfd4b02"
+    },
+    {
+      "sectionId": "emergency",
+      "narrationKey": "1f3dd32b6edfb336e817485475f247713f68fedf0b18f789ee56b0ffc5eb7ea9",
+      "audioKey": "2a31153aed28d70351ed03dcbfc2ecc44ec8a065ef2394e6df10ce290f56a928",
+      "alignmentKey": "2c8eed04aeb0dba83fc378e48893d7caadc4af7ff3d93d8751d81ece3bd925f5",
+      "speechReviewVersion": "8489a5a1043aecb7d7300c6cfc707e528b4fe9ba07a683206954e8b58cfd4b02"
+    },
+    {
+      "sectionId": "fertility_intimacy",
+      "narrationKey": "43d1ba05e037d87f6c6b559ed1380d2ec60ee4007c3339e4501142f7ea9196c1",
+      "audioKey": "d6367de604e063b6688f17e88600fda3f4ebb98c7599ca69de03619080c346a4",
+      "alignmentKey": "b4949a3f6047d00919e411cd5b1f2a61adb8dcb1a8e57fb688ea3a23ccbebbaa",
+      "speechReviewVersion": "8489a5a1043aecb7d7300c6cfc707e528b4fe9ba07a683206954e8b58cfd4b02"
+    },
+    {
+      "sectionId": "practical_life",
+      "narrationKey": "1c1a02d9aba8336a9ae74dac3b04c66f4033b81287dfc467ca8bf2db84a52163",
+      "audioKey": "446e60d4b89bfe91f22122cd536beb8cda44050d67527d4bca8bf471c5dbae77",
+      "alignmentKey": "4fdc56018bea22d3de8a287198dc3b0e28a81a30ddeba0cd6268230e921115c7",
+      "speechReviewVersion": "8489a5a1043aecb7d7300c6cfc707e528b4fe9ba07a683206954e8b58cfd4b02"
+    },
+    {
+      "sectionId": "patient_voices",
+      "narrationKey": "21ea16551ac176d4abbb19699650d9b6a2b3457fbaa971eaf6f095c18eecbd79",
+      "audioKey": "2602ff07a4593b51189292bd1593de85d192d7fda94b705d5d1c7332d0c3ae9c",
+      "alignmentKey": "1ad91e329d26c52b799466e69a623c8585bd5bda1fe9d4262fa0c73e08b72da2",
+      "speechReviewVersion": "8489a5a1043aecb7d7300c6cfc707e528b4fe9ba07a683206954e8b58cfd4b02"
+    },
+    {
+      "sectionId": "big_picture",
+      "narrationKey": "35306ac0bbf57bc5d4c8a3fb63fa0f912dca58fdcb6b7981b94b0aecd86c8539",
+      "audioKey": "dba9a082fb5b792c045789fda3197f6f07af244df9a6bcff2bb431b443c6fd01",
+      "alignmentKey": "3c74948689085dd89ab4edb31d370de797f8394cc3c1d2ee014ffc5c50608ce2",
+      "speechReviewVersion": "8489a5a1043aecb7d7300c6cfc707e528b4fe9ba07a683206954e8b58cfd4b02"
+    }
+  ],
+  "directionKey": "bc15143b1ee8feed614bf18a8cdaf295fdc33abd8c89ae13e36c5497ecb3c93e",
+  "durationSeconds": 1033.6649166666666,
+  "checkerVersions": {
+    "rewriteVersion": "0fdb0007acf14c5b8ff257130bec81ca6c20f85f4b839f13eaf70b2d4f03d81b",
+    "voiceVersion": "b3995b39b5594179fb889677bce6e666402a52ec97ae1e05ce1eb215b81bc292",
+    "alignmentVersion": "f65aa43ecd4bf811bcc82679ed758683615899e8fc1665fbdd72ad64845db507",
+    "speechReviewVersion": "8489a5a1043aecb7d7300c6cfc707e528b4fe9ba07a683206954e8b58cfd4b02"
+  },
+  "sections": [
+    "overview",
+    "timeline",
+    "daily_life",
+    "side_effects",
+    "emergency",
+    "fertility_intimacy",
+    "practical_life",
+    "patient_voices",
+    "big_picture"
+  ],
+  "entryIds": [
+    "overview",
+    "timeline",
+    "timeline.day-1",
+    "timeline.days-2-5",
+    "timeline.roughly-days-7-10",
+    "timeline.days-11-21",
+    "daily_life",
+    "daily_life.exercise",
+    "daily_life.driving",
+    "daily_life.intimacy",
+    "daily_life.helpful-routines",
+    "side_effects",
+    "side_effects.low-white-blood-cells-infection-risk",
+    "side_effects.low-platelets-bruising-and-bleeding",
+    "side_effects.low-red-blood-cells-anemia",
+    "side_effects.nausea-and-vomiting",
+    "side_effects.mouth-sores",
+    "side_effects.diarrhea-constipation",
+    "side_effects.nerve-tingling-numbness",
+    "side_effects.hair-loss",
+    "side_effects.bladder-irritation",
+    "side_effects.steroid-effects",
+    "emergency.about-this-list",
+    "emergency.fever-during-your-low-blood-cell-window",
+    "emergency.infusion-reaction",
+    "emergency.serious-allergic-or-skin-reaction",
+    "emergency.heart-symptoms",
+    "emergency.serious-brain-or-nerve-problem",
+    "emergency.tumor-lysis-syndrome",
+    "emergency.when-to-call-911-vs-your-care-team",
+    "fertility_intimacy",
+    "practical_life",
+    "patient_voices.day-3-crash",
+    "patient_voices.losing-hair-gradually",
+    "patient_voices.mouth-sores-and-mental-fog",
+    "patient_voices.closing-note",
+    "big_picture"
+  ],
+  "sourceReview": "AI-drafted source; clinical approval not established",
+  "status": "rendered_candidate",
+  "visualReview": "pending",
+  "generatedAt": "2026-09-11T04:16:43.266Z",
+  "checks": {
+    "sourceSections": true,
+    "narrationStructure": true,
+    "narrationSafety": true,
+    "speechFidelity": "automated audio review passed; human listening review pending",
+    "visualWarnings": [],
+    "timing": {
+      "valid": true,
+      "coverage": 1,
+      "recognitionCoverage": 1,
+      "sourceTokenCount": 2506,
+      "matchedTokenCount": 2506,
+      "unmatchedTokens": [],
+      "unexpectedWords": [],
+      "lowConfidenceTokens": [],
+      "issues": [
+        {
+          "code": "unknown-confidence",
+          "message": "Some recognition words have no provider confidence; exact lexical coverage is established, acoustic confidence is unavailable.",
+          "severity": "warning"
+        }
+      ]
+    },
+    "captions": {
+      "valid": true,
+      "maxCharactersPerLine": 38,
+      "maxLines": 2,
+      "fastestCharactersPerSecond": 21.985815602837377,
+      "issues": []
+    },
+    "direction": []
+  },
+  "video": "out/directed/rchop-friendly-some_college-short/52fdc5ea7212/video.mp4",
+  "videoDigest": "985b6fa7e3f99f083623fa2f086817d722e893f13da69b2d22e4d48f3c1d8db3",
+  "rendererDigest": "b5cdfbeb7e5ca9bebaca0d40ddec5d35c219662bbc40b250b02684895995ffeb",
+  "audioExportCorrection": {
+    "version": 1,
+    "correctedAt": "2026-09-11T04:37:11.515Z",
+    "reason": "Remove the measured ~42.6 ms AAC intermediate-export delay",
+    "originalVideoDigest": "403a5af44ccea748a8314efe7340123c8d38981ca66cde57ec8cbf201f9499ab",
+    "originalRendererDigest": "2a466c0925595b44870d15f4a3bb6f11b0503e006b254d484735f82a307aab53",
+    "videoDigest": "985b6fa7e3f99f083623fa2f086817d722e893f13da69b2d22e4d48f3c1d8db3",
+    "rendererDigest": "b5cdfbeb7e5ca9bebaca0d40ddec5d35c219662bbc40b250b02684895995ffeb",
+    "audioDigest": "a019d2399858f32bb45d2b48aec6f6e8237f1c0d4e014469c0a64941cccca504",
+    "preparedFilesUnchanged": true,
+    "allEncodedVideoPacketsAndTimestampsUnchanged": true,
+    "videoTrack": {
+      "bitstreamDigest": "5837c3c4eccbe428d23ce0143bb3a337fc7a72264b3c947dff50e409f12aeab7",
+      "packetTimingDigest": "f0f95347607002d41a8de141231705d3dde5634bf90ccab9d3ea17c681ecac29"
+    },
+    "sampleRate": 48000,
+    "channels": 2,
+    "audioBitrate": "320k",
+    "source": "verified-original-WAV",
+    "singleAacEncode": true,
+    "encodedSpeechInspection": "Required separately; packet-preserving mux does not automatically establish speech or human approval."
+  }
+}

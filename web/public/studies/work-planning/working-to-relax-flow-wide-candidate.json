@@ -1,0 +1,13 @@
+{
+  "source": "user-supplied/Woman_stretching_in_animated_ill\u2026_20261016232822.mp4",
+  "sha256": "9ad5cad79f9e9e99c0da5659cd3ae66e78e3ba870850f645cbd73bb111bc4883",
+  "approval": "Approved by Pavan: Happy with it; applies to frames0\u2013179 followed by2.5s hold, including both-leg extension.",
+  "metadata": {
+    "width": 1280,
+    "height": 720,
+    "fps": 24,
+    "containerSeconds": 10.026667,
+    "audioPresent": true
+  },
+  "review": "Sampled every 0.5s; no normal-speed playback or audio review claimed. Full limbs in sampled frames. Hands overhead then behind head; both legs extend. Returns from relaxed pose near 8s. Proposed use through 7.5s followed by still hold; not implemented."
+}

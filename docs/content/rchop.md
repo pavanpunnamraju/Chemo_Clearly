@@ -98,33 +98,34 @@ the doxorubicin drug color, not blood. [S1, S3]
 **tags:** `how-it-feels-daily`, `work-daily-life`, `fatigue`, `fertility-intimacy`
 
 **plain:** Most people plan for lighter workload or time off around infusion day and the
-few days after, and gradually pick back up toward the end of the cycle — how much varies a
-lot by person and job. Some people work full schedules throughout; others need most of the
-first week off each cycle. It's reasonable to plan for the lighter end until you know how
-you personally respond. [S1, S3]
+few days after, picking back up toward the end of the cycle — how much varies a lot by
+person and job, so it's reasonable to plan for the lighter end until you know how you
+respond. [S1, S3]
 
-**Exercise:** Light activity (short walks) is usually fine and can help fatigue,
-constipation, and mood. Rest when you need to, but staying a little active tends to help
-more than full bed rest. Avoid new intense exercise or contact sports during low-count
-windows (around days 7-10) given bruising/infection risk. [S1, S3]
+**source:** S1, S3
 
-**Driving:** Safe as long as you're not currently dizzy, very fatigued, or on a new
+### Exercise
+**tags:** `fatigue`, `work-daily-life`
+**plain:** Light activity (short walks) usually helps fatigue, constipation, and mood more
+than bed rest — rest when you need to. Avoid new intense exercise or contact sports during
+low-count windows (around days 7-10) given bruising/infection risk. [S1, S3]
+
+### Driving
+**tags:** `work-daily-life`
+**plain:** Safe as long as you're not currently dizzy, very fatigued, or on a new
 sedating medicine (some anti-nausea drugs can make you drowsy) — if in doubt, don't drive
 that day. [S1]
 
-**Intimacy:** Physical intimacy is generally safe; use a barrier method during and for
-some time after treatment since trace chemo drugs can be present in bodily fluids (ask
-your team for the exact window). See `fertility_intimacy` for more. [S1]
+### Intimacy
+**tags:** `fertility-intimacy`
+**plain:** Physical intimacy is generally safe — see `fertility_intimacy` for what to know
+about protecting your partner. [S1]
 
-**Helpful routines:** Many people find it easier to plan chores/appointments for the
-second half of each cycle when energy is more likely to be back; keeping a simple symptom
-log can help you and your team spot patterns cycle to cycle.
-
-**call_team_if:**
-- You're too fatigued to manage basic daily activities
-- Fatigue doesn't improve with rest at all
-
-**source:** S1, S3
+### Helpful routines
+**tags:** `work-daily-life`
+**plain:** Planning chores and appointments for the second half of each cycle, when energy
+is more likely back, helps; a simple symptom log can help you and your team spot patterns
+cycle to cycle.
 
 ---
 
@@ -139,8 +140,8 @@ tells you which.
 **tier:** `call_team`
 **plain:** This treatment temporarily lowers your infection-fighting white blood cells,
 especially around days 7–10. **A fever is a medical emergency, not a routine call-team
-item — at any point in treatment, not only during this window — see the `emergency`
-section for the exact threshold and what to do.** [S1, S2]
+item — at any point in treatment — see the `emergency` section for the exact threshold and
+what to do.** [S1, S2]
 **self_care:** Wash hands often; avoid crowds and sick contacts; your team may give you a
 growth-factor injection to help counts recover faster.
 **call_team_if:** Chills without fever; sore throat; cough; painful urination; unusual
@@ -171,7 +172,8 @@ don't cause bleeding problems or need treatment. [S1]
 in red blood cells. [S1, S2]
 **self_care:** Pace activities, prioritize sleep, avoid driving/heavy machinery when very
 tired.
-**call_team_if:** Shortness of breath, dizziness, fast or irregular heartbeat.
+**call_team_if:** Shortness of breath, dizziness, fast or irregular heartbeat; or fatigue
+that keeps you from basic daily activities and doesn't improve with rest at all.
 **detail:** Some patients on R-CHOP develop a low red blood cell count on a routine blood
 test (anemia) at some point in treatment, though severity varies widely — many cases are
 mild and don't need transfusion. [S1]
@@ -372,14 +374,15 @@ call — no one will think you're overreacting.
 **tags:** `fertility-intimacy`
 
 **plain:** This treatment can affect your ability to have children — talk to your care
-team about fertility preservation before you start if this matters to you. It's also
-recommended to use effective birth control during treatment and for some months after
-(ask your team for the exact timeframe for your situation, since it differs by drug). Don't
-breastfeed during treatment or for months after your last dose — the chemotherapy drugs
-pass into breast milk and can harm a nursing infant; ask your team for the exact
-timeframe for your situation, since it differs by drug. Changes in how you feel
-about intimacy and your body are common and worth talking about — physical closeness like
-hugging and holding hands stays safe throughout. [S1]
+team about fertility preservation before you start if this matters to you. Use effective
+birth control during treatment and for some months after, and don't breastfeed during
+treatment or for months after your last dose — the chemotherapy drugs pass into breast
+milk and can harm a nursing infant. Exact timeframes for both differ by drug, so ask your
+team for yours. Trace chemo drugs can also be present in other bodily fluids during
+treatment and for some time after, so use a barrier method during intimacy to protect your
+partner (ask your team for the exact window). [S1] Changes in how you feel about intimacy
+and your body are common and worth talking about — physical closeness like hugging and
+holding hands stays safe throughout. [S1]
 
 **source:** S1 (cross-checked against S2's general fertility guidance)
 

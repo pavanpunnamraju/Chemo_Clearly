@@ -1,0 +1,14 @@
+{
+  "date": "2026-09-13",
+  "attribution": "Illustration by Storyset / Freepik",
+  "terms": "https://storyset.com/terms",
+  "status": "Selected source used by approved reading recovery preview3. Unused candidates and raster review copies pruned after approval.",
+  "assets": [
+    {
+      "file": "reading-book-pana.svg",
+      "page": "https://storyset.com/illustration/reading-book/pana",
+      "download": "https://stories.freepiklabs.com/storage/57032/Reading-book-01.svg",
+      "sha256": "360f1e54acc2e1d9e5730a035bb69d0ab8b20fde0de21d559b2b13fb17c86aae"
+    }
+  ]
+}

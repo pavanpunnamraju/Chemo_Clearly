@@ -1,0 +1,16 @@
+{
+  "source": "web/public/studies/work-planning/working-to-relax-flow-wide-candidate.mp4",
+  "sourceSha256": "9ad5cad79f9e9e99c0da5659cd3ae66e78e3ba870850f645cbd73bb111bc4883",
+  "fps": 24,
+  "sourceFramesInclusive": [
+    0,
+    179
+  ],
+  "holdFrame": 179,
+  "holdSeconds": 2.5,
+  "durationSeconds": 10,
+  "audio": "mute generated source; use narration in composition",
+  "filter": "trim=end_frame=180,setpts=PTS-STARTPTS,tpad=stop_mode=clone:stop_duration=2.5",
+  "userApproval": "Happy with it",
+  "approvedReviewSha256": "476b187c422e685ac03ca8c736f5eadda3246d68150bc19b710ed78b38a0ccab"
+}

@@ -1,5 +1,7 @@
 import type { WordOffset } from "./align";
 import { matchTimestamps } from "./narration";
+import type { Caption } from "@remotion/captions";
+import { assertReliableTiming, type DirectedTiming, type TimedScriptWord } from "./timing";
 
 export interface TimedCaption {
   text: string;
@@ -155,4 +157,92 @@ export function buildCaptionTrack(
     i = j + 1;
   }
   return captions;
+}
+
+export interface DirectedCaptionDiagnostics {
+  valid: boolean;
+  maxCharactersPerLine: number;
+  maxLines: number;
+  fastestCharactersPerSecond: number;
+  issues: { cueIndex: number; code: string; message: string; severity: "error" | "warning" }[];
+}
+
+export interface DirectedCaptionTrack {
+  /** Same units as the existing renderer. Newlines are deliberate line breaks. */
+  captions: TimedCaption[];
+  /** Remotion's Caption JSON schema. Cues retain exact narration punctuation. */
+  captionJson: Caption[];
+  vtt: string;
+  diagnostics: DirectedCaptionDiagnostics;
+}
+
+function wrapCaption(text: string, maxCharactersPerLine: number): string {
+  if (text.length <= maxCharactersPerLine) return text;
+  const spaces = [...text.matchAll(/ /g)].map((m) => m.index!);
+  let best: number | undefined;
+  for (const space of spaces) {
+    if (space <= maxCharactersPerLine && text.length - space - 1 <= maxCharactersPerLine &&
+      (best === undefined || Math.abs(space - text.length / 2) < Math.abs(best - text.length / 2))) best = space;
+  }
+  return best === undefined ? text : `${text.slice(0, best)}\n${text.slice(best + 1)}`;
+}
+
+/**
+ * Caption pages use the same verified word clock as direction. Each cue is at
+ * most two explicit lines; short/fast cues are reported instead of hidden by
+ * merging unlimited text or displaying a guessed caption through an ASR gap.
+ */
+export function buildDirectedCaptionTrack(timing: DirectedTiming): DirectedCaptionTrack {
+  assertReliableTiming(timing);
+  const lineLimit = 38;
+  const groups: TimedScriptWord[][] = [];
+  let group: TimedScriptWord[] = [];
+  const flush = () => { if (group.length) groups.push(group); group = []; };
+  for (const [index, word] of timing.words.entries()) {
+    const previous = group[group.length - 1];
+    const canSplit = !previous || word.startSeconds >= previous.endSeconds - 0.001;
+    const candidate = [...group, word].map((w) => w.text).join(" ");
+    const wrapped = wrapCaption(candidate, lineLimit);
+    if (group.length && canSplit && (wrapped.split("\n").some((line) => line.length > lineLimit) ||
+      word.endSeconds - group[0]!.startSeconds > 6 || word.entryId !== group[0]!.entryId ||
+      word.startSeconds - previous!.endSeconds > 0.8)) flush();
+    group.push(word);
+    const next = timing.words[index + 1];
+    if (/[.!?;]$/.test(word.text) && group.map((w) => w.text).join(" ").length >= 24 &&
+      word.endSeconds - group[0]!.startSeconds >= 1.1 && (!next || next.startSeconds >= word.endSeconds)) flush();
+  }
+  flush();
+  const issues: DirectedCaptionDiagnostics["issues"] = [];
+  let fastestCharactersPerSecond = 0;
+  const captionJson: Caption[] = groups.map((words, cueIndex) => {
+    const startSeconds = words[0]!.startSeconds;
+    const actualEnd = words[words.length - 1]!.endSeconds;
+    const nextStart = groups[cueIndex + 1]?.[0]?.startSeconds ?? timing.audioDurationSeconds;
+    const endSeconds = Math.min(nextStart, timing.audioDurationSeconds, Math.max(actualEnd + 0.15, startSeconds + 1.33));
+    const text = wrapCaption(words.map((word) => word.text).join(" "), lineLimit);
+    const cps = text.length / (endSeconds - startSeconds);
+    fastestCharactersPerSecond = Math.max(fastestCharactersPerSecond, cps);
+    if (text.split("\n").some((line) => line.length > lineLimit)) issues.push({ cueIndex, code: "caption-line-overflow", severity: "error", message: `Cue ${cueIndex} cannot fit two ${lineLimit}-character lines without splitting a timed word span.` });
+    if (endSeconds <= startSeconds || endSeconds < actualEnd - 0.001) issues.push({ cueIndex, code: "caption-time-conflict", severity: "error", message: `Cue ${cueIndex} has conflicting speech timing.` });
+    if (cps > 22) issues.push({ cueIndex, code: "caption-reading-speed", severity: cps > 28 ? "error" : "warning", message: `Cue ${cueIndex} requires ${cps.toFixed(1)} characters per second; inspect delivery and readability.` });
+    if (endSeconds - startSeconds < 1) issues.push({ cueIndex, code: "brief-caption", severity: "warning", message: `Cue ${cueIndex} is visible for less than one second.` });
+    const confidences = words.map((w) => w.confidence).filter((c): c is number => c !== null);
+    return { text, startMs: Math.round(startSeconds * 1000), endMs: Math.round(endSeconds * 1000),
+      timestampMs: null, confidence: confidences.length ? Math.min(...confidences) : null };
+  });
+  const captions = captionJson.map((cue) => ({ text: cue.text, startSeconds: cue.startMs / 1000, endSeconds: cue.endMs / 1000 }));
+  return { captions, captionJson, vtt: captionsToVtt(captionJson), diagnostics: {
+    valid: !issues.some((issue) => issue.severity === "error"), maxCharactersPerLine: lineLimit, maxLines: 2,
+    fastestCharactersPerSecond, issues,
+  } };
+}
+
+function vttTimestamp(ms: number): string {
+  const value = Math.max(0, Math.round(ms));
+  return `${String(Math.floor(value / 3_600_000)).padStart(2, "0")}:${String(Math.floor(value / 60_000) % 60).padStart(2, "0")}:${String(Math.floor(value / 1000) % 60).padStart(2, "0")}.${String(value % 1000).padStart(3, "0")}`;
+}
+
+export function captionsToVtt(captions: Caption[]): string {
+  const escapeText = (text: string) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return `WEBVTT\n\n${captions.map((cue, index) => `${index + 1}\n${vttTimestamp(cue.startMs)} --> ${vttTimestamp(cue.endMs)}\n${escapeText(cue.text)}\n`).join("\n")}`;
 }

@@ -1,0 +1,15 @@
+{
+  "purpose": "Wide starting reference for user-run Flow retry; not an approved new animation.",
+  "source": "working-typing-straight-sleeve-no-desk.svg",
+  "sourceSha256": "c3b68d90ee2f7b7cacdbf483d8fe23a8efc3b6e91c38179136d0dc38140390ae",
+  "viewBox": "-123.333333 65 746.666667 420",
+  "size": [
+    1920,
+    1080
+  ],
+  "preserved": "Character subtree byte-identical after XML parsing; chair, blob and floor retained. Only room props removed and canvas widened.",
+  "outputs": {
+    "working-flow-wide-start.svg": "0bce357f36b32dc8ba279e4cb5c11f612a5aa1be0448b1c5a7dd8f270c6e33c8",
+    "working-flow-wide-start.png": "c4b68ffefca1df4354362394a6ec5c81287afa36c0f4a3d919a5a15e94fc0af3"
+  }
+}

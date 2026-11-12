@@ -1,0 +1,12 @@
+{
+  "source": "web/public/illustrations/daily_life/daily_life__stretching-exercises-bro.svg",
+  "sourceSha256": "f567e6333def2baae547c0a2d5fbc19a0f65f1dfa5cb39a0617dd54adae16019",
+  "reference": "stretch-flow-wide-start.png",
+  "referenceSha256": "2dcf321de72b2dd56f6c83d4d3d51aa0660678a3601e8aa56c610eaa4402ea12",
+  "width": 1920,
+  "height": 1080,
+  "preparation": "Original full SVG rasterized to 1080x1080 on white, centered at x420 y0 on 1920x1080 white canvas. No crop, distortion or artwork edits.",
+  "approval": "Source motion and loop edit approved 2026-10-19. See stretch-loop-edit.json and docs/design/approved-animations.json.",
+  "generatedSource": "stretch-flow-candidate.mp4",
+  "generatedSourceSha256": "a9a8937df45117d503686210efd7e994c71f7ee21f4a03191dc55a45cc9a92c4"
+}

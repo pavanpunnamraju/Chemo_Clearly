@@ -1,0 +1,43 @@
+import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {readFileSync,writeFileSync} from 'node:fs';
+import path from 'node:path';
+import sharp from 'sharp';
+import {Matrix4,Vector3} from 'three';
+import {videoTrackIdentity} from '../lib/video/render-narration-audio';
+const output=path.resolve(process.argv[2]??'out/blood-counts-motion-study/preview-1');
+const sha=(f:string)=>createHash('sha256').update(readFileSync(f)).digest('hex');
+const e=JSON.parse(readFileSync(path.join(output,'evidence.json'),'utf8'));const video=path.join(output,'blood-cell-study.mp4');assert.equal(sha(video),e.previewSha256);
+const sceneChecks=e.audits.map((a:any)=>{
+ assert.equal(a.actual.seconds,a.seconds);
+ assert.ok(Math.abs(a.actual.focusDepth-a.state.focusDepth)<1e-9);
+ const camera=a.actual.camera;
+ const projection=new Matrix4().fromArray(camera.projectionMatrix).multiply(new Matrix4().fromArray(camera.matrixWorldInverse));
+ const visible=a.actual.cells.filter((cell:any)=>{
+  const expected=a.state.cells.find((c:any)=>c.id===cell.id);assert.ok(expected);
+  cell.matrixPosition.forEach((v:number,i:number)=>assert.ok(Math.abs(v-expected.position[i])<1e-8));
+  assert.ok(cell.vertexCount>2000);
+  const p=new Vector3(...cell.matrixPosition as [number,number,number]).applyMatrix4(projection);
+  return Math.abs(p.x)<1&&Math.abs(p.y)<1&&Math.abs(p.z)<1;
+ });
+ const red=visible.filter((c:any)=>c.kind==='red').length,white=visible.filter((c:any)=>c.kind==='white').length;
+ assert.ok(red>=6,'Red-cell stream disappears');
+ if(a.reducedMotion||a.seconds>=e.cue.lowSeconds)assert.equal(white,1,'Low-count cue precedes white-cell exits');
+ if(!a.reducedMotion&&a.seconds===0)assert.equal(white,3);
+ return{seconds:a.seconds,reducedMotion:a.reducedMotion,redCentersInFrustum:red,whiteCentersInFrustum:white};
+});
+const decode=(f:string)=>{const b=execFileSync('ffmpeg',['-v','error','-i',f,'-vn','-ac','1','-ar','8000','-f','f32le','-'],{maxBuffer:16*1024*1024});return Float32Array.from({length:b.length/4},(_,i)=>b.readFloatLE(i*4));};
+const source=decode(path.join(output,'narration-excerpt.wav')),encoded=decode(video);
+const waveformWindows=[.5,3.5,6.5,9.5].map(fromSeconds=>{
+ const from=Math.round(fromSeconds*8000),to=from+20000;
+ const correlation=(lag:number)=>{let aa=0,bb=0,ab=0;for(let i=from;i<to;i++){const a=source[i]!,b=encoded[i+lag]!;aa+=a*a;bb+=b*b;ab+=a*b;}return ab/Math.sqrt(aa*bb);};
+ let best={lag:0,correlation:-1};for(let lag=-640;lag<=640;lag++){const c=correlation(lag);if(c>best.correlation)best={lag,correlation:c};}assert.equal(best.lag,0);assert.ok(best.correlation>.98);return{fromSeconds,toSeconds:to/8000,bestOffsetSeconds:best.lag/8000,correlation:best.correlation};
+});
+const before=await videoTrackIdentity(path.join(output,'silent.mp4')),after=await videoTrackIdentity(video);assert.deepEqual(after,before);
+for(const frame of [0,90,140,222,360])execFileSync('ffmpeg',['-v','error','-i',video,'-vf',`select=eq(n\\,${frame})`,'-frames:v','1','-y',path.join(output,`encoded-${frame}.png`)]);
+await sharp(path.join(output,'encoded-140.png')).resize({width:667}).png().toFile(path.join(output,'encoded-phone.png'));
+const reduced=await sharp(path.join(output,'reduced-0.png')).extract({left:0,top:100,width:1280,height:640}).raw().toBuffer();
+for(const f of [222,401])assert.ok(reduced.equals(await sharp(path.join(output,`reduced-${f}.png`)).extract({left:0,top:100,width:1280,height:640}).raw().toBuffer()),'Reduced artwork pixels change');
+const result={previewSha256:sha(video),checkerSha256:sha('scripts/inspect-blood-cell-study.ts'),sceneChecks,waveformWindows,videoTrackIdentity:after,reducedArtworkPixelsStatic:true,humanVisualApproval:'pending'};
+writeFileSync(path.join(output,'export-inspection.json'),JSON.stringify(result,null,2));console.log(JSON.stringify(result,null,2));

@@ -5,7 +5,7 @@ import { NARRATED_SECTIONS } from "./select";
 import { rewriteNarration, type RewrittenChunk } from "./rewrite";
 import { buildNarrationPlanFromChunks } from "./narration";
 import { synthesizeNarration, silencePcm, pcmToWav, type SynthesizeResult } from "./tts";
-import { alignAudioToScript, type WordOffset } from "./align";
+import { alignAudioToScript, readLinear16Wav, type WordOffset } from "./align";
 
 // Phase 2a goal #13: splits the rewrite/TTS/alignment pipeline (previously
 // one all-or-nothing call per whole script) into one call per narrated
@@ -18,7 +18,8 @@ import { alignAudioToScript, type WordOffset } from "./align";
 // (2 real Gemini-TTS clips concatenated, checked for an amplitude jump at
 // the boundary vs. typical in-speech jumps) found no artifact either way,
 // but the pad costs nothing and sections are a natural pause point regardless.
-const SILENCE_PAD_MS = 400;
+export const SECTION_JOIN_SILENCE_MS = 400;
+const SILENCE_PAD_MS = SECTION_JOIN_SILENCE_MS;
 
 export interface SectionGroup {
   sectionId: string;
@@ -74,7 +75,8 @@ export function hashSection(sectionId: string, entries: ContentEntry[]): string 
   const sorted = [...entries].sort((a, b) => a.id.localeCompare(b.id));
   const canonical = JSON.stringify({
     sectionId,
-    entries: sorted.map((e) => ({ id: e.id, plain: e.plain, detail: e.detail ?? null })),
+    version: "complete-source-v2",
+    entries: sorted,
   });
   return createHash("sha256").update(canonical).digest("hex");
 }
@@ -143,9 +145,13 @@ export function stitchSections(sections: SectionPipelineOutput[]): StitchedPipel
 
   sections.forEach((section, i) => {
     chunks.push(...section.chunks);
-    for (const w of section.words) words.push({ word: w.word, startSeconds: w.startSeconds + cumulativeSeconds });
+    for (const w of section.words) words.push({
+      ...w,
+      startSeconds: w.startSeconds + cumulativeSeconds,
+      endSeconds: w.endSeconds === undefined ? undefined : w.endSeconds + cumulativeSeconds,
+    });
     // Strip each section's own WAV header (tts.ts's pcmToWav) before concatenating raw PCM.
-    const pcm = section.audioBuffer.subarray(44);
+    const pcm = readLinear16Wav(section.audioBuffer, sampleRateHertz);
     pcmParts.push(pcm);
     // Advance by the section's *actual* audio length (from PCM byte count),
     // not `section.durationSeconds` (align.ts's max end-time over recognized

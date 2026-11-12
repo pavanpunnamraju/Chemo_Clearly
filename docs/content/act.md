@@ -51,13 +51,11 @@ paclitaxel can go through a regular arm/hand IV or the same port. [S2]
 - **Infusion day:** Several hours in the chair; anti-nausea premedication is standard given
   how strongly AC can trigger nausea. Red/orange urine on the day of and day after each AC
   infusion is expected — that's the doxorubicin drug color, not blood. [S1, S2]
-- **First few days after:** Fatigue and nausea are common in this window, typically most
-  noticeable in the first few days after each AC dose. [S1, S2]
-- **The low-count window (the nadir), in the days after each AC dose:** Your white blood
-  cell count drops to its lowest point somewhere in this stretch before recovering, which
-  is why infection precautions matter most here. The exact timing shifts with your
-  schedule and phase — ask your team when your counts are expected to be lowest for your
-  own regimen. [S1, S2]
+- **First few days after:** Fatigue and nausea are typically most noticeable here. [S1, S2]
+- **The low-count window (the nadir):** Your white blood cell count drops to its lowest
+  point somewhere in the days after each AC dose before recovering, which is why infection
+  precautions matter most here. The exact timing shifts with your schedule and phase — ask
+  your team when your counts are expected to be lowest for your own regimen. [S1, S2]
 - **If prescribed a growth-factor injection:** protects blood counts between doses.
 - **Rest of the cycle:** Gradual recovery until the next AC dose. [S1, S2]
 
@@ -77,32 +75,35 @@ worsen — often a couple of days after each dose. [S1, S2]
 **tags:** `how-it-feels-daily`, `work-daily-life`, `fatigue`, `fertility-intimacy`
 
 **plain:** Many people plan time off or reduced workload especially during the AC phase and
-right after each dose; energy often improves somewhat during the T phase, though joint
-aches or neuropathy can affect what feels comfortable then. How much time off you need
-varies a lot by person and job — it's reasonable to plan for the lighter end until you
-know how you personally respond. [S2]
+right after each dose; energy often improves during the T phase, though joint aches or
+neuropathy can affect what feels comfortable then. It varies a lot by person and job, so
+it's reasonable to plan for the lighter end until you know how you respond. [S2]
 
-**Exercise:** Gentle activity (walking) can help fatigue, appetite, and mood, as tolerated.
+**source:** S2
+
+### Exercise
+**tags:** `fatigue`, `work-daily-life`
+**plain:** Gentle activity (walking) can help fatigue, appetite, and mood, as tolerated.
 Avoid new intense exercise or contact activities during low-count windows given
 bruising/infection risk, and be mindful of balance if you're developing neuropathy in the
 T phase. [S2]
 
-**Driving:** Safe as long as you're not currently dizzy, very fatigued, on a new sedating
+### Driving
+**tags:** `work-daily-life`
+**plain:** Safe as long as you're not currently dizzy, very fatigued, on a new sedating
 medicine, or having numbness/weakness in your feet that affects pedal control — if in
 doubt, don't drive that day. [S2]
 
-**Intimacy:** Physical intimacy is generally safe; use a barrier method during and for
-some time after treatment since trace chemo drugs can be present in bodily fluids (ask
-your team for the exact window). See `fertility_intimacy` for more. [S1, S2]
+### Intimacy
+**tags:** `fertility-intimacy`
+**plain:** Physical intimacy is generally safe — see `fertility_intimacy` for what to know
+about protecting your partner. [S1, S2]
 
-**Helpful routines:** Many people find it easier to plan chores/appointments for the
-second half of each cycle when energy is more likely to be back; keeping a simple symptom
-log can help you and your team spot patterns across the AC-to-T transition.
-
-**call_team_if:** Fatigue that keeps you from basic daily activities and doesn't improve
-with rest.
-
-**source:** S2
+### Helpful routines
+**tags:** `work-daily-life`
+**plain:** Planning chores and appointments for the second half of each cycle, when energy
+is more likely back, helps; a simple symptom log can help you and your team spot patterns
+across the AC-to-T transition.
 
 ---
 
@@ -131,7 +132,8 @@ feels. [S1, S2]
 in red blood cells, common with both the AC and T phases. [S1, S2]
 **self_care:** Pace activities, prioritize sleep, avoid driving/heavy machinery when very
 tired.
-**call_team_if:** Shortness of breath, dizziness, fast or irregular heartbeat.
+**call_team_if:** Shortness of breath, dizziness, fast or irregular heartbeat; or fatigue
+that keeps you from basic daily activities and doesn't improve with rest at all.
 **detail:** A meaningful share of patients on AC-T develop a low red blood cell count on a
 routine blood test at some point in the course; most cases are mild and don't need
 transfusion, but your team checks counts regularly and will flag it if it needs
@@ -321,13 +323,14 @@ overreacting.
 **plain:** AC-T can affect fertility and can bring on menopause symptoms (hot flashes,
 irregular or stopped periods) even in patients who weren't near menopause age. [S1, S2] If
 future fertility matters to you, talk to your care team about preservation options before
-starting. Effective contraception is generally recommended during treatment — ask your team
-for the specific timeframe for your situation. **Don't breastfeed during treatment or for
-some months after your last dose** — the chemotherapy drugs pass into breast milk and can
-harm a nursing infant; ask your team for the exact timeframe for your situation, since it
-varies by drug. [S1] Changes in how you feel about intimacy and body image are common and
-worth raising with your team or a counselor — physical closeness like hugging and holding
-hands stays safe throughout.
+starting. Effective contraception is recommended during treatment, and **don't breastfeed
+during treatment or for some months after your last dose** — the chemotherapy drugs pass
+into breast milk and can harm a nursing infant. [S1] Exact timeframes for both differ by
+drug, so ask your team for yours. Trace chemo drugs can also be present in other bodily
+fluids during treatment and for some time after, so use a barrier method during intimacy to
+protect your partner (ask your team for the exact window). [S1, S2] Changes in how you feel
+about intimacy and body image are common and worth raising with your team or a counselor —
+physical closeness like hugging and holding hands stays safe throughout.
 
 **source:** S1, S2
 

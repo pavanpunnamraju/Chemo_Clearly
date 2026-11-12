@@ -1,0 +1,28 @@
+{
+  "source": "car-flow-approved.mp4",
+  "sourceSha256": "1207ede13934c4b51e0980f6300cb2fa05dc03ad18ff09fe98bc9c42eb9e5e5a",
+  "runtime": "car-flow-loop.mp4",
+  "runtimeSha256": "df90ecd1b2e6553e8a2b003c81729f821cd68c4fcdfdc1140251ea9d745f2a90",
+  "width": 1920,
+  "height": 1080,
+  "fps": 24,
+  "frames": 240,
+  "durationSeconds": 10.0,
+  "audio": "removed; use synchronized project narration",
+  "edit": {
+    "unalteredBelowSkyFrames": [
+      0,
+      215
+    ],
+    "blendFrames": [
+      216,
+      239
+    ],
+    "blendTarget": "source frame 0 held still below y=400",
+    "weight": "smoothstep((frame - 216) / 23)",
+    "sky": "frames 0\u2013119 use approved source sky; frames 120\u2013239 use source sky 119\u20130 in reverse above y=360, with a 40-pixel vertical feather to the forward source. This returns drifting clouds without crossfade double edges; characters/car remain forward.",
+    "reason": "Source end is near rest but clouds do not return to their first positions; a whole-frame crossfade produced doubled cloud outlines and a hard restart jumps.",
+    "repeatRule": "Play all 240 frames in order and repeat from frame 0. No reversal or skip."
+  },
+  "approval": "Pending Pavan review of the derived loop. The source motion is approved."
+}

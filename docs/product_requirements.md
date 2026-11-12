@@ -5,8 +5,11 @@ not phase-ordered — phasing/sequencing lives in `implementation_plan.md`.
 Update this doc whenever scope changes; it's the source of truth for "what,"
 not "when" or "how."
 
-Status: v1 target is a polished demo for Dr. Nataraj Reddy, not a real-patient
-deployment. See `docs/design/Chemo_Patient_Education_App.md` for problem
+Status (2026-10-17): these are broader app requirements. The active v1 milestone
+is the R-CHOP education video for doctor, teammate and founder review: friendly,
+short, five confirmed sections, under six minutes. Patient-app integration and
+real-patient deployment are outside this milestone. See the
+[active video plan](plans/rchop-v1.md); app requirements below remain a backlog. See `docs/design/Chemo_Patient_Education_App.md` for problem
 statement, philosophy, and market grounding.
 
 ## Accounts & Auth

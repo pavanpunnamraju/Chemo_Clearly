@@ -1,0 +1,817 @@
+{
+  "note": "Exact recorded human approvals retained after authorized deletion of review media. Clinical approval/full-v1 integration remain separate. Calling/drinking approvals predate per-study approval JSON and are preserved in creative_direction_pavan.md.",
+  "records": [
+    {
+      "historicalArtifact": "web/out/calendar-motion-study/preview-6",
+      "approval": {
+        "asset": "context-calendar",
+        "preview": "preview-6",
+        "video": "calendar-study.mp4",
+        "sha256": "e9898d8a18e0290291bd039ae8c6ab818feaa325d79f6e5daff9880c7518a90d",
+        "userApproval": "Great, works fine.",
+        "approvedAt": "2026-09-12T00:30:01.011031+00:00",
+        "scope": "Isolated calendar animation visual approval; full-video integration and narration/clinical review remain separate."
+      },
+      "reviewMediaPruned": true
+    },
+    {
+      "historicalArtifact": "web/out/curved-arm-blood-counts-motion-study/preview-6",
+      "approval": {
+        "date": "2026-09-13",
+        "quote": "Approved, now reflect on what we could've done to make this happen on the first attempt. That can be a prompting issue or an implementation issue on your side. Give me both streams of feedback and append it to the feedback doc!",
+        "approvedBy": "Pavan",
+        "previewFile": "arm-blood-cell-study.mp4",
+        "sha256": "548e70ce68c08a122baf5ef45e3bf777f3316d4c30e682cfe5d337ccbebfae44",
+        "scope": "Human animation approval of the current 13.4-second arm-to-vessel study: thin red live-3D mid-zoom, continuous entry, glossy vessel/cells and moving staggered WBC decline. Does not establish clinical approval or full-video integration."
+      },
+      "reviewMediaPruned": true
+    },
+    {
+      "historicalArtifact": "web/out/schedule-motion-study/preview-2-final",
+      "approval": {
+        "asset": "context-schedule",
+        "preview": "preview-2-final",
+        "video": "schedule-study.mp4",
+        "sha256": "d661e077d9b17529b0e8866843201404db2f0ea456acbb16fa35232335de2a50",
+        "userApproval": "works",
+        "approvedAt": "2026-09-12T01:22:20.445Z",
+        "scope": "Isolated schedule calendar visual approval; narration excerpts are historical. Full-video integration and clinical review remain separate."
+      },
+      "reviewMediaPruned": true
+    },
+    {
+      "historicalArtifact": "web/out/reading-recovery-motion-study/preview-3",
+      "approval": {
+        "date": "2026-09-13",
+        "previewSha256": "9fb02233d6acecb001d68cacce806b10379449ce2e0f53e52467bea27971c997",
+        "user": "Pavan",
+        "verbatim": "Amazing! much better this time with all the planning and checking, do this autonomously everytime, I see a substantial difference.",
+        "scope": "Approval of narrated reading-recovery preview3, including page-flip removal and full-teal book-cover zoom. Does not constitute clinical approval or full-v1 assembly approval. Long sample is separate duration evidence."
+      },
+      "reviewMediaPruned": true
+    },
+    {
+      "historicalArtifact": "web/out/medication-plan-motion-study/preview-3",
+      "approval": {
+        "asset": "care-medication-plan",
+        "preview": "medication-stamp.mp4",
+        "sha256": "692a85d4c8a36e382345214e3236c39e5f60ec5b2f8292721cff89d9234a4be3",
+        "user": "Pavan",
+        "date": "2026-09-12",
+        "quote": "looks good, what's next",
+        "status": "approved",
+        "scope": "Isolated asset motion; full-video integration and clinical approval remain separate"
+      },
+      "reviewMediaPruned": true
+    },
+    {
+      "historicalArtifact": "web/out/curved-vessel-appearance/preview-2",
+      "approval": {
+        "quote": "Yes looks much better!, now wire it into the animation!",
+        "date": "2026-09-13",
+        "scope": "Approves curved vessel appearance and authorizes integration with existing arm zoom and staggered WBC decline. New motion render still requires review.",
+        "previewFile": "vessel.png",
+        "sha256": "40d0913774fa0d63110c331e3577c60accad3940b666ac7e306c4e0232f8478c"
+      },
+      "reviewMediaPruned": true
+    },
+    {
+      "historicalArtifact": "web/out/infusion-motion-study/preview-4",
+      "approval": {
+        "assetId": "context-infusion",
+        "preview": "preview-4",
+        "mp4Sha256": "21d8582c90e233a1d1d0b7ebcb19039eeea8ff20177696792507fb24bb468cf2",
+        "approvedBy": "Pavan",
+        "date": "2026-09-11",
+        "quote": "Looks good, move on!",
+        "scope": "Isolated infusion animation; full-video integration remains pending",
+        "humanVisualApproval": "approved"
+      },
+      "reviewMediaPruned": true
+    },
+    {
+      "historicalArtifact": "web/out/work-planning-review/static-human-v6",
+      "approval": {
+        "asset": "care-work-plan-static-human",
+        "date": "2026-10-12",
+        "userApproval": "works, lets use this and now replace this in the full svg",
+        "scope": "Static human v6 approval and authorization to use it in full working SVG. Not approval of subsequent animation or full-video integration.",
+        "previewSha256": "d9cfd47a9c466c2f744ab2d8d674cfb397dad426ef35a8769d878c120d56ee87",
+        "closeupSha256": "35287831ba0a3e3712df153011ab153a7b55fd54d86b017031811b47a0b1e1a5",
+        "runtimeSha256": "11e6f3cddf6f5f6e8de584c612d18f7afdc4b30991cd15142b8cade0f85e1a4d",
+        "humanSceneSha256": "7d2bdcdb19035c341e94ad052930dfe63cb31cc7e587bb8f38cab464665693a7"
+      },
+      "reviewMediaPruned": true
+    },
+    {
+      "historicalArtifact": "web/out/work-planning-review/arm-proof-2",
+      "approval": {
+        "asset": "care-work-plan-small-arm-proof",
+        "date": "2026-10-12",
+        "userApproval": "Yes that was really good!",
+        "humanVisualApproval": "approved",
+        "scope": "Six-second small shoulder/elbow lift, hold and exact return on approved typing woman. Not overhead reach, hands-behind-head contact, recline or full-video integration approval.",
+        "primaryPreview": "human/arm-lift-return.mp4",
+        "mp4Sha256": "25756c7b236cfc1b72f18f8ffcc4d34087108a74579261fb5d5288a3c6d28d1c",
+        "supportingPreviewHashes": {
+          "human/arm-lift-return.mp4": "25756c7b236cfc1b72f18f8ffcc4d34087108a74579261fb5d5288a3c6d28d1c",
+          "scene/phone-landscape.mp4": "56075e3081c0402ad28cbeccf83b89c7da67c4e92a08ff438b27a816aebf438b",
+          "scene/arm-lift-return.mp4": "a806b3f1f6d971b55a1738a60b88b914aec3456c157572aff8c0477337467295",
+          "closeup/arm-lift-return.mp4": "fdf147b7c6019f8d016dd0e0948e4350aead85f55fc470066bf373305eaa617f"
+        },
+        "durationSeconds": 6,
+        "fps": 30,
+        "compositionMetadata": {
+          "human": {
+            "width": 720,
+            "height": 980,
+            "fps": 30,
+            "durationInFrames": 180
+          },
+          "scene": {
+            "width": 1280,
+            "height": 900,
+            "fps": 30,
+            "durationInFrames": 180
+          },
+          "closeup": {
+            "width": 1280,
+            "height": 708,
+            "fps": 30,
+            "durationInFrames": 180
+          }
+        },
+        "renderFingerprintAtApproval": {
+          "public/studies/work-planning/working-typing.svg": "11e6f3cddf6f5f6e8de584c612d18f7afdc4b30991cd15142b8cade0f85e1a4d",
+          "public/studies/work-planning/working-typing-no-desk.svg": "7d2bdcdb19035c341e94ad052930dfe63cb31cc7e587bb8f38cab464665693a7",
+          "video-composition/work-planning-arm-proof-index.tsx": "a227f972467e626a7f661bd89f6ebb852a3e0a34cce76a5e10bc8bc67b3f7705",
+          "video-composition/directed/WorkPlanningArmProof.ts": "ac1ea15f6ce0807aa633b4b102451e337bcd72ac0a2924418b0b6be00788b2de",
+          "video-composition/directed/LibrarySvgArtwork.tsx": "3e3a3edc79faa6e6b64f9df0f160121139a1bf8174f68d1eb6335de34ecacc15",
+          "video-composition/directed/namespace-svg.ts": "941982d51d1e5e7b54402ba4dd0fd08f44f95e5a3825273d84f37b130a25a817",
+          "scripts/preview-work-planning-arm-proof.ts": "d716c94319461f9ec75acef986108463c2e433abebd94d93c5ecc4259ddcf7a0",
+          "package.json": "a3f62a7726a98fa5dd8a0aa38109554edd6a2bc282f131fd92bde8e11c01bfc5",
+          "package-lock.json": "8e0bfa0904550967dedb20b2e062ebcd56c6ab67aeb4d5dd5d4f7115108e5e72",
+          "tsconfig.json": "9bc2b88a798c5cb4e38c308cf90740bf45a8de7e58af8b0205b86e5a0c8f66c9",
+          "../docs/design/approved-animations.json": "3466eb4425156508c8a0a78b1c59cffeed4c33d5742c2943d2d5956a58687e0f",
+          "public/studies/work-planning/source.json": "61743b524195f01ac00e6619d0995a565b9f3d102441a4b106edf544c3f70e81"
+        },
+        "verificationSummary": {
+          "activeAuditFrames": 69,
+          "reducedAuditFrames": 21,
+          "maxSourceProbeResidual": 0.004322818362488629,
+          "maxWristOverlapChange": 0.00021252897299361972,
+          "sourceBaselineReturnReducedPixelExact": true,
+          "encodedChecksPassed": true,
+          "independentSmallElbowMotion": true,
+          "assistantNormalSpeedPlaybackClaimed": false
+        },
+        "implementationFingerprint": {
+          "public/studies/work-planning/working-typing.svg": "11e6f3cddf6f5f6e8de584c612d18f7afdc4b30991cd15142b8cade0f85e1a4d",
+          "public/studies/work-planning/working-typing-no-desk.svg": "7d2bdcdb19035c341e94ad052930dfe63cb31cc7e587bb8f38cab464665693a7",
+          "video-composition/work-planning-arm-proof-index.tsx": "a227f972467e626a7f661bd89f6ebb852a3e0a34cce76a5e10bc8bc67b3f7705",
+          "video-composition/directed/WorkPlanningArmProof.ts": "ac1ea15f6ce0807aa633b4b102451e337bcd72ac0a2924418b0b6be00788b2de",
+          "video-composition/directed/LibrarySvgArtwork.tsx": "3e3a3edc79faa6e6b64f9df0f160121139a1bf8174f68d1eb6335de34ecacc15",
+          "video-composition/directed/namespace-svg.ts": "941982d51d1e5e7b54402ba4dd0fd08f44f95e5a3825273d84f37b130a25a817",
+          "scripts/preview-work-planning-arm-proof.ts": "d716c94319461f9ec75acef986108463c2e433abebd94d93c5ecc4259ddcf7a0",
+          "package.json": "a3f62a7726a98fa5dd8a0aa38109554edd6a2bc282f131fd92bde8e11c01bfc5",
+          "package-lock.json": "8e0bfa0904550967dedb20b2e062ebcd56c6ab67aeb4d5dd5d4f7115108e5e72",
+          "tsconfig.json": "9bc2b88a798c5cb4e38c308cf90740bf45a8de7e58af8b0205b86e5a0c8f66c9"
+        },
+        "fingerprintNote": "Render-time approval-metadata hashes are historical provenance. ImplementationFingerprint excludes mutable approval metadata so recording this approval does not invalidate the approved code/assets."
+      },
+      "reviewMediaPruned": true
+    },
+    {
+      "historicalArtifact": "web/out/work-planning-review/armature-prep-5",
+      "approval": {
+        "asset": "care-work-plan-armature-map",
+        "date": "2026-10-12",
+        "userApproval": "Perfect done",
+        "scope": "Static joint map and corrected far shoulder position only; no intermediate pose, large-angle motion or recline approval.",
+        "farShoulder": {
+          "x": 243.61,
+          "y": 243.46
+        },
+        "previewSha256": "b4b859cd68854eaf0355a9f38c62dc5466f3c7e61962066b167762ce30aa9f82",
+        "implementationFingerprint": {
+          "public/studies/work-planning/working-typing.svg": "11e6f3cddf6f5f6e8de584c612d18f7afdc4b30991cd15142b8cade0f85e1a4d",
+          "public/studies/work-planning/working-typing-no-desk.svg": "7d2bdcdb19035c341e94ad052930dfe63cb31cc7e587bb8f38cab464665693a7",
+          "video-composition/work-planning-arm-proof-index.tsx": "a227f972467e626a7f661bd89f6ebb852a3e0a34cce76a5e10bc8bc67b3f7705",
+          "video-composition/directed/WorkPlanningArmProof.ts": "ac1ea15f6ce0807aa633b4b102451e337bcd72ac0a2924418b0b6be00788b2de",
+          "video-composition/directed/LibrarySvgArtwork.tsx": "3e3a3edc79faa6e6b64f9df0f160121139a1bf8174f68d1eb6335de34ecacc15",
+          "video-composition/directed/namespace-svg.ts": "941982d51d1e5e7b54402ba4dd0fd08f44f95e5a3825273d84f37b130a25a817",
+          "scripts/preview-work-planning-arm-proof.ts": "d716c94319461f9ec75acef986108463c2e433abebd94d93c5ecc4259ddcf7a0",
+          "package.json": "a3f62a7726a98fa5dd8a0aa38109554edd6a2bc282f131fd92bde8e11c01bfc5",
+          "package-lock.json": "8e0bfa0904550967dedb20b2e062ebcd56c6ab67aeb4d5dd5d4f7115108e5e72",
+          "tsconfig.json": "9bc2b88a798c5cb4e38c308cf90740bf45a8de7e58af8b0205b86e5a0c8f66c9",
+          "video-composition/directed/WorkPlanningArmature.ts": "46730aa6dc59d8ca1765c670660cefeecdec49d87e93010dd9b03b1e0dd008e6",
+          "video-composition/work-planning-armature-index.tsx": "0ce396218abbc11a00860434579ad36323b3da365757e6efeb8138641cf6559d",
+          "scripts/preview-work-planning-armature.ts": "7d15fb2d3cc449ce4106809d960cf71d554bbe84b698d142f16ab782a002c4aa"
+        },
+        "verificationSummary": {
+          "exactBaselinePixelsInAllViews": true,
+          "staticFrames": [
+            0,
+            90
+          ],
+          "actualAudits": 8,
+          "typecheckPassed": true
+        }
+      },
+      "reviewMediaPruned": true
+    },
+    {
+      "historicalArtifact": "web/out/work-planning-review/annotations-5",
+      "approval": {
+        "asset": "care-work-plan-straight-sleeve-and-ownership",
+        "date": "2026-10-12",
+        "userApproval": "Looks good",
+        "scope": "Straight far sleeve/cuff and corrected shared-shirt torso ownership, clean figure plus static annotations. No intermediate pose, overhead motion or recline approval.",
+        "previewHashes": {
+          "human-revised.png": "1fde3b8fdd716e903d1d39f15c665760c4efeb7977b313306f0bfb36f2f4ec5c",
+          "closeup-revised.png": "1e34f0d3fa3e9b3b992e3527723728097e47cc560806849679d2b6db91d0d1a0",
+          "regions-annotated.png": "7028d550f0dced1931129397bf660fe6453fad1a4cd12554976f3a56e3953a99",
+          "boundaries-annotated.png": "aa3cb4074de6e481e1a0a4302a17cfdcb47f3d44e67d55935a612a02a95fd2df",
+          "coverage-annotated.png": "ec7817d710d2fe7109b1037124a283c7412fd481ab5a51107916bb70168b2b4c"
+        },
+        "renderFingerprintAtApproval": {
+          "public/studies/work-planning/working-typing.svg": "11e6f3cddf6f5f6e8de584c612d18f7afdc4b30991cd15142b8cade0f85e1a4d",
+          "public/studies/work-planning/working-typing-no-desk.svg": "7d2bdcdb19035c341e94ad052930dfe63cb31cc7e587bb8f38cab464665693a7",
+          "video-composition/work-planning-arm-proof-index.tsx": "a227f972467e626a7f661bd89f6ebb852a3e0a34cce76a5e10bc8bc67b3f7705",
+          "video-composition/directed/WorkPlanningArmProof.ts": "ac1ea15f6ce0807aa633b4b102451e337bcd72ac0a2924418b0b6be00788b2de",
+          "video-composition/directed/LibrarySvgArtwork.tsx": "3e3a3edc79faa6e6b64f9df0f160121139a1bf8174f68d1eb6335de34ecacc15",
+          "video-composition/directed/namespace-svg.ts": "941982d51d1e5e7b54402ba4dd0fd08f44f95e5a3825273d84f37b130a25a817",
+          "scripts/preview-work-planning-arm-proof.ts": "d716c94319461f9ec75acef986108463c2e433abebd94d93c5ecc4259ddcf7a0",
+          "package.json": "a3f62a7726a98fa5dd8a0aa38109554edd6a2bc282f131fd92bde8e11c01bfc5",
+          "package-lock.json": "8e0bfa0904550967dedb20b2e062ebcd56c6ab67aeb4d5dd5d4f7115108e5e72",
+          "tsconfig.json": "9bc2b88a798c5cb4e38c308cf90740bf45a8de7e58af8b0205b86e5a0c8f66c9",
+          "video-composition/directed/WorkPlanningArmature.ts": "46730aa6dc59d8ca1765c670660cefeecdec49d87e93010dd9b03b1e0dd008e6",
+          "video-composition/work-planning-armature-index.tsx": "0ce396218abbc11a00860434579ad36323b3da365757e6efeb8138641cf6559d",
+          "scripts/preview-work-planning-armature.ts": "7d15fb2d3cc449ce4106809d960cf71d554bbe84b698d142f16ab782a002c4aa",
+          "video-composition/work-planning-annotations-index.tsx": "bbcfaad092b74553c19d2f81a1a92b28f748d0a43dc39c29bba76b2a20083387",
+          "scripts/preview-work-planning-annotations.ts": "515347612d468fcd4e747ce6e0cbe56d829cb0793f3de4c0c3c81130e76f3d75",
+          "video-composition/directed/WorkPlanningArmatureRevision.ts": "102def9b30192cabe5e650ffda2ed2eb6082809ccd466a0fed6d6fd913d1b08c",
+          "video-composition/work-planning-sleeve-revision-index.tsx": "f6398226b0e4b97450f2ec12e25bf14dd4f848c14efc23fa9299a901c1b17bae",
+          "scripts/prepare-work-planning-sleeve-revision.py": "f55d7c63b6b3eab4a5dae3ecdb1ecb1e5018fa85ee40d8977a8e0aa1a4305751",
+          "public/studies/work-planning/straight-sleeve-candidate.json": "89fe6a69cb55afb562e887981ea6d3d81919a31872f75e5139901737098d53f4",
+          "public/studies/work-planning/working-typing-straight-sleeve.svg": "f5855ae37922acffaccf882d14e0a251d51c5bfc26b1d016df3e63104544389f",
+          "public/studies/work-planning/working-typing-straight-sleeve-no-desk.svg": "c3b68d90ee2f7b7cacdbf483d8fe23a8efc3b6e91c38179136d0dc38140390ae"
+        },
+        "approvedAssets": {
+          "fullScene": "working-typing-straight-sleeve.svg",
+          "isolated": "working-typing-straight-sleeve-no-desk.svg"
+        },
+        "verificationSummary": {
+          "candidatePreparationPixelEquality": true,
+          "candidateChangesConfinedToFarSleeve": true,
+          "stationaryTorsoSleeveWeight": 0,
+          "staticFrames": [
+            0,
+            90
+          ],
+          "actualAudits": 9,
+          "typecheckPassed": true
+        },
+        "implementationFingerprintAfterAdoption": {
+          "public/studies/work-planning/working-typing.svg": "11e6f3cddf6f5f6e8de584c612d18f7afdc4b30991cd15142b8cade0f85e1a4d",
+          "public/studies/work-planning/working-typing-no-desk.svg": "7d2bdcdb19035c341e94ad052930dfe63cb31cc7e587bb8f38cab464665693a7",
+          "video-composition/work-planning-arm-proof-index.tsx": "a227f972467e626a7f661bd89f6ebb852a3e0a34cce76a5e10bc8bc67b3f7705",
+          "video-composition/directed/WorkPlanningArmProof.ts": "ac1ea15f6ce0807aa633b4b102451e337bcd72ac0a2924418b0b6be00788b2de",
+          "video-composition/directed/LibrarySvgArtwork.tsx": "3e3a3edc79faa6e6b64f9df0f160121139a1bf8174f68d1eb6335de34ecacc15",
+          "video-composition/directed/namespace-svg.ts": "941982d51d1e5e7b54402ba4dd0fd08f44f95e5a3825273d84f37b130a25a817",
+          "scripts/preview-work-planning-arm-proof.ts": "d716c94319461f9ec75acef986108463c2e433abebd94d93c5ecc4259ddcf7a0",
+          "package.json": "a3f62a7726a98fa5dd8a0aa38109554edd6a2bc282f131fd92bde8e11c01bfc5",
+          "package-lock.json": "8e0bfa0904550967dedb20b2e062ebcd56c6ab67aeb4d5dd5d4f7115108e5e72",
+          "tsconfig.json": "9bc2b88a798c5cb4e38c308cf90740bf45a8de7e58af8b0205b86e5a0c8f66c9",
+          "video-composition/directed/WorkPlanningArmature.ts": "46730aa6dc59d8ca1765c670660cefeecdec49d87e93010dd9b03b1e0dd008e6",
+          "video-composition/work-planning-armature-index.tsx": "0ce396218abbc11a00860434579ad36323b3da365757e6efeb8138641cf6559d",
+          "scripts/preview-work-planning-armature.ts": "7d15fb2d3cc449ce4106809d960cf71d554bbe84b698d142f16ab782a002c4aa",
+          "video-composition/work-planning-annotations-index.tsx": "bbcfaad092b74553c19d2f81a1a92b28f748d0a43dc39c29bba76b2a20083387",
+          "scripts/preview-work-planning-annotations.ts": "515347612d468fcd4e747ce6e0cbe56d829cb0793f3de4c0c3c81130e76f3d75",
+          "video-composition/directed/WorkPlanningArmatureRevision.ts": "102def9b30192cabe5e650ffda2ed2eb6082809ccd466a0fed6d6fd913d1b08c",
+          "video-composition/work-planning-sleeve-revision-index.tsx": "f6398226b0e4b97450f2ec12e25bf14dd4f848c14efc23fa9299a901c1b17bae",
+          "scripts/prepare-work-planning-sleeve-revision.py": "fe72c21e62077b1cad871c6e66b67155c447adb2a3bd8d81e1eb230b63dbbf70",
+          "public/studies/work-planning/working-typing-straight-sleeve.svg": "f5855ae37922acffaccf882d14e0a251d51c5bfc26b1d016df3e63104544389f",
+          "public/studies/work-planning/working-typing-straight-sleeve-no-desk.svg": "c3b68d90ee2f7b7cacdbf483d8fe23a8efc3b6e91c38179136d0dc38140390ae",
+          "video-composition/directed/WorkPlanningArtwork.tsx": "6de9417c4c336a0599d8239e6fa1e8ed21c344dc0d7c9b44a4da552ae811c50b",
+          "scripts/preview-work-planning-study.ts": "2e4972009971ec9922313ff71026b666e3a683ecff8ce3c5d46e2d990da02f6f"
+        },
+        "activeSceneVerification": {
+          "frame0Equals90": true,
+          "typecheckPassed": true,
+          "renderInspected": true,
+          "previewSha256": "fa3d561ac19eeaaa8dba0c899db9ee649bcfafcd124a6c9e771107f7bb4c4697"
+        }
+      },
+      "reviewMediaPruned": true
+    },
+    {
+      "approval": {
+        "asset": "care-work-plan-flow-overhead-to-behind-head",
+        "date": "2026-10-16",
+        "userApproval": "WORKED REALLY GREAT!",
+        "followupAuthorization": "Good job on the prompt also, can we commit to the full vision now?",
+        "scope": "Visual approval of the supplied Flow arm rise above the head and descent behind the head. Authorizes proceeding toward the previously directed full work-to-relax sequence. Does not approve future recline, prop exits, camera composition, production integration or clinical content.",
+        "previewFile": "user-supplied/Woman_moving_arms_upward_sequence_20261016230750.gif",
+        "sha256": "b781046d19bfafc128b5d91c7a1981973ed410c6147dff1f8fe939dbbb9014b9",
+        "format": {
+          "type": "GIF",
+          "width": 270,
+          "height": 480,
+          "durationSeconds": 8,
+          "frameCount": 128
+        },
+        "provenance": "User-provided external Flow generation; model/version/seed and original MP4 not supplied. Approval is bound to this GIF only.",
+        "implementation": "External generated motion; custom SVG intermediate poses are not approved by this record.",
+        "inspection": "Lead sampled extracted frames at0.5s intervals; user provides motion approval. No assistant normal-speed playback claim."
+      },
+      "reviewMediaPruned": false,
+      "retention": "User-owned Downloads GIF left untouched; no duplicate preview imported. Original-quality MP4 required before production integration."
+    },
+    {
+      "approval": {
+        "asset": "care-work-plan-flow-full-body",
+        "date": "2026-10-16",
+        "userApproval": "Done, I'm happy",
+        "scope": "User visual approval of supplied full-body Flow clip. Final scene composition/integration still pending. Actual generated motion accepted, not a claim of exact compliance with every earlier pose constraint.",
+        "previewFile": "user-supplied/Woman_animating_illustration_poses_20261016231558.mp4",
+        "runtimeSource": "web/public/studies/work-planning/working-to-relax-flow-approved.mp4",
+        "sha256": "b6f8b770016cf36a9a6dceb70809b3b06d364c6334614288b49c0caa663362e4",
+        "format": {
+          "width": 720,
+          "height": 1280,
+          "fps": 24,
+          "durationSeconds": 10.005,
+          "audioStreamPresent": true
+        },
+        "provenance": "User-provided Google Flow output; model/version/seed unknown. Retained exact MP4 bytes as irreplaceable generated source.",
+        "inspection": "ffprobe and extracted frames at 1-second intervals 0\u20139s. No assistant normal-speed playback/audio verification. Extended shoe crosses left frame edge; consider existing crop during composition without redesigning approved motion."
+      },
+      "reviewMediaPruned": true,
+      "retention": "Exact generated source retained; user Downloads untouched; temporary extracted sheets removed."
+    },
+    {
+      "approval": {
+        "asset": "care-work-plan-flow-wide-held-ending",
+        "date": "2026-10-16",
+        "userApproval": "Happy with it",
+        "scope": "Wide character motion including both-leg extension and held relaxed ending approved. Final room props/camera composition pending.",
+        "runtimeSource": "web/public/studies/work-planning/working-to-relax-flow-wide-candidate.mp4",
+        "sha256": "9ad5cad79f9e9e99c0da5659cd3ae66e78e3ba870850f645cbd73bb111bc4883",
+        "previewSha256": "476b187c422e685ac03ca8c736f5eadda3246d68150bc19b710ed78b38a0ccab",
+        "editRecipe": "web/public/studies/work-planning/working-flow-approved-edit.json"
+      },
+      "reviewMediaPruned": true,
+      "retention": "Generated source and compact edit recipe retained; disposable review MP4 removed after approval. Downloads originals untouched."
+    },
+    {
+      "approval": {
+        "asset": "care-work-plan-flow-final-scene",
+        "date": "2026-10-16",
+        "userApproval": "Perfect all good, update memory and remove any unnecessary files.",
+        "scope": "Full room composition with half-second overhead hesitation removed, original-speed remaining character motion, relaxed hold through narration, rightward staggered prop exits, gentle camera follow and final left swipe. Standalone visual approval; production routing and clinical approval remain separate.",
+        "previewSha256": "ccf993737a2119686e59aa4b7ee2d1594e3471763a620939942a981ecdbaddec",
+        "format": {
+          "width": 1280,
+          "height": 720,
+          "fps": 24,
+          "frames": 569
+        },
+        "runtimeSource": "web/public/studies/work-planning/working-to-relax-flow-wide-candidate.mp4",
+        "sourceSha256": "9ad5cad79f9e9e99c0da5659cd3ae66e78e3ba870850f645cbd73bb111bc4883",
+        "edit": {
+          "removedSourceFrames": [
+            73,
+            84
+          ],
+          "removedSeconds": 0.5,
+          "joinSourceFrames": [
+            72,
+            85
+          ],
+          "joinShotFrames": [
+            72,
+            73
+          ],
+          "sourceHoldBeginsShotFrame": 167,
+          "preservedChecks": [
+            "props/caption timing JSON exact",
+            "frame24 before cut exact",
+            "frame240 after settle exact",
+            "encoded AAC packets MD5 exact"
+          ],
+          "audioMd5": "MD5=26b5b3b7ee94a8123447936edbf37f88",
+          "previewSha256": "ccf993737a2119686e59aa4b7ee2d1594e3471763a620939942a981ecdbaddec",
+          "humanReview": "Pending trimmed timing; prior scene liked with this change requested"
+        },
+        "props": {
+          "durationInFrames": 569,
+          "exitStart": 22.400000000000013,
+          "reducedMotion": false,
+          "captions": [
+            {
+              "text": "You might find it helpful to plan for",
+              "startSeconds": 0.4000000000000057,
+              "endSeconds": 2.5
+            },
+            {
+              "text": "a lighter workload or some time off around",
+              "startSeconds": 2.5,
+              "endSeconds": 5.420000000000016
+            },
+            {
+              "text": "your infusion day and for a few days",
+              "startSeconds": 5.420000000000016,
+              "endSeconds": 7.980000000000018
+            },
+            {
+              "text": "afterward. Your energy often picks back up toward",
+              "startSeconds": 7.980000000000018,
+              "endSeconds": 11.420000000000016
+            },
+            {
+              "text": "the end of your cycle. How much time",
+              "startSeconds": 11.420000000000016,
+              "endSeconds": 13.640000000000015
+            },
+            {
+              "text": "you need can vary a lot by person",
+              "startSeconds": 13.640000000000015,
+              "endSeconds": 16.360000000000014
+            },
+            {
+              "text": "and job, so it's reasonable to plan for",
+              "startSeconds": 16.360000000000014,
+              "endSeconds": 19.140000000000015
+            },
+            {
+              "text": "the lighter end until you know how your",
+              "startSeconds": 19.140000000000015,
+              "endSeconds": 21.560000000000002
+            },
+            {
+              "text": "body responds.",
+              "startSeconds": 21.560000000000002,
+              "endSeconds": 22.30000000000001
+            }
+          ]
+        },
+        "fingerprint": {
+          "video-composition/directed/WorkPlanningFlowScene.tsx": "db62e9c4e7ac619819fe7d1543d96a753d5824c45d3bcccbf660dc3b031449aa",
+          "video-composition/work-planning-flow-index.tsx": "c02d02b480f616be87dae5dac94cf7c0a3be459b12e50cf0e6340fe561ed023d",
+          "video-composition/directed/LibrarySvgArtwork.tsx": "3e3a3edc79faa6e6b64f9df0f160121139a1bf8174f68d1eb6335de34ecacc15",
+          "video-composition/directed/namespace-svg.ts": "941982d51d1e5e7b54402ba4dd0fd08f44f95e5a3825273d84f37b130a25a817",
+          "video-composition/directed/DirectedFonts.tsx": "1160d9475c74f51ea636f1110942f5140a49f1238de83212753c78bd2e3c6fac",
+          "lib/video/work-planning-motion.ts": "2c109926ba126d3de0195e3064b45643d3b43fbee5d750003b40cf5bd1bd400f",
+          "lib/video/study-source.ts": "ab1569aeb6d7063f18ed510ca8696cde1ad2a26fa1d5030b23e2550a031c0cf5",
+          "scripts/preview-work-planning-flow.ts": "b29bf22bd494b1a7994791721ec13a8d367b12f0d5e3fffe1de81078af221c59",
+          "scripts/prepare-work-planning-flow-layers.py": "34f85f8667fa8143627a5fe2bd6783d1e86df6f920068af58cb36ff168d8a9c1",
+          "public/studies/work-planning/working-typing-straight-sleeve.svg": "f5855ae37922acffaccf882d14e0a251d51c5bfc26b1d016df3e63104544389f",
+          "public/studies/work-planning/working-to-relax-flow-wide-candidate.mp4": "9ad5cad79f9e9e99c0da5659cd3ae66e78e3ba870850f645cbd73bb111bc4883",
+          "public/studies/work-planning/working-flow-approved-edit.json": "8331c78ffef7a7185b6bfea02f5e5931259cc9780c84157369a8619be456b894",
+          "public/studies/work-planning/flow-layers/manifest.json": "b430b3aaf102403b0a2744148f457aef24b4dc37c0eeceed0bacfe25551ceb66",
+          "public/studies/work-planning/flow-layers/rest.png": "62de82238cd224be4b8d986130a04471a40d0ab7944d1684cd343a2676ea21ec",
+          "public/fonts/figtree-latin-v9.woff2": "4ba7d3d096695818fe0686be4f1e82c6b05134e18a22260336130335027462dd",
+          "package-lock.json": "8e0bfa0904550967dedb20b2e062ebcd56c6ab67aeb4d5dd5d4f7115108e5e72"
+        },
+        "checks": [
+          "approved source SHA and edit contract",
+          "rest still equals decoded source frame0",
+          "foreground builder hash",
+          "foreground frame hashes",
+          "rightward prop monotonicity",
+          "retirement before swipe",
+          "hold frame",
+          "reduced motion equality",
+          "final white frame"
+        ]
+      },
+      "reviewMediaPruned": true,
+      "retention": "Source MP4/SVG, foreground runtime layers, provenance and reusable code retained. Disposable work-planning review directories removed after approval. User Downloads untouched."
+    },
+    {
+      "id": "patient-stretch-flow-source",
+      "approval": {
+        "date": "2026-10-19",
+        "userApproval": "Everything looks good, we just have to be able to loop it without making it look weird",
+        "sha256": "a9a8937df45117d503686210efd7e994c71f7ee21f4a03191dc55a45cc9a92c4",
+        "source": "web/public/studies/patient-stretch/stretch-flow-candidate.mp4",
+        "scope": "Supplied character motion accepted; loop edit remains pending user review. Not full scene or clinical approval."
+      },
+      "reviewMediaPruned": false
+    },
+    {
+      "id": "patient-stretch-flow-loop",
+      "approval": {
+        "date": "2026-10-19",
+        "userApproval": "Yeah looks god",
+        "sha256": "0f71712ba37dc1c500299036ed4b3117d9916ed08d39bd6820d077f7c9406b3b",
+        "historicalReview": "web/out/patient-stretch-review/flow-1/loop-review.mp4",
+        "scope": "Stretch motion and loop edit approved; full narrated scene integration remains pending."
+      },
+      "runtime": "web/public/studies/patient-stretch/stretch-flow-loop.mp4",
+      "runtimeSha256": "c0ac1017a6dd00bb097ecaa1922d9e370024f32fd279e093cef2be05fac6371f",
+      "editRecipe": "web/public/studies/patient-stretch/stretch-loop-edit.json",
+      "sourceSha256": "a9a8937df45117d503686210efd7e994c71f7ee21f4a03191dc55a45cc9a92c4",
+      "reviewMediaPruned": true
+    },
+    {
+      "id": "patient-car-flow-source",
+      "approval": {
+        "date": "2026-10-19",
+        "userApproval": "Here, looks good to me",
+        "sha256": "1207ede13934c4b51e0980f6300cb2fa05dc03ad18ff09fe98bc9c42eb9e5e5a",
+        "source": "web/public/studies/patient-car/car-flow-approved.mp4",
+        "scope": "Human visual approval of supplied 10-second driving illustration animation. No separate loop edit, narration integration or clinical approval."
+      },
+      "metadata": {
+        "width": 1920,
+        "height": 1080,
+        "fps": 24,
+        "durationSeconds": 10,
+        "sourceAudioPresent": true
+      },
+      "verification": "Full decode passed; sampled 1-second encoded frames inspected for composition. No assistant normal-speed playback or listening claim.",
+      "reviewMediaPruned": true
+    },
+    {
+      "id": "context-support-flow-source",
+      "approval": {
+        "date": "2026-10-19",
+        "userApproval": "Came out really well, save this mistake to memory regarding google flow!",
+        "sha256": "31a36fc7481b3375d907dd3d908e5c00fc2566101e359301d1912cedf80d4f3f",
+        "source": "web/public/studies/context-support/support-flow-approved.mp4",
+        "scope": "Supplied Flow character motion approved; coded hearts, held-ending extension and narrated integration pending. Not clinical approval."
+      },
+      "metadata": {
+        "width": 1920,
+        "height": 1080,
+        "fps": 24,
+        "durationSeconds": 10,
+        "sourceAudioPresent": true
+      },
+      "verification": "Exact supplied-file copy hash verified; full decode passed; 1-second encoded samples inspected. No normal-speed playback/listening claim.",
+      "reviewMediaPruned": true
+    },
+    {
+      "id": "flow-four-scene-integration-review6",
+      "approval": {
+        "date": "2026-10-19",
+        "userApproval": "Hey! they feel great together, good job.",
+        "sha256": "c42dd0410fc4a339a5e0dcd9cb4f99f5508d1b4465ccaebcf4569df31e701f1d",
+        "historicalReview": "web/out/flow-integration/review-6/four-scenes.mp4",
+        "scope": "Four-scene feel and support hearts accepted; driving hold explicitly superseded by requested infinite loop. Transition director stage newly authorized; no approval of future transitions or loop."
+      },
+      "reviewArtifacts": {
+        "four-scenes.mp4": "c42dd0410fc4a339a5e0dcd9cb4f99f5508d1b4465ccaebcf4569df31e701f1d",
+        "hug-hearts.mp4": "2760fecd0b9c79520a565939934d6ae211bd4fcb507d728bd6bf2fe0c872d55e",
+        "phone.mp4": "bdf425058272a749afe7dc9ed383c50a5be65d1a519be7a658a719b8a3795ce0"
+      },
+      "fingerprint": {
+        "video-composition/flow-integration-index.tsx": "aff6fad873ef738c7e4c6e670af9ad4e95cd929a1f1021ec1e716aea5de46524",
+        "video-composition/directed/FlowClipScene.tsx": "04afed06dfafa39e84fe679627835ef450312d05370e23dc9a2e29798eda4ada",
+        "lib/video/flow-clip-motion.ts": "18ce4be13b64a5b515f2f8f686c07d78e094f092f158c33ed2834ec1990af596",
+        "video-composition/directed/WorkPlanningFlowScene.tsx": "8feeea299ce9046742956e4caafd06a1ac281402202ec27398ec61d6019749a6",
+        "video-composition/directed/LibrarySvgArtwork.tsx": "3e3a3edc79faa6e6b64f9df0f160121139a1bf8174f68d1eb6335de34ecacc15",
+        "video-composition/directed/namespace-svg.ts": "941982d51d1e5e7b54402ba4dd0fd08f44f95e5a3825273d84f37b130a25a817",
+        "video-composition/directed/DirectedFonts.tsx": "1160d9475c74f51ea636f1110942f5140a49f1238de83212753c78bd2e3c6fac",
+        "lib/video/work-planning-motion.ts": "2c109926ba126d3de0195e3064b45643d3b43fbee5d750003b40cf5bd1bd400f",
+        "lib/video/study-source.ts": "ab1569aeb6d7063f18ed510ca8696cde1ad2a26fa1d5030b23e2550a031c0cf5",
+        "scripts/preview-flow-integration.ts": "c40ff94ec5459c0a5a9256df243458e78717bc4e49dc4e96aef122f226c60922",
+        "package-lock.json": "8e0bfa0904550967dedb20b2e062ebcd56c6ab67aeb4d5dd5d4f7115108e5e72",
+        "../docs/design/approved-animations.json": "5eb232a286191cba7a8fa838db6a8fd2b171d7fea5c38f6101a6dc5ae4630d2e",
+        "public/fonts/figtree-latin-v9.woff2": "4ba7d3d096695818fe0686be4f1e82c6b05134e18a22260336130335027462dd",
+        "public/studies/reading-recovery/twemoji/2764.svg": "09a743ee0c32ca57c9be64b13b29c396310d1dd309cb4d7d3be722e47db95f27",
+        "public/studies/work-planning/working-typing-straight-sleeve.svg": "f5855ae37922acffaccf882d14e0a251d51c5bfc26b1d016df3e63104544389f",
+        "public/studies/work-planning/working-to-relax-flow-wide-candidate.mp4": "9ad5cad79f9e9e99c0da5659cd3ae66e78e3ba870850f645cbd73bb111bc4883",
+        "public/studies/patient-stretch/stretch-flow-loop.mp4": "c0ac1017a6dd00bb097ecaa1922d9e370024f32fd279e093cef2be05fac6371f",
+        "public/studies/patient-car/car-flow-approved.mp4": "1207ede13934c4b51e0980f6300cb2fa05dc03ad18ff09fe98bc9c42eb9e5e5a",
+        "public/studies/context-support/support-flow-approved.mp4": "31a36fc7481b3375d907dd3d908e5c00fc2566101e359301d1912cedf80d4f3f",
+        "public/studies/work-planning/flow-layers/000.png": "dd9b2ca89b29c36bd6ed4a4c026966d94e6f14252fd3d78b444d8dfb48978b7b",
+        "public/studies/work-planning/flow-layers/001.png": "9be7db8f278d09bea26847477355766a7c2442cca010ddb0bb4c98a78b7cdc8c",
+        "public/studies/work-planning/flow-layers/002.png": "89498a4c006901635c412aadd49b24c73c6c46150f231274f912f8e12dd6f329",
+        "public/studies/work-planning/flow-layers/003.png": "912362dc4a7b2e61b7368e1786dab9cf00e47be3884004a5a9c48b9da48e53e1",
+        "public/studies/work-planning/flow-layers/004.png": "753c80dfa1267abc24de84b76409c982d21ba82dcd25ac874bb0f8cc7da8b9da",
+        "public/studies/work-planning/flow-layers/005.png": "345458e1559e46617636fef2588986ae8e642a0e56827f71c78b32a554338ae0",
+        "public/studies/work-planning/flow-layers/006.png": "0f62c148041ed5514d2ef50cfb6b77a20e042fa4a0ed92f90a6e1038026023d8",
+        "public/studies/work-planning/flow-layers/007.png": "8d5159cf69990549f19ebc4f270af4907c97a5b558789d5ab5b034147d6e2c36",
+        "public/studies/work-planning/flow-layers/008.png": "2847693e79041d92688eea8dadb59845638e47a50ad77d881379f4a41f8bce17",
+        "public/studies/work-planning/flow-layers/009.png": "a12e80d12deeead39c90e875e5884c159ce4bc6920850968720457c67575b465",
+        "public/studies/work-planning/flow-layers/010.png": "19fabe3fd531d4b9629b1bcc17fb9290798c4107e51c4ca70e995a9843deb8e9",
+        "public/studies/work-planning/flow-layers/011.png": "2f6cdafe7cd450a6c1394b7071d1bb8d6e11c03cf548e6a0a2374cb4ca5b2f95",
+        "public/studies/work-planning/flow-layers/012.png": "910de6af1f101d82b936f9bcc1c131356ae0b76f65aea64ba0c98a90a5edf32e",
+        "public/studies/work-planning/flow-layers/013.png": "d8d5f66844bc74f2029dce352c74189ea426b5ed4844b0c1ee5de001982dbf7f",
+        "public/studies/work-planning/flow-layers/014.png": "c4ce8742c8d5bad3366a36cd1b66a2a6de007911498f4057d4952e80d03f321d",
+        "public/studies/work-planning/flow-layers/015.png": "8a2227728f899328230fd77f41f0fa9dedf1d680de2fe2a0eb420564b958cf7e",
+        "public/studies/work-planning/flow-layers/016.png": "cd65d6c6362d937e241f840d78f37a5a03b5917369b111c118d6b943b2ef3a07",
+        "public/studies/work-planning/flow-layers/017.png": "102dc0599d920cbf2861572bb4774f16ab633bd3bbdcecbd2ed6af942ab16699",
+        "public/studies/work-planning/flow-layers/018.png": "4eab366ac94980781faefd620e8c97d4196a38f7f487c3ea7834670a674cf750",
+        "public/studies/work-planning/flow-layers/019.png": "42051f312d7b2dda3cafe122a38ff3fcf04d18faf6f4f2da6e21c8aa0f5c49e1",
+        "public/studies/work-planning/flow-layers/020.png": "0987171237184665847c499c88796195fcde7f9c3a922758b3bd213336533e93",
+        "public/studies/work-planning/flow-layers/021.png": "ea2e6b8095d500216717e2bfa0265ca9231b93f131cf9ffca54705304fd893df",
+        "public/studies/work-planning/flow-layers/022.png": "e0fb8fcbce592df202a88e82cb119fca14c1d6c9b7fd6c88f9b75ff86761ce76",
+        "public/studies/work-planning/flow-layers/023.png": "24799ec5da842e9cc1c7bcd12b41f9e7614c6825e37e9e17b551c040e9b2b0c7",
+        "public/studies/work-planning/flow-layers/024.png": "0174d8fb77e387008c12892ef6820cbfd246f5b969ee87b5889bb4468eabb2b8",
+        "public/studies/work-planning/flow-layers/025.png": "0030021bb85237cf6477078103d2978ec135318a8026e2ca56ca9b0f75929a0e",
+        "public/studies/work-planning/flow-layers/026.png": "09d4dffaf2e9c3fe561adab08926d5fd4033eafbce78e83e05eef4414258fa5b",
+        "public/studies/work-planning/flow-layers/027.png": "196084f35ffb9d5310e9042107d73ae1423ebaa0f98f3f083f9cc1189044c426",
+        "public/studies/work-planning/flow-layers/028.png": "00504e2d1e40ed536169e0341ba99887f43b7d715ded501ee504c18521f513aa",
+        "public/studies/work-planning/flow-layers/029.png": "d33f686a0a2c8652bd06c24317c09d0125195010df78ee60c63923aaf478e6c7",
+        "public/studies/work-planning/flow-layers/030.png": "95b9e8a155d2bf0ee6dcb82df33b3a1964ea6eb71f441468b54ec4edde5b120d",
+        "public/studies/work-planning/flow-layers/031.png": "f44e72356784fd102f7015e76c91446126eb3838635fbe564c6cde6af2931a28",
+        "public/studies/work-planning/flow-layers/032.png": "48c4284bd5588a153c15ff917cbf5ff178aee7ef4d9309d2034772b1206fea82",
+        "public/studies/work-planning/flow-layers/033.png": "7b1aecff5b32ea9e5e4eda5cc86bce156257e554a0d76339c868ae5d1ca2870f",
+        "public/studies/work-planning/flow-layers/034.png": "9eea152d048a0f7b3681ed5f6bc5d5b3a6ba90c8b4909ea7243aef968771e567",
+        "public/studies/work-planning/flow-layers/035.png": "a80bd1516f091251604e26567bba4dc3e7445bac661ea70016a464daf0601f05",
+        "public/studies/work-planning/flow-layers/036.png": "fe6b4d23b0bdca41b89870bed616f39ce41a788a070f4a6dcaaddb7c9c20fb08",
+        "public/studies/work-planning/flow-layers/037.png": "f13b1ab7bdf305c417b5d540c3b8df354a6c1c4b60d7699db43d3f96e5555ac2",
+        "public/studies/work-planning/flow-layers/038.png": "3624eaf80978e33e4e90cc2ce31e02ab9aa7ad43dfd618a969fbfa001cd0aa9c",
+        "public/studies/work-planning/flow-layers/039.png": "5b346cc6c5295651e99db5c251a9b809ac54c70843e9cdd37a8f3fbf1496b031",
+        "public/studies/work-planning/flow-layers/040.png": "cf1291684010244c2b777a6514e73a3c12b86059cca944ebe29e7af6edb4ec33",
+        "public/studies/work-planning/flow-layers/041.png": "7dd807c78f15c78ec890e503052f405229977a84f57b7f79c25bb9709faeef90",
+        "public/studies/work-planning/flow-layers/042.png": "24594cac0bdd044690e55fa85634b2af1890bb2fbd96c5c0b5b8eeaa9f6250d8",
+        "public/studies/work-planning/flow-layers/043.png": "18b5be04ad60d47216b4975ba88e1c22a3694567e18b53f0b4d3dc5955af8714",
+        "public/studies/work-planning/flow-layers/044.png": "5f45e92436c0cc6e2c167ee42df41ea0db30d4b0594614d425f50fd2b0bc4181",
+        "public/studies/work-planning/flow-layers/045.png": "4f04bd1694c4f6392d91d916a0ab53683725cd934e6f6b7ca390c17b590b4c89",
+        "public/studies/work-planning/flow-layers/046.png": "d7a4d13065a29f042b3cb92e9609b2d31477e41a5fef85aa391108bd442c55a1",
+        "public/studies/work-planning/flow-layers/047.png": "959989b5e2d9e3f63f0f1b9ce840f0c8e28321c825b47c1693a2912d4512d0f4",
+        "public/studies/work-planning/flow-layers/048.png": "74074d30c5f928bd188974ee0f5639aa36ba724b57ce7139d0fdf45e9c0624bb",
+        "public/studies/work-planning/flow-layers/049.png": "8fc567b948f93b23701f4035efae534eb59322817b09f1447551495e44b9c99e",
+        "public/studies/work-planning/flow-layers/050.png": "af2f482574fa1fea5336903c6a7ee6881a10296eaae8697e7eb36f4fbf466a9c",
+        "public/studies/work-planning/flow-layers/051.png": "c52ef032d86e80b48a069e4967773c7fb2875d0f46dcf0254da8c4a081330fbe",
+        "public/studies/work-planning/flow-layers/052.png": "fbf5e85007f92976959bd71dabcded8818bddaf18f378b39abc1472f4e6859cd",
+        "public/studies/work-planning/flow-layers/053.png": "9278b701ea1ab46bc7e6fe405387d9099c3b14bfaaf142f0c0c7d89ebf587f21",
+        "public/studies/work-planning/flow-layers/054.png": "255f0b55a1b995a98642bafed3debcb09c7c0a455b0c570c926834a63bbebe59",
+        "public/studies/work-planning/flow-layers/055.png": "f8af877fc5b33866641eff8cd95d2b29d9a79beac674599c7983a7ad7456fa7c",
+        "public/studies/work-planning/flow-layers/056.png": "359082a3b672f95b1d1519a6fa6cd1df0c3e6cd1d6fa2067e7cee4ab49d5f05e",
+        "public/studies/work-planning/flow-layers/057.png": "bd18b6512af62c6dd8ed3a8cc916210f2f6ac5e74e237d728f89c33e5b2df0fa",
+        "public/studies/work-planning/flow-layers/058.png": "322da66618d211588296051b6979187fc38e30bbeeb2b1cfda2abee93e53ec96",
+        "public/studies/work-planning/flow-layers/059.png": "d0cdafbe8810d8adde47bf3bcb5a4b2e90e4d1fe95a463fad46babf9c5feaa9f",
+        "public/studies/work-planning/flow-layers/060.png": "0a042359f155bf92a3f8f2fb259d959bd0c5080bef5f46bf5bca9b4e8853724e",
+        "public/studies/work-planning/flow-layers/061.png": "7e5da4a1003d3fc9270be321491f57fae085d3befddecccf6164862c000a8a99",
+        "public/studies/work-planning/flow-layers/062.png": "8fecab9424e88bd5fe91127f7d7e875ce702840c40b3c781e3fc6a88addfc8e4",
+        "public/studies/work-planning/flow-layers/063.png": "b31cbcb4aebcf899f21cb15ad6de8e21a5bbf187126eef60c471a516e939b394",
+        "public/studies/work-planning/flow-layers/064.png": "d66eac66ca00a754d766a58d438dbd61f571297520921b035c2013f6dcf5c14d",
+        "public/studies/work-planning/flow-layers/065.png": "76350aa86c58d8941b0d0f5b49870bd3b354771d73eaaaec7e76310113a71910",
+        "public/studies/work-planning/flow-layers/066.png": "7a7b1ca5ef10eed59431a834efda3f954e9890d13bc4475560513c78ab2a3554",
+        "public/studies/work-planning/flow-layers/067.png": "0d683a337ab5aa612f290ebf5ed7658b54152db6433f31e3ef51e0cf9d587fa1",
+        "public/studies/work-planning/flow-layers/068.png": "0b2f008ff54be9f5f7a6262e9458c11ef8e42ae8dc4d3bc376ff544b64e80703",
+        "public/studies/work-planning/flow-layers/069.png": "82ed8886e358a9585b5e4d1eb11e98ce67f56083490f5fc42dfa1d8c4a3ad812",
+        "public/studies/work-planning/flow-layers/070.png": "753bd297372c772ca64d3c6d007f0591850469bc3e7f0e3d59be5abf59865537",
+        "public/studies/work-planning/flow-layers/071.png": "3924cee4204af64b7ce17871801ed26052b535193af912e39dc6318401d4bcbb",
+        "public/studies/work-planning/flow-layers/072.png": "6d13c40f7f9397bcdbccaf57b396b896441ccdd3fd5674529fa6ebe1983fd1f6",
+        "public/studies/work-planning/flow-layers/073.png": "6b080920ff5483814d9ea52598fb5ee301dd69def028515f4ba7c54dcc901b84",
+        "public/studies/work-planning/flow-layers/074.png": "d32103096fb486814f35ab3934c09edd6d9e764fc9fb2e5dcd9b18e934324ebc",
+        "public/studies/work-planning/flow-layers/075.png": "88bc65b90983b53e02302db464ac5e2f8d374f50651ef0022fc66068fe39ee4b",
+        "public/studies/work-planning/flow-layers/076.png": "e5866b7c64cf20127894395a1157c5179fb57dc85beba07759d01d5d1328169a",
+        "public/studies/work-planning/flow-layers/077.png": "79ef14dfedc256aa37b12c3954bf43b21085b32d55e2133272a4daa1bdb0a05d",
+        "public/studies/work-planning/flow-layers/078.png": "bd43930a597b47521e5ef054d98d408ab67a6a8749ddabedea490e3fe10c8594",
+        "public/studies/work-planning/flow-layers/079.png": "16bdeb91c350b167995b05a9e47f0aa97612b39b19e1cb1abb91290151556a08",
+        "public/studies/work-planning/flow-layers/080.png": "d09b015734e3effeee71fcd086e2450192c32068feaba4d58396da93de27aaf2",
+        "public/studies/work-planning/flow-layers/081.png": "bc1e6c3d3322472d6f10d648e28ed29b0fa9bfb7b3d8b27f050669c2d0bee728",
+        "public/studies/work-planning/flow-layers/082.png": "c17115aa3269146a9e6b95905558c389cba67e577b2cc5ef33f917225ff76a3b",
+        "public/studies/work-planning/flow-layers/083.png": "ed90ae5b7df216025ecffe26d62dd4886c349c31cf2e8a9ebf7f51e2b4f5f696",
+        "public/studies/work-planning/flow-layers/084.png": "f3d43e1d1be60d1646bcaafaf3f22925881a679b91616bf0c8ba31c6811ed610",
+        "public/studies/work-planning/flow-layers/085.png": "f8d05253a0d6a306c1303ba641c08d71f7b93151ab568dfb353db39d90f213f6",
+        "public/studies/work-planning/flow-layers/086.png": "ab358e9dde84902713dd69f25ff6330477016cd4ca6812472fde43826543f54c",
+        "public/studies/work-planning/flow-layers/087.png": "4a9026762d9281b50203e9cc794af0290ddab85007f49be31e3da5818a7a1af3",
+        "public/studies/work-planning/flow-layers/088.png": "02205e90316007ad51102b4fadec1c2e6e20a1c6730d3f5240681dab7104b76c",
+        "public/studies/work-planning/flow-layers/089.png": "b3dd7e9535ae918ca823e048ef04bbaa1455ddc936303225ec0afbefdca2485c",
+        "public/studies/work-planning/flow-layers/090.png": "0cb41baffb541b4cc729bc7c8ae1bf5901e7703cd3abdfa79054b23541b0db27",
+        "public/studies/work-planning/flow-layers/091.png": "918e43882f0081602def9e2fa7cd0f7132f05f34d638c60f02665358b0e65e64",
+        "public/studies/work-planning/flow-layers/092.png": "99aff4d1858d409e07cb613b1b437256658177535aae85cd040a6cbe354c6000",
+        "public/studies/work-planning/flow-layers/093.png": "3312021dea32f9a72dcd36ebc241e5938241a8fe106227af262c9fa06860c497",
+        "public/studies/work-planning/flow-layers/094.png": "477efd4b2e62de4935ad8a36dcaf53a886fe09ee7ce0e83206bc268565553c52",
+        "public/studies/work-planning/flow-layers/095.png": "f637ede4113a25c5e8a5a7836c79b8ceb962d97578f75d7744efa518a691a205",
+        "public/studies/work-planning/flow-layers/096.png": "ea0614c8107b278d222de8d8ae6c8305280e5628d1474be5ed5edb333d3ebfe3",
+        "public/studies/work-planning/flow-layers/097.png": "173ab7b982ab9052a072542ae91f65e5aaed258616c20448265f0198fdd3034b",
+        "public/studies/work-planning/flow-layers/098.png": "44fb6cd52b90e82fc95d0f2a1cda1ced19b8d69b19a131dd4847767bf51ada45",
+        "public/studies/work-planning/flow-layers/099.png": "1d18b37cf077dbd414bbb319d08ec1159a642c48bd70a3653e838bb3a2351585",
+        "public/studies/work-planning/flow-layers/100.png": "e0cea74f579f081d35b667906a2b5d157b783b06decb83744b17e35dee0f122a",
+        "public/studies/work-planning/flow-layers/101.png": "eec4c837ec9b343f5fc9a75b77055d56466ea106c2057f23930dc0b8c5cadd59",
+        "public/studies/work-planning/flow-layers/102.png": "422d3a7727b1d5bf5591344357e27fa6ae3720f931b1b851cd0eb2dc47969b3e",
+        "public/studies/work-planning/flow-layers/103.png": "a652c141b5373088a31c70c212469d3f640cb3959d0196ab7b5a86543f1dbf49",
+        "public/studies/work-planning/flow-layers/104.png": "c51cfdfc3e5aa8f5607fa382a25d4f79f5fb89aae0b8881836b38379e3320c33",
+        "public/studies/work-planning/flow-layers/105.png": "7e17ca33e81a8cace19fe93f2315a6efaaaf3fb4b14adfc99f8154a0b984fe24",
+        "public/studies/work-planning/flow-layers/106.png": "494bced2419e91786e88aa8553af3d71a964b6e9962f12955bfc4b710588d565",
+        "public/studies/work-planning/flow-layers/107.png": "bc32e9eda277d432144cbc3bf1d29884e2e8196800e2ef7a76e67bc62ae5816d",
+        "public/studies/work-planning/flow-layers/108.png": "961e04c5baf3967e7676e510403ed43f3dd9ccd173b877c72b87b0769d346a81",
+        "public/studies/work-planning/flow-layers/109.png": "50193a0d42113e808308dd34c25fe32b769a0adc437c39b70af3f1d7bfe54ae4",
+        "public/studies/work-planning/flow-layers/110.png": "29a078a7dca523aef9a918228c33dff5da381c86f4d5c464cf366efa0fc21827",
+        "public/studies/work-planning/flow-layers/111.png": "447317fed0b45d95b504f1a1851fac01bea34c1b445bab699e8037adeda96468",
+        "public/studies/work-planning/flow-layers/112.png": "71e3a84db2758050e6bc07bc607dd24431beeec6830e1217dd64a7740b54b615",
+        "public/studies/work-planning/flow-layers/113.png": "3831be2b4e42e19350711ea4694456e07024c4e8316357245ca7bd69b084dcb4",
+        "public/studies/work-planning/flow-layers/114.png": "1a34b907421cde0e8047991f3862292b2a4aabcae6c2677807eef96b7e035c3a",
+        "public/studies/work-planning/flow-layers/115.png": "a1fe02b6b38fe56fd7f7e5375b788557d18f0e08a8501590d20767e977458ff7",
+        "public/studies/work-planning/flow-layers/116.png": "d70342e4d4cc51187d819dd8e45c1a03d51f1e987269a5ed3bd5277ef25b1bb7",
+        "public/studies/work-planning/flow-layers/117.png": "743255391aef89fbeae89478ed716ba78010732902914f468e84a5e4a9f87085",
+        "public/studies/work-planning/flow-layers/118.png": "286e7932c9b8ae8c2a6119dc6e127744aa86e9bac1a41b669a3a96eabbf89493",
+        "public/studies/work-planning/flow-layers/119.png": "4dea1d87e03c8382bc4d71eaab575ac4603e8b0cb84596194f0c1a3e9971ff0f",
+        "public/studies/work-planning/flow-layers/120.png": "2dba5792fc87c63b2a92a2be3471a3810332171cd4b7162e24f3c2f9de36601a",
+        "public/studies/work-planning/flow-layers/121.png": "89524a06bca1a0db0eb03b4e4e7b1f88534d14908e3ea062ffdb4cb1b0f1eab2",
+        "public/studies/work-planning/flow-layers/122.png": "35d908d480b2a34905b34a0804bb122ec271f0d0d0a6b8943f0c80d2b2e5a3cc",
+        "public/studies/work-planning/flow-layers/123.png": "e9d6410a9c0f42b7003918c5fff0f7c06aed1fe34a45f6fb1bcae9ec95e44dde",
+        "public/studies/work-planning/flow-layers/124.png": "f3d514fc8723eb996a7645355fd660855ff8d3409bbd008a29dc9c87f40a18d7",
+        "public/studies/work-planning/flow-layers/125.png": "717f7839e9a64caa91b53213f84f45987d90e7d47f2978dddee4c44756ec95f7",
+        "public/studies/work-planning/flow-layers/126.png": "f662dcb3c5503d38504d4f264343166c0af76bd9c2fcf2bf8f9ec2556b45ea01",
+        "public/studies/work-planning/flow-layers/127.png": "11efbe686b25ffb3105e3aab700b6b1aa057c1bb445ff81e3c524bb862ad074f",
+        "public/studies/work-planning/flow-layers/128.png": "958e19d972095ef546add243e2c7b78f46d3c73322649706ceaf335bee302cd5",
+        "public/studies/work-planning/flow-layers/129.png": "b67db7a1dfe65f2745b20585bac123519034593e5bca4deefb8c255f3625c390",
+        "public/studies/work-planning/flow-layers/130.png": "2fe22b4e5529d735a15ec4243cb231159334c9a7fe034d434b65c358e83e854b",
+        "public/studies/work-planning/flow-layers/131.png": "0d72a1056fe9d3c7187a1e2d852e79733572e96b0a4cd7a40b6e4fb0f5a4e877",
+        "public/studies/work-planning/flow-layers/132.png": "fa213e5d4dae30de61e133a9e264645abb1565ad51f93d093d79f91f7380ada2",
+        "public/studies/work-planning/flow-layers/133.png": "104d65741445cb019f19e9b07b43f0d6535882db0bed52b3bc3975e739a343f0",
+        "public/studies/work-planning/flow-layers/134.png": "6b71683fc3308107cf8aad64f2e26787280982b2564b3fa558f1db0fbc7d0e85",
+        "public/studies/work-planning/flow-layers/135.png": "1ea28e611b9f0fce4917e51876ddf2f76f71dc1f6761c3e0cea1adb3a7cddc9f",
+        "public/studies/work-planning/flow-layers/136.png": "fab79682d6f5e8b21a3a73c30a5b43ea561eb4c4d34f59b6fb37c334954956cc",
+        "public/studies/work-planning/flow-layers/137.png": "25d79f9c7a4994d52d33b2884eedabccc0780014649ef9f77e4e523b2ac0f22b",
+        "public/studies/work-planning/flow-layers/138.png": "c3e31da6fd208f4eba97ebc27c9080c6faf4569dfca1cce53a47b59f57005584",
+        "public/studies/work-planning/flow-layers/139.png": "533a1dc15b9ffab1e24a99177f5538032c9b2bfc22d804c37d1965a7814e305c",
+        "public/studies/work-planning/flow-layers/140.png": "a5ba8a0cab3c9a290b6b0b7ed34b549954b185e84f585e0b135527432c37b577",
+        "public/studies/work-planning/flow-layers/141.png": "413c790714d3a5046d03042af52a55a023723857e7ed81d577e99f7a99ea5e95",
+        "public/studies/work-planning/flow-layers/142.png": "07376d8338baae9b19ecc20cf4394c8b943991a0910dcd5c95639f3f6481b1fd",
+        "public/studies/work-planning/flow-layers/143.png": "132a4adc056fd6aa815589d71f88ccec4d9647b42ae0cfb0db9fb85de1e96b3c",
+        "public/studies/work-planning/flow-layers/144.png": "b88fe8c540f351f260aa06fd31480aa9d7085c427e5a5ec80959840f78cb3151",
+        "public/studies/work-planning/flow-layers/145.png": "409f47d2e2ac599087838c19d4940658f5be231c86074d45a9cdc554c7b00868",
+        "public/studies/work-planning/flow-layers/146.png": "aed39d37bb705fb71833c42024f9626545bea7d343195d19d69692606a2aaecc",
+        "public/studies/work-planning/flow-layers/147.png": "f5723d764b05e7701103cd4382fefce773229690ffa2c0ea74e6d9c2b8429196",
+        "public/studies/work-planning/flow-layers/148.png": "9d0f0f077d13df3550f244fdd78f19fdeec6b42b29f840229619d613158956ff",
+        "public/studies/work-planning/flow-layers/149.png": "fc27eb10f826eae62c0e099408f6b981a1569557cf8ce873373a0da8ef1bfffb",
+        "public/studies/work-planning/flow-layers/150.png": "157ec610c4e72efbb16b5675798f336a7a345f4f1609cc0e09bfc560926ae659",
+        "public/studies/work-planning/flow-layers/151.png": "48cb1a920d8f6efbbbdfb630ed6e222cc9ca2560bb3bd92ea7394be858c21b40",
+        "public/studies/work-planning/flow-layers/152.png": "ea2587ec6eb57458df5bde1ad966195a52af3a630cd21256fe9aecb99eb047bb",
+        "public/studies/work-planning/flow-layers/153.png": "a289bb1b554fb7c684bd823fafac91ce6facf5db546b3b4adbd7e54602d49aab",
+        "public/studies/work-planning/flow-layers/154.png": "573ae2a8c1ff4ae1b2b18bf109c9983e1599a035a588225e1fb178f26c227a50",
+        "public/studies/work-planning/flow-layers/155.png": "6d459676a38f92b50f58d6d0a9d9321fc0f879e3b4c2c1af402969290d9eb408",
+        "public/studies/work-planning/flow-layers/156.png": "7722380b7b9c4073af1549f9c5a7edc2f0fc991e9441d101c036dd5587d7297f",
+        "public/studies/work-planning/flow-layers/157.png": "c3fa7320b29ec354b0213ce25894f147b04e70a2728e48844d9972cccd30e4ac",
+        "public/studies/work-planning/flow-layers/158.png": "0ced309bfcccd58ec0e4a9b7f215eec6df836ebfb610370576a18a96814f2a2f",
+        "public/studies/work-planning/flow-layers/159.png": "106598189c50b839308c11bb726bed26d0ea1b2f90258fb37f690c5cd3248fad",
+        "public/studies/work-planning/flow-layers/160.png": "55f35c1d4f840c22959816192c46f84bd204a8a831d660ec215b4d0f71fb331e",
+        "public/studies/work-planning/flow-layers/161.png": "441ba0f30029645f4cb9c06304dbaecf7c814a509124e01bd512bd8ad22166ca",
+        "public/studies/work-planning/flow-layers/162.png": "47fd63e27a0fffbded2114b5c24b989a94e7e33363c808288e4a45ca175dc164",
+        "public/studies/work-planning/flow-layers/163.png": "9e35d14180ed4ccb787fe54c66bb275f8aca45689e6b41deeb30b3ad364c0576",
+        "public/studies/work-planning/flow-layers/164.png": "7a78c7ca3fe59a015a5bedf0153db462bd2f38d7c649358142aef45289eaef69",
+        "public/studies/work-planning/flow-layers/165.png": "9aa1a56987ce97ae9d05e070f3982e3967702b4d793ca2bc0ac80f79550a3a26",
+        "public/studies/work-planning/flow-layers/166.png": "b282995cf2e4ab7cd851a26d67c602a3157211b9a11f556ef4db051f6273cb72",
+        "public/studies/work-planning/flow-layers/167.png": "171365932854ff07485270690bf5d8e60f69488622d76c8842b9944df01ca102",
+        "public/studies/work-planning/flow-layers/168.png": "e65d11dc398bf2873fe2b7d49a61dfc7c01dd147bbd2d99bbfa3af6c9aa2fff7",
+        "public/studies/work-planning/flow-layers/169.png": "6b62eaa9ac374c70685187a7e92696f65e85682f07a02d505551cd17a1aec834",
+        "public/studies/work-planning/flow-layers/170.png": "4354fbe542f3be8550aae8382c6cbce235c829eee03156f862f7add8e39a4ed3",
+        "public/studies/work-planning/flow-layers/171.png": "b2e19a373f400051158ce5695b70d9bf33d3891f3eb8efd203bae0c7677a6b44",
+        "public/studies/work-planning/flow-layers/172.png": "25c8fc474325eaafc78f242cb44fe201b63918ed78a6ccba889bbb8a146e63e2",
+        "public/studies/work-planning/flow-layers/173.png": "f0de43c1b05dff83dcbfe3ab98f0d7056c92038bf58e0f1052f4161dae7f70c2",
+        "public/studies/work-planning/flow-layers/174.png": "b1eb1a8d5571e8ad523e8001f633ca496213188a7838a6b3a0451148d89a0e3f",
+        "public/studies/work-planning/flow-layers/175.png": "32968831ffbf2541d601105fafb314091951f6f8e9444b0d61d1a0ac667dacc1",
+        "public/studies/work-planning/flow-layers/176.png": "3e2d8df4066acf5c5d099d14c592749316c16d387a92f776f0770e8c3aa54531",
+        "public/studies/work-planning/flow-layers/177.png": "262404d7d8b9a6a32f983d0e62ddfaf5bddea92c66361ccb8bb308970d3ec047",
+        "public/studies/work-planning/flow-layers/178.png": "b23c1c5104cffc78dfd837af499b17e23c8dde3aea99a990b84ff17f5464a703",
+        "public/studies/work-planning/flow-layers/179.png": "4466a9a91214b1b70ba8f72bcd3b40dcfcfcb1569c13f5241d09abb466e08974",
+        "public/studies/work-planning/flow-layers/hold.png": "ce3f9f54f7e4e9bc0b1bb17ab97e75054e96a50ef4ff54bcd0fd82805e6333c8",
+        "public/studies/work-planning/flow-layers/manifest.json": "b430b3aaf102403b0a2744148f457aef24b4dc37c0eeceed0bacfe25551ceb66",
+        "public/studies/work-planning/flow-layers/rest.png": "62de82238cd224be4b8d986130a04471a40d0ab7944d1684cd343a2676ea21ec"
+      },
+      "narrationHashes": {
+        "timing.json": "d72d7ea40c6cc894e7468c029881414162026cf2a56285665680dfc4a7863e72",
+        "narration.wav": "a019d2399858f32bb45d2b48aec6f6e8237f1c0d4e014469c0a64941cccca504",
+        "speech-review.json": "6d9c485ea8a66a432d52774a953f5374469b78b7ff5d0f6948d21006bef3b75b"
+      },
+      "verification": {
+        "audioWindows": [
+          {
+            "time": 2,
+            "correlation": 0.9999885826030018,
+            "lagSamples16k": 0
+          },
+          {
+            "time": 26,
+            "correlation": 0.9999548012741838,
+            "lagSamples16k": 0
+          },
+          {
+            "time": 50,
+            "correlation": 0.99998566434298,
+            "lagSamples16k": 0
+          },
+          {
+            "time": 66,
+            "correlation": 0.9999658950903332,
+            "lagSamples16k": 0
+          }
+        ],
+        "muxVideoPacketsUnchanged": true,
+        "normalSpeedPlayback": "Not performed by this script; encoded samples inspected separately."
+      },
+      "reviewMediaPruned": false
+    }
+  ],
+  "reproductionVerification": {
+    "date": "2026-09-13",
+    "asset": "reading-recovery",
+    "sha256": "9fb02233d6acecb001d68cacce806b10379449ce2e0f53e52467bea27971c997",
+    "matchesApprovedVideoExactly": true,
+    "source": "Retained implementation/public assets and verified narration fixture; all prior web/out artifacts absent.",
+    "checks": "TypeScript;14 focused motion tests; fresh full narrated render;3 encoded/still frames; reduced-motion checks;0 sample audio lag.",
+    "temporaryOutputsRemoved": true
+  }
+}

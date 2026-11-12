@@ -1,4 +1,34 @@
 .DS_Store
+# Local credentials (keep only placeholder templates in Git).
+.env
+.env.*
+!.env.example
+!.env.local.example
+*.pem
+*.key
+*.p12
+*.pfx
+*service-account*.json
+application_default_credentials.json
+.aws/
+.gcloud/
+.secrets/
+credentials/
+
+# Local assistant tooling and durable session notes; retained locally.
+.agents/
+.codex/
+AGENTS.md
+feedback_v1.md
+creative_direction_pavan.md
+skills-lock.json
+
+# Generated local diagnostics and interpreter caches.
+__pycache__/
+*.pyc
+*.log
+*.tsbuildinfo
+.venv/
 .claude/
 node_modules/
 docs/references/infographic_inspo/

@@ -1,16 +1,18 @@
 import type { ContentEntry } from "../content/types";
 import type { PersonalizationFilter } from "../intake/schema";
 import { getGenAIClient } from "../gemini/client";
-import { checkAnchorPhrases, checkEntityDiff, checkReadingLevel, checkTtsSafety } from "./guardrail";
-import { cleanForSpeechAndDisplay, requiredAnchorPhrase } from "./narration";
+import { checkAnchorPhrases, checkEntityDiff, checkProtectedNumbers, checkReadingLevel, checkTtsSafety } from "./guardrail";
+import { requiredAnchorPhrase } from "./narration";
+import { buildSourcePacket } from "./source-packet";
+import { hasExactEntryCoverage } from "./select";
 
-// Narration Rewriter (#3c) — takes all selected entries together and
+export const NARRATION_REWRITE_VERSION = "complete-source-detail-instructions-v2";
+
+// Narration Rewriter — takes one ordered section of selected entries and
 // produces one continuous, natural-sounding narration script. GUARDRAIL:
-// output is validated to cover exactly the given entries (same ids, same
-// order) and to introduce no fact/number/name absent from the source union
-// (see guardrail.ts). Retries once on failure; throws on a second failure —
-// callers (the API route) must turn that into a 404, never a silent
-// fallback to unrewritten content, per the design doc.
+// output must cover exactly the given entries (same unique ids/order).
+// Per-entry quantity/entity checks precede semantic source-passage review.
+// Three attempts are allowed; failed validation never becomes a silent fallback.
 
 const MODEL = "gemini-2.5-flash";
 
@@ -49,36 +51,29 @@ const READING_LEVEL_MAX_AVG_WORDS_PER_SENTENCE: Record<string, number> = {
   advanced: 1000,
 };
 
-// Phase 2a goal 1: per-entry length budgets so the rewrite targets a
-// noticeably shorter total script (rough NHS-benchmark ~7min spoken ≈
-// ~1000-1100 words/regimen) instead of rewriting every entry at roughly
-// full length. `emergency`-tier and orienting content (`overview`,
-// `emergency` section) stay uncompressed — safety-critical/orienting
-// content isn't where the length problem is, and it shouldn't be.
+// Concision guidance has flexible duration: no sentence budget may force
+// omission of a distinct source instruction, regardless of severity tier.
 function lengthGuidance(entry: ContentEntry): string {
   if (entry.sectionId === "emergency" || entry.sectionId === "overview") {
     return "full length, no compression — safety-critical/orienting content.";
   }
   if (entry.sectionId === "side_effects") {
     if (entry.tier === "emergency") return "full detail, no compression — emergency-tier side effect.";
-    if (entry.tier === "call_team") return "moderate length — keep the call-your-team guidance intact, trim padding.";
-    return "brief — 1-2 sentences covering what it is and self-care.";
+    if (entry.tier === "call_team") return "Concise sentences; preserve every call-your-team instruction, condition, threshold, cross-reference and self-care action. No sentence cap; trim only padding.";
+    return "Briefly explain what it is, then preserve every distinct self-care action and call-team condition. Use as many short sentences as those instructions need.";
   }
   if (entry.sectionId === "patient_voices") {
-    return "very brief, 1-3 sentences — a short reassurance mention (\"other patients feel this too\"), not a full anecdote quoted verbatim.";
+    return "Preserve every distinct source experience and its attribution, including the specific anecdote details and qualifications. Keep individual experiences attributed to those patients; never turn them into general advice, a promise, or an unsupported claim about how many patients feel this way. Short attributed paraphrases are allowed; you do not need to repeat long quotations verbatim. Introduce an individual experience with 'A patient...' rather than numerical attribution such as 'One patient...'. Use concise, short sentences with a flexible sentence count; no sentence cap. Trim repetition and padding, not distinct experiences, and do not pack all details into a long sentence.";
   }
   if (entry.sectionId === "fertility_intimacy") {
-    return "brief, but keep every distinct instruction the source gives (fertility preservation, birth control, breastfeeding, and any \"ask your team\" caveat) — compress the explanation/reasoning around each, never merge or drop the instructions themselves.";
+    return "keep every distinct instruction the source gives (fertility preservation, birth control, breastfeeding, and any \"ask your team\" caveat) as a short clause each, including the essential reason if the source states one (e.g. why breastfeeding is unsafe) — cut only extra explanation beyond that, never merge or drop the instructions themselves.";
   }
-  return "normal length — concise but no special compression.";
+  return "concise — trim padding and restated context; no sentence-count cap, but every sentence should carry a distinct fact.";
 }
 
-function buildPrompt(entries: ContentEntry[], filter: PersonalizationFilter, retryFeedback?: string): string {
+export function buildRewritePrompt(entries: ContentEntry[], filter: PersonalizationFilter, retryFeedback?: string): string {
   const source = entries.map((e) => ({
-    entryId: e.id,
-    name: e.name,
-    plain: cleanForSpeechAndDisplay(e.plain),
-    detail: filter.includeDetail && e.detail ? cleanForSpeechAndDisplay(e.detail) : undefined,
+    ...buildSourcePacket(e, filter.includeDetail),
     lengthGuidance: lengthGuidance(e),
     // A video beat times itself off this exact phrase surviving into the
     // rewrite (narration.ts's requiredAnchorPhrase/checkAnchorPhrases) —
@@ -91,7 +86,7 @@ function buildPrompt(entries: ContentEntry[], filter: PersonalizationFilter, ret
   const readingLevel = EDUCATION_LEVEL_GUIDANCE[filter.educationLevel] ?? EDUCATION_LEVEL_GUIDANCE.some_college;
 
   return [
-    "You are rewriting pre-approved patient-education content into a single,",
+    "You are rewriting supplied patient-education source content into a single,",
     "natural spoken narration script for a video. You are NOT adding any new",
     "information — every fact, number, and name in your output must already",
     "appear in the source content below.",
@@ -99,11 +94,11 @@ function buildPrompt(entries: ContentEntry[], filter: PersonalizationFilter, ret
     `Tone: ${tone}`,
     `Reading level: ${readingLevel}`,
     "",
-    "Overall target: the whole script should land close to ~1000-1100 words",
-    "total (roughly a 7-minute narration) — noticeably tighter than a full",
-    "unweighted rewrite of every entry. Each source entry below carries a",
-    "`lengthGuidance` field telling you how much to compress that entry;",
-    "follow it per-entry so the total lands near that target.",
+    "This request may contain only one section of a longer video; do not add",
+    "a whole-video introduction, conclusion, or a fixed total word target.",
+    filter.includeDetail
+      ? "Depth: detailed. Explain the supplied detail passages in the requested language level, while keeping every core instruction."
+      : "Depth: short. Remove repetition and extra explanation, with flexible runtime. Never shorten by omitting distinct instructions or thresholds.",
     "",
     "Rules:",
     "- Rewrite each source entry below, keeping order, so the whole set reads as",
@@ -114,6 +109,18 @@ function buildPrompt(entries: ContentEntry[], filter: PersonalizationFilter, ret
     "  source entries.",
     "- Never drop safety-critical content (emergency / call-your-team instructions)",
     "  if the entry has it, even when compressing.",
+    "- Read EVERY supplied passage, including selfCare, callTeamIf, call911 and",
+    "  callTeam. Preserve all distinct instructions, alternatives, timing, thresholds,",
+    "  negations, caveats and essential reasons in plain and action passages, at EVERY tier.",
+    "  Rephrase naturally; do not repeat identical instructions duplicated across fields.",
+    "- detailContext is the full original detail at either depth, so references",
+    "  in detailInstruction excerpts can be understood. At short depth preserve",
+    "  each excerpt's patient instruction and conditions; omit its optional statistics",
+    "  and explanation. Also preserve any distinct patient safety instruction in",
+    "  detailContext that the conservative excerpt extraction missed.",
+    "- Retain every numerical quantity from the entry name, plain and action passages",
+    "  with its original units and conditions. Keep numbers as digits for reliable checking.",
+    "- Source fidelity is the task; source passages have not been established as clinically approved.",
     "- Write flowing spoken sentences only — never a numbered or bulleted list,",
     "  even when the source entries below read like one (e.g. a run of short",
     "  side-effect entries). A voice narrates this; list markers like \"1.\" or",
@@ -144,7 +151,7 @@ async function callRewrite(
 
   const response = await ai.models.generateContent({
     model: MODEL,
-    contents: [{ role: "user", parts: [{ text: buildPrompt(entries, filter, retryFeedback) }] }],
+    contents: [{ role: "user", parts: [{ text: buildRewritePrompt(entries, filter, retryFeedback) }] }],
   });
 
   const text = response.text?.trim() ?? "";
@@ -188,7 +195,7 @@ async function callRewrite(
 
 /** Structural guardrail: same entries, same ids, same order as given. */
 export function hasExpectedStructure(chunks: RewrittenChunk[], entries: ContentEntry[]): boolean {
-  if (chunks.length !== entries.length) return false;
+  if (!hasExactEntryCoverage(chunks.map((chunk) => chunk.entryId), entries)) return false;
   return chunks.every((c, i) => c.entryId === entries[i]!.id);
 }
 
@@ -196,31 +203,20 @@ export function hasExpectedStructure(chunks: RewrittenChunk[], entries: ContentE
 // pass that catches what the deterministic entity-diff guardrail can't —
 // facts borrowed from the wrong entry, meaning-inverting rewrites (a
 // contrast/negation/instruction flip with no invented fact), and dropped
-// emergency-tier safety instructions. Runs only after all the cheap
+// distinct source instructions at every tier. Runs only after all the cheap
 // deterministic checks pass, per the "cheap check first, expensive semantic
 // check second" ordering.
 
-interface CriticItem {
-  entryId: string;
-  tier: string;
-  sourcePlain: string;
-  sourceDetail?: string;
-  rewriteText: string;
-}
-
-function buildCriticPrompt(entries: ContentEntry[], chunks: RewrittenChunk[]): string {
-  const items: CriticItem[] = entries.map((e, i) => ({
-    entryId: e.id,
-    tier: e.tier ?? "self_care",
-    sourcePlain: cleanForSpeechAndDisplay(e.plain),
-    sourceDetail: e.detail ? cleanForSpeechAndDisplay(e.detail) : undefined,
+export function buildCriticPrompt(entries: ContentEntry[], chunks: RewrittenChunk[], includeDetail = true): string {
+  const items = entries.map((e, i) => ({
+    ...buildSourcePacket(e, includeDetail),
     rewriteText: chunks[i]!.text,
   }));
 
   return [
     "You are a safety reviewer for patient-education video narration. A source",
-    "passage (pre-approved, clinically reviewed) was rewritten into spoken",
-    "narration.",
+    "packet was rewritten into spoken narration. Check fidelity to the supplied",
+    "source; do not imply the source has been clinically approved.",
     "",
     "Check the rewrite against the source for these problems:",
     "",
@@ -239,46 +235,84 @@ function buildCriticPrompt(entries: ContentEntry[], chunks: RewrittenChunk[]): s
     "   - Instruction/imperative change: the source tells the patient to take",
     "     an action (call your team, go to the ER, take a medication a certain",
     "     way) and the rewrite softens, drops, delays, or redirects it.",
-    '3. Omission — only for entries marked tier "emergency": does the rewrite',
-    "   still contain the safety-critical action and any concrete threshold",
-    '   from the source (e.g. "call your care team immediately, day or',
-    '   night," a specific temperature/timing threshold)? Flag if that',
-    "   instruction is missing, vaguer, or delayed in the rewrite, even if",
-    "   nothing was technically contradicted. Do not apply this check to",
-    "   call_team or self_care tier entries — condensing/summarizing",
-    "   non-emergency detail is expected and fine.",
+    "3. Omission — apply to ALL tiers, including untiered entries. For EVERY",
+    "   plain, selfCare, callTeamIf, call911, callTeam and detailInstruction passage, enumerate its",
+    "   distinct instructions and check that each survives with its conditions,",
+    "   alternatives, units, threshold comparisons, timing, negations, caveats,",
+    "   essential reasons and urgency. A compact sentence can preserve several",
+    "   instructions. Repeated instructions across fields need only appear once.",
+    "   Do not accept a retained number if it is attached to the wrong condition.",
+    "   Distinct source messages and specific patient experiences must remain;",
+    "   generic reassurance is not a substitute. Detail explanation may be",
+    "   summarized, but any distinct instruction inside it must still survive.",
+    "   Use full detailContext to resolve references. For detailInstruction, check",
+    "   the instruction and its conditions, not optional surrounding statistics.",
+    "   Independently scan detailContext for patient safety instructions the excerpt",
+    "   extractor missed: flag a missing instruction as a violation even when all",
+    "   listed passages are preserved. Never require all contextual statistics",
+    "   or mechanism explanations in a short version.",
     "",
     "Do not flag: paraphrasing, tone changes, sentence reordering, or anything",
     "that preserves the same facts and the same instruction/belief in different",
     "words.",
     "",
-    "Entries to review (JSON array, each with the entry's severity tier — treat",
-    '"emergency" tier violations (checks 1, 2, and 3) as automatic failures,',
-    '"call_team" and "self_care" tier violations (checks 1 and 2 only) as',
-    "failures only if a fact or the instruction itself changes, not for tone):",
+    "All three checks apply to every entry regardless of severity tier.",
+    "Entries to review (JSON array):",
     "",
     JSON.stringify(items, null, 2),
     "",
     "Respond with ONLY JSON, no prose, no markdown fences:",
-    '{"pass": true}',
-    "or",
-    '{"pass": false, "violations": [{"entryId": "...", "issue": "one sentence describing what changed and which rule it broke"}]}',
+    'Return {"pass": true|false, "checks": [{"sourceRef": "entry:field", "preserved": true|false, "issue": "brief reason if false"}]}.',
+    "Include exactly one check for every sourceRef supplied in passages. A",
+    "passage is preserved only when all its distinct instructions survive and",
+    "none of its facts is changed or misattributed. Set pass false for any",
+    "invented claim in the rewrite, even if the source passages are preserved.",
+    'For invented claims, additionally return "violations": [{"entryId": "...", "issue": "..."}].',
   ].join("\n");
 }
 
-interface CriticResult {
+export interface CriticResult {
   pass: boolean;
   /** Human-readable summary of violations, present only when pass is false. */
   feedback?: string;
 }
 
-async function callCritic(entries: ContentEntry[], chunks: RewrittenChunk[]): Promise<CriticResult | null> {
+/** Reject incomplete review reports; a bare pass boolean cannot prove source coverage. */
+export function validateCriticResponse(parsed: unknown, entries: ContentEntry[], includeDetail: boolean): CriticResult | null {
+  if (typeof parsed !== "object" || parsed === null) return null;
+  const report = parsed as Record<string, unknown>;
+  if (typeof report.pass !== "boolean" || !Array.isArray(report.checks)) return null;
+  const expected = new Set(entries.flatMap((entry) => buildSourcePacket(entry, includeDetail).passages.map((p) => p.sourceRef)));
+  const seen = new Set<string>();
+  const failures: string[] = [];
+  for (const item of report.checks) {
+    if (typeof item !== "object" || item === null) return null;
+    const check = item as Record<string, unknown>;
+    if (typeof check.sourceRef !== "string" || typeof check.preserved !== "boolean" ||
+      !expected.has(check.sourceRef) || seen.has(check.sourceRef)) return null;
+    seen.add(check.sourceRef);
+    if (!check.preserved) failures.push(`${check.sourceRef}: ${typeof check.issue === "string" ? check.issue : "source instruction or meaning was not preserved"}`);
+  }
+  if (seen.size !== expected.size) return null;
+  if (Array.isArray(report.violations)) {
+    for (const item of report.violations) {
+      if (typeof item !== "object" || item === null) return null;
+      const violation = item as Record<string, unknown>;
+      if (typeof violation.entryId !== "string" || typeof violation.issue !== "string") return null;
+      failures.push(`${violation.entryId}: ${violation.issue}`);
+    }
+  }
+  if (!report.pass || failures.length) return { pass: false, feedback: failures.join("; ") || "reviewer rejected source fidelity" };
+  return { pass: true };
+}
+
+async function callCritic(entries: ContentEntry[], chunks: RewrittenChunk[], includeDetail: boolean): Promise<CriticResult | null> {
   const ai = await getGenAIClient();
   if (!ai) return null;
 
   const response = await ai.models.generateContent({
     model: MODEL,
-    contents: [{ role: "user", parts: [{ text: buildCriticPrompt(entries, chunks) }] }],
+    contents: [{ role: "user", parts: [{ text: buildCriticPrompt(entries, chunks, includeDetail) }] }],
     config: { temperature: 0 },
   });
 
@@ -292,24 +326,51 @@ async function callCritic(entries: ContentEntry[], chunks: RewrittenChunk[]): Pr
     if (process.env.REWRITE_DEBUG) console.error("CRITIC_DEBUG raw response:", text);
     return null;
   }
-  if (typeof parsed !== "object" || parsed === null) return null;
+  return validateCriticResponse(parsed, entries, includeDetail);
+}
 
-  const pass = (parsed as Record<string, unknown>).pass;
-  if (typeof pass !== "boolean") return null;
-  if (pass) return { pass: true };
+export interface NarrationValidationResult {
+  pass: boolean;
+  feedback?: string;
+}
 
-  const violations = (parsed as Record<string, unknown>).violations;
-  if (!Array.isArray(violations)) return null;
-  const feedback = violations
-    .map((v) =>
-      typeof v === "object" && v !== null
-        ? `${(v as Record<string, unknown>).entryId}: ${(v as Record<string, unknown>).issue}`
-        : null,
-    )
-    .filter((s): s is string => Boolean(s))
-    .join("; ");
+/** Shared validation for newly generated and retained narration candidates.
+ * Rechecking an unchanged script does not require regenerating its audio. */
+export async function validateRewrittenNarration(
+  entries: ContentEntry[],
+  filter: PersonalizationFilter,
+  chunks: RewrittenChunk[],
+): Promise<NarrationValidationResult> {
+  if (!Array.isArray(chunks) || chunks.some((chunk) => !chunk || typeof chunk.entryId !== "string" || typeof chunk.text !== "string" || !chunk.text.trim()) || !hasExpectedStructure(chunks, entries)) {
+    return { pass: false, feedback: "the response wasn't valid JSON in the required shape (one object per source entry, same ids, same order)." };
+  }
+  const script = chunks.map((c) => c.text).join(" ");
+  // Check each entry against its own complete packet; another entry's
+  // number/name cannot legitimize a misattribution here.
+  const introduced = chunks.flatMap((chunk, index) =>
+    checkEntityDiff(chunk.text, [entries[index]!], filter.includeDetail).introduced.map((item) => `${chunk.entryId}: ${item}`),
+  );
+  if (introduced.length) return { pass: false, feedback: `it introduced content not present in the source: ${introduced.join(", ")}.` };
 
-  return { pass: false, feedback: feedback || "the critic flagged an unspecified issue" };
+  const protectedNumbers = checkProtectedNumbers(chunks, entries);
+  if (!protectedNumbers.ok) return { pass: false, feedback: `it dropped or changed required source quantities: ${protectedNumbers.missing.map((item) => `${item.entryId}: ${item.numbers.join(", ")}`).join("; ")}. Preserve quantities with their units and conditions.` };
+
+  const anchorPhrases = checkAnchorPhrases(chunks, entries);
+  if (!anchorPhrases.ok) return { pass: false, feedback: `it dropped wording a video beat needs to time itself against, for: ${anchorPhrases.missing.join(", ")}. That entry's rewrite must include its \`requiredPhrase\` verbatim.` };
+
+  const ttsSafety = checkTtsSafety(script);
+  if (!ttsSafety.ok) return { pass: false, feedback: `it isn't safe for speech synthesis (${ttsSafety.issues.join(", ")}) — plain prose only, no markdown or stage directions.` };
+
+  const maxAvgWordsPerSentence =
+    READING_LEVEL_MAX_AVG_WORDS_PER_SENTENCE[filter.educationLevel] ??
+    READING_LEVEL_MAX_AVG_WORDS_PER_SENTENCE.basic!;
+  const readingLevel = checkReadingLevel(script, maxAvgWordsPerSentence);
+  if (!readingLevel.ok) return { pass: false, feedback: `sentences are too long for a ${filter.educationLevel} reading level (avg ${readingLevel.avgWordsPerSentence.toFixed(1)} words/sentence) — use shorter sentences.` };
+
+  const critic = await callCritic(entries, chunks, filter.includeDetail);
+  if (!critic) return { pass: false, feedback: "the safety critic response wasn't valid JSON in the required shape." };
+  if (!critic.pass) return { pass: false, feedback: `a safety reviewer found issues: ${critic.feedback}` };
+  return { pass: true };
 }
 
 export async function rewriteNarration(
@@ -317,65 +378,13 @@ export async function rewriteNarration(
   filter: PersonalizationFilter,
 ): Promise<RewriteResult> {
   let retryFeedback: string | undefined;
-
   for (let attempt = 0; attempt < 3; attempt++) {
     const chunks = await callRewrite(entries, filter, retryFeedback);
-
-    if (!chunks || !hasExpectedStructure(chunks, entries)) {
-      retryFeedback =
-        "the response wasn't valid JSON in the required shape (one object per source entry, same ids, same order).";
-      console.warn(`Narration rewrite attempt ${attempt + 1} rejected: ${retryFeedback}`);
-      continue;
-    }
-
-    const script = chunks.map((c) => c.text).join(" ");
-
-    const entityDiff = checkEntityDiff(script, entries);
-    if (!entityDiff.ok) {
-      retryFeedback = `it introduced content not present in the source: ${entityDiff.introduced.join(", ")}.`;
-      console.warn(`Narration rewrite attempt ${attempt + 1} rejected: ${retryFeedback}`);
-      if (process.env.REWRITE_DEBUG) console.error("REWRITE_DEBUG failing script:", script);
-      continue;
-    }
-
-    const anchorPhrases = checkAnchorPhrases(chunks, entries);
-    if (!anchorPhrases.ok) {
-      retryFeedback = `it dropped wording a video beat needs to time itself against, for: ${anchorPhrases.missing.join(", ")}. That entry's rewrite must include its \`requiredPhrase\` verbatim.`;
-      console.warn(`Narration rewrite attempt ${attempt + 1} rejected: ${retryFeedback}`);
-      continue;
-    }
-
-    const ttsSafety = checkTtsSafety(script);
-    if (!ttsSafety.ok) {
-      retryFeedback = `it isn't safe for speech synthesis (${ttsSafety.issues.join(", ")}) — plain prose only, no markdown or stage directions.`;
-      console.warn(`Narration rewrite attempt ${attempt + 1} rejected: ${retryFeedback}`);
-      continue;
-    }
-
-    const maxAvgWordsPerSentence =
-      READING_LEVEL_MAX_AVG_WORDS_PER_SENTENCE[filter.educationLevel] ??
-      READING_LEVEL_MAX_AVG_WORDS_PER_SENTENCE.basic!;
-    const readingLevel = checkReadingLevel(script, maxAvgWordsPerSentence);
-    if (!readingLevel.ok) {
-      retryFeedback = `sentences are too long for a ${filter.educationLevel} reading level (avg ${readingLevel.avgWordsPerSentence.toFixed(1)} words/sentence) — use shorter sentences.`;
-      console.warn(`Narration rewrite attempt ${attempt + 1} rejected: ${retryFeedback}`);
-      continue;
-    }
-
-    const critic = await callCritic(entries, chunks);
-    if (!critic) {
-      retryFeedback = "the safety critic response wasn't valid JSON in the required shape.";
-      console.warn(`Narration rewrite attempt ${attempt + 1} rejected: ${retryFeedback}`);
-      continue;
-    }
-    if (!critic.pass) {
-      retryFeedback = `a safety reviewer found issues: ${critic.feedback}`;
-      console.warn(`Narration rewrite attempt ${attempt + 1} rejected: ${retryFeedback}`);
-      continue;
-    }
-
-    return { chunks, script };
+    const validation = await validateRewrittenNarration(entries, filter, chunks ?? []);
+    if (validation.pass && chunks) return { chunks, script: chunks.map((chunk) => chunk.text).join(" ") };
+    retryFeedback = validation.feedback;
+    console.warn(`Narration rewrite attempt ${attempt + 1} rejected: ${retryFeedback}`);
+    if (process.env.REWRITE_DEBUG) console.error("REWRITE_DEBUG rejected chunks:", JSON.stringify(chunks));
   }
-
   throw new Error("Narration rewrite failed validation/guardrail after retry.");
 }

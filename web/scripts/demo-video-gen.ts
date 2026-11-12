@@ -76,8 +76,9 @@ function saveSectionCache(cacheRoot: string, output: SectionPipelineOutput): voi
 
 async function main() {
   const voiceTone = process.argv[2] ?? "friendly";
+  const regimenId = process.argv[3] ?? "rchop";
   const intake = IntakeSchema.parse({
-    regimenId: "rchop",
+    regimenId,
     educationLevel: "some_college",
     depthPreference: "short",
     voiceTone,

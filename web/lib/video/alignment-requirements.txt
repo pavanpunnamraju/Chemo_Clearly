@@ -1,0 +1,4 @@
+# Pinned because TorchAudio removed the forced alignment API after 2.8.
+torch==2.8.0
+torchaudio==2.8.0
+numpy==2.2.6

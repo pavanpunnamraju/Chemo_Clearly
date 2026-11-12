@@ -1,0 +1,16 @@
+{
+  "scope": "Straight far-sleeve revision. Original torso continuation, skin, other arm and joints retained.",
+  "sourceHashes": {
+    "working-typing.svg": "11e6f3cddf6f5f6e8de584c612d18f7afdc4b30991cd15142b8cade0f85e1a4d",
+    "working-typing-no-desk.svg": "7d2bdcdb19035c341e94ad052930dfe63cb31cc7e587bb8f38cab464665693a7"
+  },
+  "candidateHashes": {
+    "working-typing-straight-sleeve.svg": "f5855ae37922acffaccf882d14e0a251d51c5bfc26b1d016df3e63104544389f",
+    "working-typing-straight-sleeve-no-desk.svg": "c3b68d90ee2f7b7cacdbf483d8fe23a8efc3b6e91c38179136d0dc38140390ae"
+  },
+  "changedNodes": [
+    "far sleeve contour within shared shirt",
+    "far cuff separator transform"
+  ],
+  "humanApproval": "approved"
+}

@@ -1,7 +1,8 @@
 # Chemo Patient Education App — Design Doc
 
-Status: Approved design, in build (v1 target: demo for Dr. Nataraj Reddy).
-See `docs/implementation_plan.md` for live build status.
+Status (2026-10-17): broader app design retained as background. Active work is
+the R-CHOP video milestone, not app construction or clinical deployment. See
+[active video plan](../plans/rchop-v1.md) and [broader roadmap](../implementation_plan.md).
 
 Feature/scope details have moved to `docs/product_requirements.md` (what the
 app does), `docs/implementation_plan.md` (live status/sequencing),

@@ -1,19 +1,24 @@
 # Video Visual System
 
-Status: approved design, not yet implemented (see Prerequisites at the end).
+Status (2026-10-17): historical visual specification with partially implemented
+legacy archetypes. Current directed animation status and per-asset exceptions live
+in [R-CHOP v1](../plans/rchop-v1.md) and
+[creative direction](../../creative_direction_pavan.md). Those newer approved
+choices supersede this baseline; this file does not establish current integration
+or authorize the deferred transition-research pass.
 
 This is the visual/motion spec for the generated narrated video — layout, typography,
 illustration, and animation, per `NARRATED_SECTIONS`. Written to be implementable from
 cold, the way `schema.md` documents the content schema. Grounded in
-`docs/references/infographic_inspo/` (NHS UHL Trust chemo explainer stills) and real
+historical NHS UHL Trust chemo explainer stills (the local inspiration folder was removed) and real
 R-CHOP/AC-T content, verified regimen-general — every rule below is keyed off the
 entry's own data (drug count, phase count, tag, array position), never a hardcoded fact
 from one regimen.
 
 ## Typography
 
-- **Font:** Figtree (Google Font, via `@remotion/google-fonts`). Needs one real-render
-  load-order check before implementation trusts it — not yet verified.
+- **Font:** Figtree. The legacy renderer loads it through `@remotion/google-fonts`;
+  the directed renderer loads the bundled font and waits for it before rendering.
 - **Text-density rule:** headline-only when the slide's own name is already concrete
   (e.g. a specific side-effect name); headline + one-fact phrase when the label is
   generic (Overview, Timeline).
@@ -35,14 +40,10 @@ applies system-wide, not just to Storyset assets:
 
 ## Illustration style convention
 
-Every one of the 19 illustrations in `web/public/illustrations/MANIFEST.md` today is a
-`-bro` or `-pana` Storyset variant — both are Storyset's flat, faceless, single-character
-styles, closest to the NHS UHL reference look this project is anchored on
-(`docs/references/infographic_inspo/`). This was never a stated rule before, just what
-happened to get picked each time — stating it now: **prefer `-bro` or `-pana`** for every
-future Storyset download. Avoid other variants (`-amico`, `-rafiki`, `-cuate`, etc.) even
-if one turns up as a closer literal match for a search term — visual consistency across
-the whole illustration set matters more than a marginally better single-illustration fit.
+The [illustration manifest](../../web/public/illustrations/MANIFEST.md) currently
+lists 30 SVGs; approved study sources are tracked separately. Prefer Storyset
+`-bro` or `-pana` to preserve the established flat illustration style. Flag a
+proposed different variant for human review rather than silently switching styles.
 If neither bro nor pana exists for a needed search term, don't silently fall back to a
 third style — flag it explicitly so a human can make the call.
 
@@ -71,7 +72,7 @@ kept defined for other sections that may need a genuine list later.
 
 Horizontal spine(s) with nodes along them, callouts alternating above/below connected
 by a colored stem — adapted from
-`docs/references/infographic_inspo/timeline_stepped_layout.png`. See the multi-spine
+the historical `timeline_stepped_layout.png` inspiration (no longer retained). See the multi-spine
 mechanism below; this is not a single fixed spine.
 
 ### Alert — `emergency` section
@@ -93,7 +94,7 @@ break is in the cards, not the frame.
 
 **Fixed-slot bullet-reveal mechanic (replaces an earlier fade/clear-and-replace
 proposal logic-agent flagged as a real risk — see git history of
-`docs/references/handoff.md` for that verdict's full reasoning; revised again to
+`docs/plans/rchop-v1.md` for that verdict's full reasoning; revised again to
 drop position-1 emphasis, per human review of the storyboard mockup — see below).**
 
 - Every entry gets its own fixed row from the start of the section, in a single
@@ -121,7 +122,7 @@ drop position-1 emphasis, per human review of the storyboard mockup — see belo
   tried and rejected as "too intense" — the loudness was structural, from multiple
   rows reading hot at once, not the palette. Scoping "hot" to one row at a time
   inside an otherwise flat/quiet column fixed it without needing a blob wash; approved
-  mockup: `docs/references/handoff.md` git history, round 3, design-agent.)
+  mockup: `docs/plans/rchop-v1.md` git history, round 3, design-agent.)
 - Cards are title-only at every stage, including while active — there is no separate
   "detail" card state to shrink down from. That's what makes the fixed-slot layout
   fit: title-only cards are short enough that a full column never needs a further
@@ -152,13 +153,39 @@ still reads as part of the same video), but muted/desaturated — quieter than e
 other section, reflective rather than instructional. Crossfades between quote blocks
 (however many the entry has) instead of cutting to a new scene/character.
 
+## Motion & transitions
+
+Historical proposals informed by an NHS UHL motion reference; the local
+`animation_inspo` reference folder was removed. These proposals are not a mandate
+to implement transitions now: the extensive transition pass remains deferred,
+and newer per-asset approvals govern actual motion.
+
+- **Zoom-punch transitions between beats.** A section or beat boundary can transition by
+  scaling the outgoing composition up until it fills the frame with a flat color, holding
+  briefly on that color, then scaling the incoming composition down to resolve it —
+  available as this project's default cross-beat transition, in place of a plain opacity
+  crossfade or a translating wipe panel. The hold color reuses whichever blob tint
+  (teal/coral/navy per the color principle) fits the beat, so the transition reads as part
+  of the same visual system rather than a generic effect.
+- **Selective single-limb motion on continuous-action beats.** A Scene character can carry
+  a short, single-arm easing sweep — reaching, wiping, stirring — on beats whose action is
+  inherently continuous, layered on top of an otherwise-static pose.
+- **Small foreground detail carries "arriving."** A readout number ticking up, or text
+  revealing character-by-character, gives an otherwise-static composition a sense of
+  motion without animating the character.
+  anywhere a short line should read as arriving rather than appearing instantly.
+- **Long holds read as calm, not slow.** Beats can dwell for tens of seconds before
+  transitioning; the reference's unhurried pace comes from this dwell time, not from
+  frequent cuts. Reserve the zoom-punch transition above for actual beat/section
+  boundaries and let content within a beat hold.
+
 ## Per-section mapping
 
 | Section | Archetype |
 |---|---|
 | `overview` | Scene |
 | `timeline` | Timeline (multi-spine) |
-| `daily_life` | Scene |
+| `daily_life` | pending visual dump from human |
 | `side_effects` | Scene only (tag-driven subject rule) |
 | `fertility_intimacy` | Scene (held shot, no build) |
 | `emergency` | Alert |
@@ -177,8 +204,8 @@ falls back to the headline's original immediate-display timing instead of silent
 anchoring to a later, correctly-transcribed occurrence, (3) one small labeled tag
 animates onto the IV line per drug name as it's spoken — count comes from however
 many drugs the entry actually names (5 for R-CHOP, 3 for AC-T), never hardcoded.
-Drug-tag beat (3) not yet built — held pending the round-2 regimen-general
-drug-name-mistranscription fix (`docs/references/handoff-overview-timing.md`).
+Drug-tag beat (3) is built (`DrugTagChip` in `SlideVideo.tsx`), including the
+regimen-general drug-name-mistranscription guard.
 
 Known gap: no schema hook today to visually separate AC-T's two phases (AC vs. T) —
 the flat drug-tag list still renders correctly, just doesn't group them. Not a schema
@@ -201,14 +228,7 @@ connected by a colored stem.
 
 ### `daily_life`
 
-Headline "Most days," (navy) / "you keep living them" (teal), off-center upper-right
-— the opposite corner from `overview`, so back-to-back sections don't repeat the same
-eye path. Scene: person mid-walk outside; small paired icon+word chips slide in near
-the figure one per topic as narration moves through them (exercise → driving →
-intimacy-pointer → call_team_if), reading as one continuous day rather than slides
-stapled together. Ends on the `call_team_if` line as a single alert-colored chip,
-previewing the Alert archetype before `emergency` proper. Same mechanism on both
-regimens — content differs only in chip text.
+Pending visual dump from human.
 
 ### `side_effects` — tag-driven Scene subject rule
 
@@ -265,12 +285,12 @@ added during the R-CHOP storyboard mockup round so a viewer can tell how far thr
 section they are across sequential crossfades with no character/scene change to signal it;
 CSS only, no new asset.
 
-Verified against a real interactive mockup: `docs/references/handoff.md`, Phase 2a goal #6
-storyboard round, design-agent.
+Historically reviewed during the Phase 2a goal #6 storyboard round. That mockup
+is not retained; the current R-CHOP plan is an active queue, not the old mockup.
 
-## Prerequisites — satisfied
+## Historical baseline prerequisites — satisfied
 
-Both blockers below have landed; implementation is unblocked.
+These historical prerequisites do not mean the current directed-video milestone is complete.
 
 1. **AC-T's `emergency` section restructure.** Done — `docs/content/act.md`'s
    `emergency` section is now per-item `###`/`tier: emergency` entries (4 emergency
@@ -283,6 +303,4 @@ Both blockers below have landed; implementation is unblocked.
    tags and both invisible-condition tags. Verified against
    `web/public/illustrations/MANIFEST.md`.
 
-Verified for the Phase 2a goal #6 storyboard round — see the R-CHOP
-storyboard mockup this round produced for how the spec above actually lays out
-against real content.
+Historically verified for the Phase 2a goal #6 storyboard round. The old mockup is not retained; current implementation status is in the active R-CHOP plan.
